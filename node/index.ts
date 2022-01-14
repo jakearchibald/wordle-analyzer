@@ -7,56 +7,69 @@ const eliminatedCounts = new Map<string, number[]>(
   allWords.map((word) => [word, []]),
 );
 
+function answerIsValid(
+  answer: string,
+  knownParts: string[],
+  othersMustInclude: Set<string>,
+  mustNotContain: Set<string>,
+): boolean {
+  for (let i = 0; i < answer.length; i++) {
+    const letter = answer[i];
+    if (
+      (knownParts[i] && letter !== knownParts[i]) ||
+      mustNotContain.has(letter)
+    ) {
+      return false;
+    }
+    othersMustInclude.delete(letter);
+  }
+
+  // It's valid if we've used up all the letters we need to
+  return othersMustInclude.size === 0;
+}
+
 for (const answer of answers) {
   const answerLetters = new Set(answer);
 
   for (const guess of allWords) {
-    const remainingAnswers = new Set(answers);
     const remainingAnswerLetters = new Set(answer);
+    const knownParts = ['', '', '', '', ''];
+    const mustContain = new Set<string>();
+    const mustNotContain = new Set<string>();
 
-    for (const [i, letter] of [...guess].entries()) {
+    for (let i = 0; i < guess.length; i++) {
+      const letter = guess[i];
+
       // If there's an exact positional match,
       // This is a green square in Wordle.
       if (answer[i] === letter) {
         remainingAnswerLetters.delete(letter);
-        for (const remainingAnswer of remainingAnswers) {
-          // We can eliminate answers that don't share this exact positional match.
-          if (remainingAnswer[i] !== letter) {
-            remainingAnswers.delete(remainingAnswer);
-          }
-        }
+        knownParts[i] = letter;
       }
       // Otherwise, if the answer contains the letter (and it hasn't already been matched).
       // This is a yellow square in Wordle.
       else if (remainingAnswerLetters.has(letter)) {
         remainingAnswerLetters.delete(letter);
-
-        for (const remainingAnswer of remainingAnswers) {
-          // We can eliminate answers that have an exact positional match (since this would be a green square in that case),
-          // or answers that don't include the letter.
-          if (
-            remainingAnswer[i] === letter ||
-            !remainingAnswer.includes(letter)
-          ) {
-            remainingAnswers.delete(remainingAnswer);
-          }
-        }
+        mustContain.add(letter);
       }
       // The letter isn't in the answer.
       // We don't check remainingAnswerLetters here, we only care if the answer doesn't contain the letters at all.
       // This is when a keyboard key is greyed out in Wordle.
       else if (!answerLetters.has(letter)) {
-        for (const remainingAnswer of remainingAnswers) {
-          // We can eliminate any answer which includes the letter.
-          if (remainingAnswer.includes(letter)) {
-            remainingAnswers.delete(remainingAnswer);
-          }
-        }
+        mustNotContain.add(letter);
       }
-
-      // Record how many answers we eliminated for this guess.
-      eliminatedCounts.get(guess)!.push(answers.length - remainingAnswers.size);
     }
+
+    let validAnswers = 0;
+
+    for (const answer of answers) {
+      if (answerIsValid(answer, knownParts, mustContain, mustNotContain)) {
+        validAnswers++;
+      }
+    }
+
+    // Record how many answers we eliminated for this guess.
+    eliminatedCounts.get(guess)!.push(answers.length - validAnswers);
   }
 }
 
