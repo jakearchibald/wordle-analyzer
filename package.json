@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/index.ts",
-    "debug": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --inspect-brk --loader ts-node/esm node/index.ts"
+    "debug": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --inspect-brk --loader ts-node/esm node/single-thread.ts"
   },
   "author": "",
   "license": "ISC",
