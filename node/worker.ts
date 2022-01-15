@@ -1,8 +1,4 @@
 import { parentPort, workerData, isMainThread } from 'worker_threads';
-import { writeFile } from 'fs/promises';
-import { URL } from 'url';
-
-import type { GuessEliminations } from './types';
 
 /**
  * Does an answer comply with a set of conditions?
@@ -52,18 +48,13 @@ function possibleAnswer(
   return additionalRequiredLettersCopy.length === 0;
 }
 
-export async function writeEliminations(
-  guesses: string[],
-  guessesOffset: number,
-  answers: string[],
-) {
-  for (const [guessIndex, guess] of guesses.entries()) {
-    debugger;
-    const guessEliminations: GuessEliminations = [];
+export async function getBestAnswers(answers: string[], guesses: string[]) {
+  const eliminatedCounts = new Map<string, number[]>(
+    guesses.map((word) => [word, []]),
+  );
 
-    for (const [answerIndex, answer] of answers.entries()) {
-      // TODO: all of this is in the wrong place
-      // It needs to go up one level, maybe,
+  for (const answer of answers) {
+    for (const guess of guesses) {
       const remainingAnswerLetters = [...answer];
       const positionalMatches = ['', '', '', '', ''];
       const positionalNotMatches = ['', '', '', '', ''];
@@ -105,11 +96,11 @@ export async function writeEliminations(
         }
       }
 
-      const eliminations: number[] = [];
-      guessEliminations[answerIndex] = eliminations;
-      for (const [answerIndex, answer] of answers.entries()) {
+      let validAnswers = 0;
+
+      for (const answer of answers) {
         if (
-          !possibleAnswer(
+          possibleAnswer(
             answer,
             positionalMatches,
             positionalNotMatches,
@@ -117,25 +108,31 @@ export async function writeEliminations(
             remainingMustNotContain,
           )
         ) {
-          eliminations.push(answerIndex);
+          validAnswers++;
         }
       }
+
+      // Record how many answers we eliminated for this guess.
+      eliminatedCounts.get(guess)!.push(answers.length - validAnswers);
     }
 
-    await writeFile(
-      new URL(`./data/${guessIndex + guessesOffset}.json`, import.meta.url),
-      JSON.stringify(guessEliminations),
-    );
-    if (parentPort) parentPort.postMessage('part-done');
+    if (parentPort) parentPort.postMessage('answer-done');
   }
+
+  const averageEliminatedCounts: [string, number][] = [];
+
+  for (const [guess, eliminated] of eliminatedCounts) {
+    averageEliminatedCounts.push([
+      guess,
+      eliminated.reduce((a, b) => a + b, 0) / eliminated.length,
+    ]);
+  }
+
+  return averageEliminatedCounts;
 }
 
 if (!isMainThread) {
-  writeEliminations(
-    workerData.guesses,
-    workerData.guessesOffset,
-    workerData.answers,
-  ).then(() => {
-    parentPort!.postMessage('done!');
+  getBestAnswers(workerData.answers, workerData.guesses).then((result) => {
+    parentPort!.postMessage(result);
   });
 }
