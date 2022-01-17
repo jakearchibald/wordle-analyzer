@@ -10,7 +10,7 @@ import { parentPort, workerData, isMainThread } from 'worker_threads';
  * @param remainingMustNotContain Set of letters that must not appear in the answer once other rules have been processed.
  * @returns
  */
-function possibleAnswer(
+export function possibleAnswer(
   answer: string,
   positionalMatches: string[],
   positionalNotMatches: string[],
@@ -48,53 +48,68 @@ function possibleAnswer(
   return additionalRequiredLettersCopy.length === 0;
 }
 
-export async function getBestAnswers(answers: string[], guesses: string[]) {
-  const eliminatedCounts = new Map<string, number[]>(
-    guesses.map((word) => [word, []]),
-  );
+export function generateRules(answer: string, guess: string) {
+  const remainingAnswerLetters = [...answer];
+  const positionalMatches = ['', '', '', '', ''];
+  const positionalNotMatches = ['', '', '', '', ''];
+  const additionalKnownLetters: string[] = [];
+  const remainingMustNotContain = new Set<string>();
+
+  for (let i = 0; i < guess.length; i++) {
+    const letter = guess[i];
+
+    // If there's an exact positional match,
+    // This is a green square in Wordle.
+    if (answer[i] === letter) {
+      remainingAnswerLetters.splice(remainingAnswerLetters.indexOf(letter), 1);
+      // Valid answers must also have this positional match
+      positionalMatches[i] = letter;
+    }
+  }
+
+  for (let i = 0; i < guess.length; i++) {
+    const letter = guess[i];
+    // Otherwise, if the answer contains the letter (and it hasn't already been matched).
+    // This is a yellow square in Wordle.
+    if (remainingAnswerLetters.includes(letter)) {
+      remainingAnswerLetters.splice(remainingAnswerLetters.indexOf(letter), 1);
+      // Valid answers must not have this positional match, otherwise it'd be a green square
+      positionalNotMatches[i] = letter;
+      // Valid answers must contain this letter
+      additionalKnownLetters.push(letter);
+    }
+    // The guess letter isn't in remainingAnswerLetters.
+    // It might still be in the answer, but we already know about it via a green or yellow square.
+    // This catches cases where 'brass' is guessed and the answer is 'trash'.
+    // The first 's' will be recorded in positionalMatches, but since we've landed here for the 2nd 's',
+    // we know the answer only contains one 's'.
+    else {
+      remainingMustNotContain.add(letter);
+    }
+  }
+
+  return [
+    positionalMatches,
+    positionalNotMatches,
+    additionalKnownLetters,
+    remainingMustNotContain,
+  ] as const;
+}
+
+export function getBestAnswers(answers: string[], guesses: string[]) {
+  const averageEliminatedCounts: [string, number][] = guesses.map((guess) => [
+    guess,
+    -1,
+  ]);
 
   for (const answer of answers) {
-    for (const guess of guesses) {
-      const remainingAnswerLetters = [...answer];
-      const positionalMatches = ['', '', '', '', ''];
-      const positionalNotMatches = ['', '', '', '', ''];
-      const additionalKnownLetters: string[] = [];
-      const remainingMustNotContain = new Set<string>();
-
-      for (let i = 0; i < guess.length; i++) {
-        const letter = guess[i];
-
-        // If there's an exact positional match,
-        // This is a green square in Wordle.
-        if (answer[i] === letter) {
-          remainingAnswerLetters.splice(
-            remainingAnswerLetters.indexOf(letter),
-            1,
-          );
-          // Valid answers must also have this positional match
-          positionalMatches[i] = letter;
-        }
-        // Otherwise, if the answer contains the letter (and it hasn't already been matched).
-        // This is a yellow square in Wordle.
-        else if (remainingAnswerLetters.includes(letter)) {
-          remainingAnswerLetters.splice(
-            remainingAnswerLetters.indexOf(letter),
-            1,
-          );
-          // Valid answers must not have this positional match, otherwise it'd be a green square
-          positionalNotMatches[i] = letter;
-          // Valid answers must contain this letter
-          additionalKnownLetters.push(letter);
-        }
-        // The guess letter isn't in remainingAnswerLetters.
-        // It might still be in the answer, but we already know about it via a green or yellow square.
-        // This catches cases where 'brass' is guessed and the answer is 'trash'.
-        // The first 's' will be recorded in positionalMatches, but since we've landed here for the 2nd 's',
-        // we know the answer only contains one 's'.
-        else {
-          remainingMustNotContain.add(letter);
-        }
-      }
+    for (const [i, guess] of guesses.entries()) {
+      const [
+        positionalMatches,
+        positionalNotMatches,
+        additionalKnownLetters,
+        remainingMustNotContain,
+      ] = generateRules(answer, guess);
 
       let validAnswers = 0;
 
@@ -112,27 +127,21 @@ export async function getBestAnswers(answers: string[], guesses: string[]) {
         }
       }
 
-      // Record how many answers we eliminated for this guess.
-      eliminatedCounts.get(guess)!.push(answers.length - validAnswers);
+      if (averageEliminatedCounts[i][1] === -1) {
+        averageEliminatedCounts[i][1] = answers.length - validAnswers;
+      } else {
+        averageEliminatedCounts[i][1] =
+          (answers.length - validAnswers + averageEliminatedCounts[i][1]) / 2;
+      }
     }
 
     if (parentPort) parentPort.postMessage('answer-done');
-  }
-
-  const averageEliminatedCounts: [string, number][] = [];
-
-  for (const [guess, eliminated] of eliminatedCounts) {
-    averageEliminatedCounts.push([
-      guess,
-      eliminated.reduce((a, b) => a + b, 0) / eliminated.length,
-    ]);
   }
 
   return averageEliminatedCounts;
 }
 
 if (!isMainThread) {
-  getBestAnswers(workerData.answers, workerData.guesses).then((result) => {
-    parentPort!.postMessage(result);
-  });
+  const result = getBestAnswers(workerData.answers, workerData.guesses);
+  parentPort!.postMessage(result);
 }
