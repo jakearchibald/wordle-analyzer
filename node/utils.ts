@@ -1,6 +1,7 @@
 import { parentPort, workerData, isMainThread } from 'worker_threads';
 
 export type EliminationCounts = [word: string, averageEliminations: number][];
+type FiveLetters = [string, string, string, string, string];
 
 /**
  * Does an answer comply with a set of conditions?
@@ -14,8 +15,8 @@ export type EliminationCounts = [word: string, averageEliminations: number][];
  */
 export function possibleAnswer(
   answer: string,
-  positionalMatches: string[],
-  positionalNotMatches: string[],
+  positionalMatches: FiveLetters,
+  positionalNotMatches: FiveLetters,
   additionalRequiredLetters: string[],
   remainingMustNotContain: Set<string>,
 ): boolean {
@@ -49,8 +50,6 @@ export function possibleAnswer(
   // It's valid if we've used up all the letters we need to
   return additionalRequiredLettersCopy.length === 0;
 }
-
-type FiveLetters = [string, string, string, string, string];
 
 /**
  * Generate the clues given by a particular guess.
@@ -111,6 +110,12 @@ export function generateRules(
   ] as const;
 }
 
+/**
+ * Figure out the average number of eliminations for a particular guess.
+ *
+ * @param answers Array of possible answers
+ * @param guesses Array of possible guesses
+ */
 export function getBestAnswers(
   answers: string[],
   guesses: string[],
