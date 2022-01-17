@@ -106,5 +106,5 @@ for (const guess of guesses) {
   }
 
   possibleAnswers = nextAnswers;
-  console.log('Next turn!');
+  console.log('\nNext turn!\n');
 }

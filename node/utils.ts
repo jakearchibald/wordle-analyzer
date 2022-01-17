@@ -115,8 +115,8 @@ export function generateRules(
 /**
  * Figure out the average number of eliminations for a particular guess.
  *
- * @param answers Array of possible answers
- * @param guesses Array of possible guesses
+ * @param answers Array of answers Wordle may select
+ * @param guesses Array of guesses Wordle will accept
  */
 export function getBestAnswers(
   answers: string[],
