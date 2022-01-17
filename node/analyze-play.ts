@@ -1,5 +1,5 @@
 import { createRequire } from 'module';
-import { generateRules, possibleAnswer, getBestAnswers } from './worker.js';
+import { generateRules, possibleAnswer, getBestAnswers } from './utils.js';
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
@@ -9,7 +9,7 @@ const initialBestPlays = require('./eliminated-counts.json') as [
   number,
 ][];
 
-const guesses = ['smart', 'slime', 'slump'];
+const guesses = ['soare', 'pleat', 'baked', 'abbey'];
 const actualAnswer = guesses.slice(-1)[0];
 let firstGuess = true;
 let possibleAnswers = answers;

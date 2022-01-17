@@ -4,6 +4,8 @@ import { cpus } from 'os';
 import { URL } from 'url';
 import { writeFile } from 'fs/promises';
 
+import type { EliminationCounts } from './utils.js';
+
 const require = createRequire(import.meta.url);
 const workerCount = cpus().length - 1;
 const allWords = require('./all-words.json') as string[];
@@ -21,14 +23,14 @@ let done = 0;
 const expected = answers.length * allWordsGroups.length;
 
 const promises = allWordsGroups.map((wordGroup) => {
-  const worker = new Worker(new URL('./worker.ts', import.meta.url), {
+  const worker = new Worker(new URL('./utils.ts', import.meta.url), {
     workerData: {
       answers,
       guesses: wordGroup,
     },
   });
 
-  return new Promise<[string, number][]>((resolve, reject) => {
+  return new Promise<EliminationCounts>((resolve, reject) => {
     worker.on('message', (message) => {
       if (typeof message !== 'string') {
         resolve(message);

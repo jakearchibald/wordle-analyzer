@@ -1,5 +1,7 @@
 import { parentPort, workerData, isMainThread } from 'worker_threads';
 
+export type EliminationCounts = [word: string, averageEliminations: number][];
+
 /**
  * Does an answer comply with a set of conditions?
  *
@@ -48,10 +50,23 @@ export function possibleAnswer(
   return additionalRequiredLettersCopy.length === 0;
 }
 
-export function generateRules(answer: string, guess: string) {
+type FiveLetters = [string, string, string, string, string];
+
+/**
+ * Generate the clues given by a particular guess.
+ */
+export function generateRules(
+  answer: string,
+  guess: string,
+): readonly [
+  positionalMatches: FiveLetters,
+  positionalNotMatches: FiveLetters,
+  additionalRequiredLetters: string[],
+  remainingMustNotContain: Set<string>,
+] {
   const remainingAnswerLetters = [...answer];
-  const positionalMatches = ['', '', '', '', ''];
-  const positionalNotMatches = ['', '', '', '', ''];
+  const positionalMatches: FiveLetters = ['', '', '', '', ''];
+  const positionalNotMatches: FiveLetters = ['', '', '', '', ''];
   const additionalKnownLetters: string[] = [];
   const remainingMustNotContain = new Set<string>();
 
@@ -96,8 +111,11 @@ export function generateRules(answer: string, guess: string) {
   ] as const;
 }
 
-export function getBestAnswers(answers: string[], guesses: string[]) {
-  const averageEliminatedCounts: [string, number][] = guesses.map((guess) => [
+export function getBestAnswers(
+  answers: string[],
+  guesses: string[],
+): EliminationCounts {
+  const averageEliminatedCounts: EliminationCounts = guesses.map((guess) => [
     guess,
     -1,
   ]);
