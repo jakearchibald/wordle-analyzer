@@ -69,6 +69,8 @@ export function generateRules(
   const additionalKnownLetters: string[] = [];
   const remainingMustNotContain = new Set<string>();
 
+  // Green squares take priority over yellow squares,
+  // so those need to be resolved first.
   for (let i = 0; i < guess.length; i++) {
     const letter = guess[i];
 
