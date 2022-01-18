@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "generate-eliminated-counts": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/generate-eliminated-counts.ts",
-    "analyze-play": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/analyze-play.ts"
+    "analyze-play": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/analyze-play.ts",
+    "ai-play": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/ai-play.ts"
   },
   "author": "",
   "license": "ISC",

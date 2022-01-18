@@ -9,48 +9,30 @@ const initialBestPlays = require('./eliminated-counts.json') as [
   number,
 ][];
 
-const guesses = ['soare', 'pleat', 'baked', 'abbey'];
-const actualAnswer = guesses.slice(-1)[0];
+const actualAnswer = 'proxy';
 let firstGuess = true;
 let possibleAnswers = answers;
 
-for (const guess of guesses) {
-  if (guess === actualAnswer) {
-    console.log(`You found the answer!`, JSON.stringify(actualAnswer));
-    break;
-  }
-
+while (true) {
   const bestPlays = firstGuess
     ? initialBestPlays
     : getBestAnswers(possibleAnswers, allWords).sort((a, b) => b[1] - a[1]);
-  const remainingAnswers = possibleAnswers.length;
+
+  const guess = bestPlays[0][0];
 
   firstGuess = false;
 
+  const remainingAnswers = possibleAnswers.length;
+
   console.log(
     'The best average play is',
-    JSON.stringify(bestPlays[0][0]),
+    JSON.stringify(guess),
     'which eliminates, on average,',
     bestPlays[0][1].toFixed(2),
     'of the possible',
     remainingAnswers,
     'answers.',
   );
-
-  if (guess === bestPlays[0][0]) {
-    console.log(`That's what you went for!`);
-  } else {
-    const playStats = bestPlays.find(([play]) => play === guess);
-    console.log(
-      'You played',
-      JSON.stringify(guess),
-      'which eliminates, on average,',
-      playStats![1].toFixed(2),
-      'of the possible',
-      remainingAnswers,
-      'answers.',
-    );
-  }
 
   const [
     positionalMatches,
@@ -81,33 +63,8 @@ for (const guess of guesses) {
     console.log(nextAnswers);
   }
 
-  {
-    const [
-      positionalMatches,
-      positionalNotMatches,
-      additionalKnownLetters,
-      remainingMustNotContain,
-    ] = generateRules(actualAnswer, bestPlays[0][0]);
-
-    const aiNextAnswers = possibleAnswers.filter((answer) =>
-      possibleAnswer(
-        answer,
-        positionalMatches,
-        positionalNotMatches,
-        additionalKnownLetters,
-        remainingMustNotContain,
-      ),
-    );
-
-    if (guess !== bestPlays[0][0]) {
-      console.log(
-        JSON.stringify(bestPlays[0][0]),
-        'would have eliminated',
-        remainingAnswers - aiNextAnswers.length,
-        'answers. Leaving',
-        aiNextAnswers.length,
-      );
-    }
+  if (nextAnswers.length === 1) {
+    break;
   }
 
   possibleAnswers = nextAnswers;
