@@ -85,6 +85,9 @@ export function generateRules(
   }
 
   for (let i = 0; i < guess.length; i++) {
+    // If we've already handled this with a green square, skip.
+    if (positionalMatches[i]) continue;
+
     const letter = guess[i];
     // Otherwise, if the answer contains the letter (and it hasn't already been matched).
     // This is a yellow square in Wordle.
