@@ -1,6 +1,7 @@
 import { parentPort, workerData, isMainThread } from 'worker_threads';
 
-export type EliminationCounts = [word: string, averageEliminations: number][];
+export type EliminationEntry = [word: string, averageEliminations: number];
+export type EliminationCounts = EliminationEntry[];
 type FiveLetters = [string, string, string, string, string];
 
 /**
@@ -118,7 +119,7 @@ export function generateRules(
  * @param answers Array of answers Wordle may select
  * @param guesses Array of guesses Wordle will accept
  */
-export function getBestAnswers(
+export function getEliminationAverages(
   answers: string[],
   guesses: string[],
 ): EliminationCounts {
@@ -166,7 +167,33 @@ export function getBestAnswers(
   return averageEliminatedCounts;
 }
 
+export function getBestPlay(
+  remainingAnswers: string[],
+  eliminationCounts: EliminationCounts,
+): EliminationEntry {
+  const threshold = 1.1;
+  const bestAvgElimination = eliminationCounts[0][1];
+  let first = true;
+
+  for (const eliminationEntry of eliminationCounts) {
+    if (first) {
+      first = false;
+      continue;
+    }
+
+    if (bestAvgElimination - eliminationEntry[1] > threshold) {
+      return eliminationCounts[0];
+    }
+
+    if (remainingAnswers.includes(eliminationEntry[0])) {
+      return eliminationEntry;
+    }
+  }
+
+  return eliminationCounts[0];
+}
+
 if (!isMainThread) {
-  const result = getBestAnswers(workerData.answers, workerData.guesses);
+  const result = getEliminationAverages(workerData.answers, workerData.guesses);
   parentPort!.postMessage(result);
 }

@@ -17,7 +17,6 @@ const allWordsGroups = Array.from({ length: workerCount }, (_, i) =>
 );
 
 console.log(allWordsGroups.map((group) => group.length));
-console.log(allWordsGroups.map((group) => group[0]));
 
 let done = 0;
 const expected = answers.length * allWordsGroups.length;

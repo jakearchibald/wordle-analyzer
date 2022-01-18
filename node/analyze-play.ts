@@ -1,5 +1,10 @@
 import { createRequire } from 'module';
-import { generateRules, possibleAnswer, getBestAnswers } from './utils.js';
+import {
+  generateRules,
+  possibleAnswer,
+  getEliminationAverages,
+  getBestPlay,
+} from './utils.js';
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
@@ -22,22 +27,26 @@ for (const guess of guesses) {
 
   const bestPlays = firstGuess
     ? initialBestPlays
-    : getBestAnswers(possibleAnswers, allWords).sort((a, b) => b[1] - a[1]);
+    : getEliminationAverages(possibleAnswers, allWords).sort(
+        (a, b) => b[1] - a[1],
+      );
+
+  const bestPlay = getBestPlay(possibleAnswers, bestPlays);
   const remainingAnswers = possibleAnswers.length;
 
   firstGuess = false;
 
   console.log(
     'The best average play is',
-    JSON.stringify(bestPlays[0][0]),
+    JSON.stringify(bestPlay[0]),
     'which eliminates, on average,',
-    bestPlays[0][1].toFixed(2),
+    bestPlay[1].toFixed(2),
     'of the possible',
     remainingAnswers,
     'answers.',
   );
 
-  if (guess === bestPlays[0][0]) {
+  if (guess === bestPlay[0]) {
     console.log(`That's what you went for!`);
   } else {
     const playStats = bestPlays.find(([play]) => play === guess);
@@ -87,7 +96,7 @@ for (const guess of guesses) {
       positionalNotMatches,
       additionalKnownLetters,
       remainingMustNotContain,
-    ] = generateRules(actualAnswer, bestPlays[0][0]);
+    ] = generateRules(actualAnswer, bestPlay[0]);
 
     const aiNextAnswers = possibleAnswers.filter((answer) =>
       possibleAnswer(
@@ -99,9 +108,9 @@ for (const guess of guesses) {
       ),
     );
 
-    if (guess !== bestPlays[0][0]) {
+    if (guess !== bestPlay[0]) {
       console.log(
-        JSON.stringify(bestPlays[0][0]),
+        JSON.stringify(bestPlay[0]),
         'would have eliminated',
         remainingAnswers - aiNextAnswers.length,
         'answers. Leaving',

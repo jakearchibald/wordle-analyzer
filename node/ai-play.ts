@@ -1,5 +1,10 @@
 import { createRequire } from 'module';
-import { generateRules, possibleAnswer, getBestAnswers } from './utils.js';
+import {
+  generateRules,
+  possibleAnswer,
+  getEliminationAverages,
+  getBestPlay,
+} from './utils.js';
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
@@ -16,9 +21,12 @@ let possibleAnswers = answers;
 while (true) {
   const bestPlays = firstGuess
     ? initialBestPlays
-    : getBestAnswers(possibleAnswers, allWords).sort((a, b) => b[1] - a[1]);
+    : getEliminationAverages(possibleAnswers, allWords).sort(
+        (a, b) => b[1] - a[1],
+      );
 
-  const guess = bestPlays[0][0];
+  const bestPlay = getBestPlay(possibleAnswers, bestPlays);
+  const guess = bestPlay[0];
 
   firstGuess = false;
 
@@ -33,6 +41,11 @@ while (true) {
     remainingAnswers,
     'answers.',
   );
+
+  if (guess === actualAnswer) {
+    console.log(`That's the right answer!`);
+    break;
+  }
 
   const [
     positionalMatches,
@@ -61,10 +74,6 @@ while (true) {
 
   if (nextAnswers.length < 30) {
     console.log(nextAnswers);
-  }
-
-  if (nextAnswers.length === 1) {
-    break;
   }
 
   possibleAnswers = nextAnswers;
