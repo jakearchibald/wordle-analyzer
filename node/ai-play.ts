@@ -14,7 +14,8 @@ const initialBestPlays = require('./eliminated-counts.json') as [
   number,
 ][];
 
-const actualAnswer = 'proxy';
+const actualAnswer = 'robot';
+const forceFirstGuess = '';
 let firstGuess = true;
 let possibleAnswers = answers;
 
@@ -25,7 +26,11 @@ while (true) {
         (a, b) => b[1] - a[1],
       );
 
-  const bestPlay = getBestPlay(possibleAnswers, bestPlays);
+  const bestPlay =
+    firstGuess && forceFirstGuess
+      ? bestPlays.find((n) => n[0] === forceFirstGuess)!
+      : getBestPlay(possibleAnswers, bestPlays);
+
   const guess = bestPlay[0];
 
   firstGuess = false;
@@ -33,10 +38,10 @@ while (true) {
   const remainingAnswers = possibleAnswers.length;
 
   console.log(
-    'The best average play is',
+    'Playing',
     JSON.stringify(guess),
     'which eliminates, on average,',
-    bestPlays[0][1].toFixed(2),
+    bestPlay[1].toFixed(2),
     'of the possible',
     remainingAnswers,
     'answers.',
