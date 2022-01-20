@@ -4,7 +4,7 @@ import { cpus } from 'os';
 import { URL } from 'url';
 import { writeFile } from 'fs/promises';
 
-import type { EliminationCounts } from './utils.js';
+import type { EliminationAverages } from './utils.js';
 
 const require = createRequire(import.meta.url);
 const workerCount = cpus().length - 1;
@@ -29,7 +29,7 @@ const promises = allWordsGroups.map((wordGroup) => {
     },
   });
 
-  return new Promise<EliminationCounts>((resolve, reject) => {
+  return new Promise<EliminationAverages>((resolve, reject) => {
     worker.on('message', (message) => {
       if (typeof message !== 'string') {
         resolve(message);

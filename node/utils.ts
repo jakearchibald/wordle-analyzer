@@ -1,7 +1,7 @@
 import { parentPort, workerData, isMainThread } from 'worker_threads';
 
 export type EliminationEntry = [word: string, averageEliminations: number];
-export type EliminationCounts = EliminationEntry[];
+export type EliminationAverages = EliminationEntry[];
 type FiveLetters = [string, string, string, string, string];
 
 /**
@@ -125,11 +125,11 @@ export function generateRules(
 export function getEliminationAverages(
   answers: string[],
   guesses: string[],
-): EliminationCounts {
-  const averageEliminatedCounts: EliminationCounts = guesses.map((guess) => [
-    guess,
-    -1,
-  ]);
+): EliminationAverages {
+  const eliminationCounts = guesses.map((guess) => [guess, []]) as [
+    string,
+    number[],
+  ][];
 
   for (const answer of answers) {
     for (const [i, guess] of guesses.entries()) {
@@ -156,23 +156,21 @@ export function getEliminationAverages(
         }
       }
 
-      if (averageEliminatedCounts[i][1] === -1) {
-        averageEliminatedCounts[i][1] = answers.length - validAnswers;
-      } else {
-        averageEliminatedCounts[i][1] =
-          (answers.length - validAnswers + averageEliminatedCounts[i][1]) / 2;
-      }
+      eliminationCounts[i][1].push(answers.length - validAnswers);
     }
 
     if (parentPort) parentPort.postMessage('answer-done');
   }
 
-  return averageEliminatedCounts;
+  return eliminationCounts.map(([guess, counts]) => [
+    guess,
+    counts.reduce((a, b) => a + b, 0) / counts.length,
+  ]);
 }
 
 export function getBestPlay(
   remainingAnswers: string[],
-  eliminationCounts: EliminationCounts,
+  eliminationCounts: EliminationAverages,
 ): EliminationEntry {
   const threshold = 1.1;
   const bestAvgElimination = eliminationCounts[0][1];
