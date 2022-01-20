@@ -172,6 +172,8 @@ export function getBestPlay(
   remainingAnswers: string[],
   eliminationCounts: EliminationAverages,
 ): EliminationEntry {
+  if (remainingAnswers.length > 100) return eliminationCounts[0];
+
   const threshold = 1.1;
   const bestAvgElimination = eliminationCounts[0][1];
   let first = true;
