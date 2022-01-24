@@ -212,6 +212,7 @@ export function getBestPlay(
   const bestAvgElimination = eliminationCounts[0][1];
   let first = true;
 
+  // Bias slightly towards a remaining answer, even if the elimination count isn't quite as high.
   for (const eliminationEntry of eliminationCounts) {
     if (first) {
       first = false;
@@ -231,6 +232,8 @@ export function getBestPlay(
 }
 
 if (!isMainThread) {
-  const result = getEliminationAverages(workerData.answers, workerData.guesses);
-  parentPort!.postMessage(result);
+  parentPort!.on('message', (message) => {
+    const result = getEliminationAverages(message.answers, message.guesses);
+    parentPort!.postMessage(result);
+  });
 }

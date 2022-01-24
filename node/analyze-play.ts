@@ -1,14 +1,9 @@
 import { createRequire } from 'module';
-import {
-  generateRules,
-  possibleAnswer,
-  getEliminationAverages,
-  getBestPlay,
-} from './utils.js';
+import { getEliminationAveragesMT } from './get-elimination-averages-mt.js';
+import { generateRules, possibleAnswer, getBestPlay } from './utils.js';
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
-const answers = require('./all-words.json') as string[];
 const initialBestPlays = require('./eliminated-counts.json') as [
   string,
   number,
@@ -17,17 +12,17 @@ const initialBestPlays = require('./eliminated-counts.json') as [
 const guesses = ['soare', 'pleat', 'baked', 'abbey'];
 const actualAnswer = guesses.slice(-1)[0];
 let firstGuess = true;
-let possibleAnswers = answers;
+let possibleAnswers = allWords;
 
 for (const guess of guesses) {
   if (guess === actualAnswer) {
     console.log(`You found the answer!`, JSON.stringify(actualAnswer));
-    break;
+    process.exit();
   }
 
   const bestPlays = firstGuess
     ? initialBestPlays
-    : getEliminationAverages(possibleAnswers, allWords).sort(
+    : (await getEliminationAveragesMT(possibleAnswers, allWords)).sort(
         (a, b) => b[1] - a[1],
       );
 
