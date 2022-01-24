@@ -29,23 +29,24 @@ export function getEliminationAveragesMT(
       process.stdout.write('');
 
       const resultSets = await Promise.all(
-        workers.map(
-          (worker, i) =>
+        guessesGroups.map(
+          (guessesGroup, i) =>
             new Promise<EliminationAverages>((resolve, reject) => {
-              const guessesGroup = guessesGroups[i];
+              const worker = workers[i];
               worker.postMessage({
                 answers,
                 guesses: guessesGroup,
               });
 
               worker.on('message', (message) => {
+                process.stdout.clearLine(0);
+                process.stdout.cursorTo(0);
+
                 if (typeof message !== 'string') {
                   resolve(message);
                   return;
                 } else if (message === 'answer-done') {
                   done++;
-                  process.stdout.clearLine(0);
-                  process.stdout.cursorTo(0);
                   process.stdout.write(
                     `${done}/${expected} (${Math.round(
                       (done / expected) * 100,
