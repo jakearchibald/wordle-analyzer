@@ -154,7 +154,7 @@ export function getEliminationAverages(
   ][];
 
   for (const [i, guess] of guesses.entries()) {
-    const eliminationCache = new Map<string, number>();
+    const eliminationCache: { [key: string]: number | undefined } = {};
 
     for (const answer of answers) {
       const [
@@ -166,8 +166,8 @@ export function getEliminationAverages(
 
       const key = generateBlockColors(positionalMatches, positionalNotMatches);
 
-      if (eliminationCache.has(key)) {
-        eliminationCounts[i][1].push(eliminationCache.get(key)!);
+      if (eliminationCache[key]) {
+        eliminationCounts[i][1].push(eliminationCache[key]!);
         continue;
       }
 
@@ -190,7 +190,7 @@ export function getEliminationAverages(
       const eliminations = answers.length - validAnswers;
 
       eliminationCounts[i][1].push(eliminations);
-      eliminationCache.set(key, eliminations);
+      eliminationCache[key] = eliminations;
     }
 
     if (parentPort) parentPort.postMessage('answer-done');
