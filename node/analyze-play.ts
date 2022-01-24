@@ -8,7 +8,7 @@ import {
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
-const answers = require('./answers.json') as string[];
+const answers = require('./all-words.json') as string[];
 const initialBestPlays = require('./eliminated-counts.json') as [
   string,
   number,

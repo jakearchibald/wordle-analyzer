@@ -9,7 +9,7 @@ import type { EliminationAverages } from './utils.js';
 const require = createRequire(import.meta.url);
 const workerCount = cpus().length - 1;
 const allWords = require('./all-words.json') as string[];
-const answers = require('./answers.json') as string[];
+const answers = require('./all-words.json') as string[];
 
 const groupSize = Math.ceil(allWords.length / workerCount);
 const allWordsGroups = Array.from({ length: workerCount }, (_, i) =>
@@ -19,7 +19,7 @@ const allWordsGroups = Array.from({ length: workerCount }, (_, i) =>
 console.log(allWordsGroups.map((group) => group.length));
 
 let done = 0;
-const expected = answers.length * allWordsGroups.length;
+const expected = allWords.length;
 
 const promises = allWordsGroups.map((wordGroup) => {
   const worker = new Worker(new URL('./utils.ts', import.meta.url), {

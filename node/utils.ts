@@ -52,6 +52,28 @@ export function possibleAnswer(
   return additionalRequiredLettersCopy.length === 0;
 }
 
+export function generateBlockColors(
+  positionalMatches: FiveLetters,
+  positionalNotMatches: FiveLetters,
+): string {
+  let result = '';
+
+  for (let i = 0; i < positionalMatches.length; i++) {
+    if (positionalMatches[i]) {
+      // Green
+      result += 'g';
+    } else if (positionalNotMatches[i]) {
+      // Yellow
+      result += 'y';
+    } else {
+      // Blank
+      result += 'b';
+    }
+  }
+
+  return result;
+}
+
 /**
  * Generate the clues given by a particular guess.
  */
@@ -131,14 +153,23 @@ export function getEliminationAverages(
     number[],
   ][];
 
-  for (const answer of answers) {
-    for (const [i, guess] of guesses.entries()) {
+  for (const [i, guess] of guesses.entries()) {
+    const eliminationCache = new Map<string, number>();
+
+    for (const answer of answers) {
       const [
         positionalMatches,
         positionalNotMatches,
         additionalKnownLetters,
         remainingMustNotContain,
       ] = generateRules(answer, guess);
+
+      const key = generateBlockColors(positionalMatches, positionalNotMatches);
+
+      if (eliminationCache.has(key)) {
+        eliminationCounts[i][1].push(eliminationCache.get(key)!);
+        continue;
+      }
 
       let validAnswers = 0;
 
@@ -156,7 +187,10 @@ export function getEliminationAverages(
         }
       }
 
-      eliminationCounts[i][1].push(answers.length - validAnswers);
+      const eliminations = answers.length - validAnswers;
+
+      eliminationCounts[i][1].push(eliminations);
+      eliminationCache.set(key, eliminations);
     }
 
     if (parentPort) parentPort.postMessage('answer-done');
