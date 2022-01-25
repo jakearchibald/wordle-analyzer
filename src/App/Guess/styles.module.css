@@ -1,0 +1,42 @@
+.guess {
+  margin: 0 auto;
+  width: max-content;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.3em;
+}
+
+.cell {
+  --size: 3.7rem;
+  border: 2px solid var(--theme-grey-1);
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  width: var(--size);
+  height: var(--size);
+  text-transform: uppercase;
+  font-size: 2rem;
+  user-select: none;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.has-char {
+  border-color: var(--theme-grey-2);
+}
+
+.correct,
+.present,
+.absent {
+  border: none;
+  background: var(--theme-absent);
+  color: var(--theme-filled-tile-text);
+}
+
+.correct {
+  background: var(--theme-correct);
+}
+
+.present {
+  background: var(--theme-present);
+}

@@ -1,0 +1,15 @@
+.header {
+  display: grid;
+  border-bottom: 1px solid var(--theme-grey-1);
+
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 0.2em 0;
+  font-size: inherit;
+  font-weight: 700;
+  font-size: 36px;
+  letter-spacing: 0.2rem;
+  text-align: center;
+}
