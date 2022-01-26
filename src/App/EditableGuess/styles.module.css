@@ -1,0 +1,14 @@
+.editable-guess {
+  display: grid;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.editable-guess > * {
+  grid-area: 1 / 1;
+}
+
+.input {
+  opacity: 0;
+  pointer-events: none;
+}

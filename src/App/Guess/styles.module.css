@@ -7,6 +7,7 @@
 }
 
 .cell {
+  grid-row: 1;
   --size: 3.7rem;
   border: 2px solid var(--theme-grey-1);
   display: grid;
@@ -39,4 +40,10 @@
 
 .present {
   background: var(--theme-present);
+}
+
+.highlight {
+  grid-row: 1;
+  background: var(--theme-grey-1);
+  height: 20px;
 }
