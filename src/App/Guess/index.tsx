@@ -9,6 +9,7 @@ interface Props {
   cellClues?: [CellClue, CellClue, CellClue, CellClue, CellClue];
   value: string;
   selection?: [number, number];
+  onCellMouseDown?: (index: number) => void;
 }
 
 const fiveCells = [0, 1, 2, 3, 4] as const;
@@ -26,11 +27,39 @@ const cellClueSrTextMap = {
 };
 
 export default class Guess extends Component<Props> {
+  #onMouseDown = (event: Event) => {
+    event.preventDefault();
+    const el = event.target as HTMLElement;
+    const cell = el.closest(`.${styles.cell}`) as HTMLElement | undefined;
+    if (!cell) return;
+    const index = Number(cell.dataset.index);
+    this.props.onCellMouseDown?.(index);
+  };
+
   render({ cellClues, value, selection }: RenderableProps<Props>) {
     return (
-      <div class={styles.guess}>
+      <div class={styles.guess} onMouseDown={this.#onMouseDown}>
+        {selection && (
+          <div
+            key={'selection'}
+            class={[
+              styles.highlight,
+              selection[0] === selection[1] && styles.singleHighlight,
+              selection[1] === 5 && styles.lastHighlight,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            style={{
+              gridColumn: `${Math.min(5, selection[0] + 1)} / ${
+                selection[1] + 1
+              }`,
+            }}
+          ></div>
+        )}
         {fiveCells.map((index) => (
           <div
+            key={'cell' + index}
+            data-index={index}
             class={[
               styles.cell,
               cellClues && cellCluesStyleMap[cellClues[index]],
@@ -48,12 +77,6 @@ export default class Guess extends Component<Props> {
             )}
           </div>
         ))}
-        {selection && selection[0] !== 5 && (
-          <div
-            class={styles.highlight}
-            style={{ gridColumn: `${selection[0] + 1} / ${selection[1] + 1}` }}
-          ></div>
-        )}
       </div>
     );
   }

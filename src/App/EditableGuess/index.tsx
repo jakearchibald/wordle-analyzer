@@ -1,10 +1,10 @@
 import { Component, RenderableProps, createRef } from 'preact';
 import styles from './styles.module.css';
-import utilStyles from '../../utils.module.css';
 import Guess from '../Guess';
 
 interface Props {
   initialValue?: string;
+  label: string;
 }
 
 interface State {
@@ -42,23 +42,24 @@ export default class EditableGuess extends Component<Props, State> {
 
   #input = createRef<HTMLInputElement>();
 
-  #inputChange = (event: Event) => {
+  #onInputChange = (event: Event) => {
     this.setState({
       value: (event.currentTarget as HTMLInputElement).value,
     });
     this.#selectionChange();
   };
 
-  #inputFocus = () => {
+  #onInputFocus = () => {
     this.setState({ inputHasFocus: true });
   };
 
-  #inputBlur = () => {
+  #onInputBlur = () => {
     this.setState({ inputHasFocus: false });
   };
 
-  #guessClick = () => {
-    this.#input.current?.focus();
+  #onCellMouseDown = (index: number) => {
+    this.#input.current!.focus();
+    this.#input.current!.setSelectionRange(index, index + 1);
   };
 
   #selectionChange = () => {
@@ -74,26 +75,28 @@ export default class EditableGuess extends Component<Props, State> {
   };
 
   render(
-    {}: RenderableProps<Props>,
+    { label }: RenderableProps<Props>,
     { value, selection, inputHasFocus }: State,
   ) {
     return (
       <div class={styles.editableGuess}>
-        <div aria-hidden onClick={this.#guessClick}>
+        <div aria-hidden>
           <Guess
             value={value}
             selection={inputHasFocus ? selection : undefined}
+            onCellMouseDown={this.#onCellMouseDown}
           />
         </div>
         <input
+          aria-label={label}
           autoFocus={true}
-          onFocus={this.#inputFocus}
-          onBlur={this.#inputBlur}
+          onFocus={this.#onInputFocus}
+          onBlur={this.#onInputBlur}
           ref={this.#input}
           type="text"
           maxLength={5}
           value={value}
-          onInput={this.#inputChange}
+          onInput={this.#onInputChange}
           class={styles.input}
         />
       </div>

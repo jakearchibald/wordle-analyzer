@@ -20,6 +20,7 @@
   user-select: none;
   font-weight: bold;
   box-sizing: border-box;
+  position: relative;
 }
 
 .has-char {
@@ -43,7 +44,20 @@
 }
 
 .highlight {
+  --highlight-margin: 12px;
   grid-row: 1;
   background: var(--theme-grey-1);
-  height: 20px;
+  border-right: 2px solid var(--theme-grey-1);
+  height: 60%;
+  position: relative;
+  align-self: center;
+  margin: 0 var(--highlight-margin);
+}
+
+.single-highlight {
+  justify-self: start;
+}
+
+.single-highlight.last-highlight {
+  justify-self: end;
 }

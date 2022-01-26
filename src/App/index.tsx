@@ -7,7 +7,9 @@ export default class App extends Component {
     return (
       <>
         <Header />
-        <EditableGuess />
+        {Array.from({ length: 7 }).map((_, index) => (
+          <EditableGuess label={`Guess ${index + 1}`} />
+        ))}
       </>
     );
   }
