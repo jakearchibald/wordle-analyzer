@@ -3,7 +3,7 @@
   width: max-content;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0.3em;
+  gap: 0.3rem;
 }
 
 .cell {

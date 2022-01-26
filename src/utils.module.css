@@ -6,3 +6,18 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
 }
+
+.button {
+  all: unset;
+  color: inherit;
+  display: inline-block;
+  background: var(--theme-grey-1);
+  border: 1px solid var(--theme-grey-2);
+  cursor: pointer;
+  padding: 0.5rem 1.3rem;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

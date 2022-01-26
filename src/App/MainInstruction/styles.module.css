@@ -1,0 +1,15 @@
+.instructions {
+  display: grid;
+  overflow: hidden;
+  background: var(--theme-grey-1);
+  text-align: center;
+  align-items: center;
+}
+
+.instructions > * {
+  grid-area: 1 / 1;
+}
+
+.instructions > [aria-hidden='true'] {
+  opacity: 0;
+}

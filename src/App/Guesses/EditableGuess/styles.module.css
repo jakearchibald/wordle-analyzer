@@ -2,6 +2,7 @@
   display: grid;
   width: max-content;
   margin: 0 auto;
+  cursor: pointer;
 }
 
 .editable-guess > * {

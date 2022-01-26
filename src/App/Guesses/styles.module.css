@@ -1,0 +1,11 @@
+.guesses {
+  display: grid;
+  grid-auto-flow: row;
+  gap: 0.3rem;
+  margin: 1rem 0;
+}
+
+.buttons {
+  display: grid;
+  justify-content: center;
+}

@@ -1,36 +1,23 @@
 import { Component, RenderableProps, createRef } from 'preact';
 import styles from './styles.module.css';
-import Guess from '../Guess';
+import Guess from '../../Guess';
 
 interface Props {
-  initialValue?: string;
+  value: string;
   label: string;
+  onInput: (value: string) => void;
 }
 
 interface State {
-  initialValue: string;
-  value: string;
   inputHasFocus: boolean;
   selection?: [number, number];
 }
 
 export default class EditableGuess extends Component<Props, State> {
   state: State = {
-    initialValue: '',
-    value: '',
     inputHasFocus: false,
     selection: undefined,
   };
-
-  static getDerivedStateFromProps(props: Props, state: State) {
-    if (props.initialValue !== state.initialValue) {
-      return {
-        initialValue: props.initialValue,
-        value: props.initialValue || '',
-      };
-    }
-    return {};
-  }
 
   componentDidMount() {
     document.addEventListener('selectionchange', this.#selectionChange);
@@ -43,9 +30,7 @@ export default class EditableGuess extends Component<Props, State> {
   #input = createRef<HTMLInputElement>();
 
   #onInputChange = (event: Event) => {
-    this.setState({
-      value: (event.currentTarget as HTMLInputElement).value,
-    });
+    this.props.onInput((event.currentTarget as HTMLInputElement).value);
     this.#selectionChange();
   };
 
@@ -75,8 +60,8 @@ export default class EditableGuess extends Component<Props, State> {
   };
 
   render(
-    { label }: RenderableProps<Props>,
-    { value, selection, inputHasFocus }: State,
+    { label, value }: RenderableProps<Props>,
+    { selection, inputHasFocus }: State,
   ) {
     return (
       <div class={styles.editableGuess}>
