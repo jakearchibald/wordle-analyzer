@@ -1,8 +1,9 @@
-import { Component, RenderableProps } from 'preact';
+import { h, Fragment, Component, RenderableProps } from 'preact';
 import Guesses from './Guesses';
 import Header from './Header';
 import MainInstruction from './MainInstruction';
-import styles from './styles.module.css';
+import * as styles from './styles.module.css';
+import 'add-css:./styles.module.css';
 
 interface Props {}
 

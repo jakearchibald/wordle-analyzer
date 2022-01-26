@@ -1,6 +1,8 @@
-import { Component, RenderableProps } from 'preact';
-import styles from './styles.module.css';
-import utilStyles from '../../utils.module.css';
+import { h, Component, RenderableProps } from 'preact';
+import * as utilStyles from '../../utils.module.css';
+import 'add-css:../../utils.module.css';
+import * as styles from './styles.module.css';
+import 'add-css:./styles.module.css';
 
 export type CellClue = 'a' | 'p' | 'c';
 

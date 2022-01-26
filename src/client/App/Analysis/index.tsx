@@ -1,5 +1,6 @@
-import { Component, RenderableProps } from 'preact';
-import styles from './styles.module.css';
+import { h, Component, RenderableProps } from 'preact';
+import * as styles from './styles.module.css';
+import 'add-css:./styles.module.css';
 
 interface GuessData {
   guess: string;

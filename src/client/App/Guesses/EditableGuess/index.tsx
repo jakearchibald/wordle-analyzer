@@ -1,5 +1,6 @@
-import { Component, RenderableProps, createRef } from 'preact';
-import styles from './styles.module.css';
+import { h, Component, RenderableProps, createRef } from 'preact';
+import * as styles from './styles.module.css';
+import 'add-css:./styles.module.css';
 import Guess from '../../Guess';
 
 interface Props {

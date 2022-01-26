@@ -1,7 +1,9 @@
-import { Component, RenderableProps } from 'preact';
+import { h, Component, RenderableProps } from 'preact';
 import EditableGuess from './EditableGuess';
-import styles from './styles.module.css';
-import utilStyles from '../../utils.module.css';
+import * as utilStyles from '../../utils.module.css';
+import 'add-css:../../utils.module.css';
+import * as styles from './styles.module.css';
+import 'add-css:./styles.module.css';
 
 interface Props {
   values: string[];
