@@ -28,6 +28,7 @@ import runScript from './lib/run-script';
 import emitFiles from './lib/emit-files-plugin';
 import serviceWorkerPlugin from './lib/sw-plugin';
 import entryDataPlugin from './lib/entry-data-plugin';
+import entryURLPlugin from './lib/entry-url-plugin';
 
 function resolveFileUrl({ fileName }) {
   return JSON.stringify(fileNameToURL(fileName));
@@ -54,36 +55,6 @@ export default async function ({ watch }) {
   const tsPluginInstance = simpleTS('.', {
     watch,
   });
-
-  const getClientBundlePlugin = () =>
-    clientBundlePlugin(
-      () => ({
-        plugins: [
-          { resolveFileUrl },
-          serviceWorkerPlugin({
-            output: 'static/serviceworker.js',
-          }),
-          getClientBundlePlugin(),
-          ...commonPlugins(),
-          commonjs(),
-          resolve(),
-          replace({
-            values: { __PRERENDER__: false, __PRODUCTION__: isProduction },
-            preventAssignment: true,
-          }),
-          entryDataPlugin(),
-          isProduction ? terser({ module: true }) : {},
-        ],
-        preserveEntrySignatures: false,
-      }),
-      {
-        dir,
-        format: 'esm',
-        chunkFileNames: jsFileName,
-        entryFileNames: jsFileName,
-      },
-      resolveFileUrl,
-    );
 
   const commonPlugins = () => [
     tsPluginInstance,
@@ -117,7 +88,34 @@ export default async function ({ watch }) {
     preserveModules: true,
     plugins: [
       { resolveFileUrl },
-      getClientBundlePlugin(),
+      clientBundlePlugin(
+        {
+          plugins: [
+            { resolveFileUrl },
+            serviceWorkerPlugin({
+              output: 'static/serviceworker.js',
+            }),
+            ...commonPlugins(),
+            entryURLPlugin(),
+            commonjs(),
+            resolve(),
+            replace({
+              values: { __PRERENDER__: false, __PRODUCTION__: isProduction },
+              preventAssignment: true,
+            }),
+            entryDataPlugin(),
+            isProduction ? terser({ module: true }) : {},
+          ],
+          preserveEntrySignatures: false,
+        },
+        {
+          dir,
+          format: 'esm',
+          chunkFileNames: jsFileName,
+          entryFileNames: jsFileName,
+        },
+        resolveFileUrl,
+      ),
       ...commonPlugins(),
       emitFiles({ include: '**/*', root: path.join(__dirname, 'src', 'copy') }),
       nodeExternalPlugin(),
@@ -125,7 +123,7 @@ export default async function ({ watch }) {
         values: { __PRERENDER__: true, __PRODUCTION__: isProduction },
         preventAssignment: true,
       }),
-      runScript(dir + '/index.js'),
+      runScript(dir + '/static-build/index.js'),
     ],
   };
 }

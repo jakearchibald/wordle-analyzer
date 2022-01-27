@@ -14,6 +14,7 @@ import { h, FunctionalComponent } from 'preact';
 
 import initialCss from 'prerender-css:';
 import { src, imports } from 'client-bundle:client';
+import App from 'shared/App';
 // import favicon from 'url:static-build/assets/favicon.ico';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
 import { escapeStyleScriptContent } from 'static-build/utils';
@@ -36,7 +37,9 @@ const Index: FunctionalComponent<Props> = () => (
       ))}
     </head>
     <body>
-      <div id="app"></div>
+      <div id="app">
+        <App />
+      </div>
       <script
         type="module"
         dangerouslySetInnerHTML={{
