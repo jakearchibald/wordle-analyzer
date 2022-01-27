@@ -12,7 +12,4 @@
  */
 /// <reference path="../../missing-types.d.ts" />
 
-declare module 'prerender-css:' {
-  const css: string;
-  export default css;
-}
+declare const __PRERENDER__: boolean;

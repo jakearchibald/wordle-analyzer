@@ -12,8 +12,7 @@
  */
 import { h, FunctionalComponent } from 'preact';
 
-import baseCss from 'css:./base.css';
-//import initialCss from 'initial-css:';
+import initialCss from 'prerender-css:';
 import { src, imports } from 'client-bundle:client';
 // import favicon from 'url:static-build/assets/favicon.ico';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
@@ -25,14 +24,13 @@ const Index: FunctionalComponent<Props> = () => (
   <html lang="en">
     <head>
       <title>Wordle Analyzer</title>
-      <style
-        dangerouslySetInnerHTML={{ __html: escapeStyleScriptContent(baseCss) }}
-      />
-      {/*<style
-        dangerouslySetInnerHTML={{
-          __html: escapeStyleScriptContent(initialCss),
-        }}
-      />*/}
+      {
+        <style
+          dangerouslySetInnerHTML={{
+            __html: escapeStyleScriptContent(initialCss),
+          }}
+        />
+      }
       {imports.map((preload) => (
         <link rel="modulepreload" href={preload} />
       ))}

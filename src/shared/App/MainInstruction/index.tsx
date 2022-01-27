@@ -1,4 +1,4 @@
-import { h, Fragment, Component, RenderableProps } from 'preact';
+import { h, Fragment, Component, RenderableProps, JSX } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 

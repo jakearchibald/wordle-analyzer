@@ -26,7 +26,6 @@ import cssPlugin from './lib/css-plugin';
 import resolveDirsPlugin from './lib/resolve-dirs-plugin';
 import runScript from './lib/run-script';
 import emitFiles from './lib/emit-files-plugin';
-import initialCssPlugin from './lib/initial-css-plugin';
 import serviceWorkerPlugin from './lib/sw-plugin';
 import entryDataPlugin from './lib/entry-data-plugin';
 
@@ -126,7 +125,6 @@ export default async function ({ watch }) {
         values: { __PRERENDER__: true, __PRODUCTION__: isProduction },
         preventAssignment: true,
       }),
-      initialCssPlugin(),
       runScript(dir + '/index.js'),
     ],
   };

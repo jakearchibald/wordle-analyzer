@@ -4,6 +4,8 @@ import Header from './Header';
 import MainInstruction from './MainInstruction';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
+import 'add-css:../base.css';
+import 'add-css:../utils.module.css';
 
 interface Props {}
 
