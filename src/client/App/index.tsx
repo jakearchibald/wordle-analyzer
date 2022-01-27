@@ -1,10 +1,8 @@
 import { h, Fragment, Component, RenderableProps } from 'preact';
 import Guesses from './Guesses';
-import Header from './Header';
-import MainInstruction from './MainInstruction';
+import MainInstruction from 'shared/MainInstruction';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
-import 'add-css:../base.css';
 import 'add-css:../utils.module.css';
 
 interface Props {}
@@ -31,7 +29,6 @@ export default class App extends Component<Props, State> {
   render(_: RenderableProps<Props>, { guessInputs, toAnalyze }: State) {
     return (
       <>
-        <Header />
         <MainInstruction active={toAnalyze ? 'results' : 'enter-words'} />
         <Guesses
           values={guessInputs}

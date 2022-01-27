@@ -1,6 +1,5 @@
 import { h, Component, RenderableProps } from 'preact';
 import * as utilStyles from '../../utils.module.css';
-import 'add-css:../../utils.module.css';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 

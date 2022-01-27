@@ -49,17 +49,15 @@ export default class Guesses extends Component<Props> {
             />
           ))}
         </div>
-        {!__PRERENDER__ && (
-          <div class={styles.buttons}>
-            <button
-              type="submit"
-              class={utilStyles.button}
-              disabled={!inputValid(values)}
-            >
-              Analyse
-            </button>
-          </div>
-        )}
+        <div class={styles.buttons}>
+          <button
+            type="submit"
+            class={utilStyles.button}
+            disabled={!inputValid(values)}
+          >
+            Analyse
+          </button>
+        </div>
       </form>
     );
   }

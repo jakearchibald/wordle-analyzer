@@ -12,9 +12,11 @@
  */
 import { h, FunctionalComponent } from 'preact';
 
+import 'add-css:shared/base.css';
 import initialCss from 'prerender-css:';
 import { src, imports } from 'client-bundle:client';
-import App from 'shared/App';
+import Header from 'shared/Header';
+import MainInstruction from 'shared/MainInstruction';
 // import favicon from 'url:static-build/assets/favicon.ico';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
 import { escapeStyleScriptContent } from 'static-build/utils';
@@ -37,8 +39,9 @@ const Index: FunctionalComponent<Props> = () => (
       ))}
     </head>
     <body>
+      <Header />
       <div id="app">
-        <App />
+        <MainInstruction active="enter-words" />
       </div>
       <script
         type="module"

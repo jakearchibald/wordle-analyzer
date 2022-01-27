@@ -20,22 +20,20 @@ interface AnalysisData {
 interface Props {
   guesses: string[];
   answer: string;
-  /** Number is 0-1 representing progress */
-  analysis: (AnalysisData | number)[];
-  /** Number is 0-1 representing progress */
-  aiPlay: (GuessData | number)[];
 }
 
 interface State {
   guesses: string[];
   answer: string;
 
-  /** 0-1 depending on loading state */
-  analysisProgresses: number[];
+  /** Number is 0-1 representing progress */
+  analysis: (AnalysisData | number)[];
+  /** Number is 0-1 representing progress */
+  aiPlay: (GuessData | number)[];
 }
 
 export default class Analysis extends Component<Props, State> {
   render({}: RenderableProps<Props>) {
-    return <div class={styles.analysis}>…</div>;
+    return <div class={styles.analysis}>hello there</div>;
   }
 }

@@ -12,4 +12,5 @@
 
 .instructions > [aria-hidden='true'] {
   opacity: 0;
+  pointer-events: none;
 }
