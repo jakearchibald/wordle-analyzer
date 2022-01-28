@@ -6,8 +6,13 @@ import { URL } from 'url';
 import { lines } from './stream-utils.js';
 
 const require = createRequire(import.meta.url);
-const allWords = require('./answers.json') as string[];
-const answerSet = new Set(allWords);
+const allWords = require('./all-words.json') as string[];
+const answers = require('./answers.json') as string[];
+const eliminatedCounts = require('./eliminated-counts.json') as [
+  string,
+  number,
+][];
+const eliminatedCountsMap = Object.fromEntries(eliminatedCounts);
 
 const readStream = fs.createReadStream(
   new URL('./en_5letter.txt', import.meta.url),
@@ -16,23 +21,28 @@ const readStream = fs.createReadStream(
   },
 );
 
-const outputLines: string[] = [];
-let i = 0;
+function toTwoDecimalPlaces(num: number) {
+  return Math.round(num * 100) / 100;
+}
+
+const commonWords: string[] = [];
 
 for await (const line of readStream.pipe(lines())) {
   const [word] = line.trim().split(' ');
-
-  if (answerSet.has(word)) {
-    answerSet.delete(word);
-    outputLines.push(`${i},${answerSet.size}`);
-    if (answerSet.size === 0) break;
-  }
-  i++;
+  commonWords.push(word);
 }
 
+const words = [...new Set<string>([...commonWords, ...answers, ...allWords])];
+const initialAverageEliminations = words.map((word) =>
+  toTwoDecimalPlaces(eliminatedCountsMap[word]),
+);
+
 await fs.promises.writeFile(
-  new URL('./popularity.csv', import.meta.url),
-  outputLines.join('\n') + '\n',
+  new URL('./word-data.json', import.meta.url),
+  JSON.stringify({
+    words,
+    initialAverageEliminations,
+  }),
   {
     encoding: 'utf8',
   },
