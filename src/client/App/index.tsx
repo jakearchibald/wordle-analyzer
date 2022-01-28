@@ -2,6 +2,7 @@ import { h, Fragment, Component, RenderableProps } from 'preact';
 import Guesses from './Guesses';
 import MainInstruction from 'shared/MainInstruction';
 import * as styles from './styles.module.css';
+import Analysis from './Analysis';
 import 'add-css:./styles.module.css';
 import 'add-css:../utils.module.css';
 
@@ -30,11 +31,15 @@ export default class App extends Component<Props, State> {
     return (
       <>
         <MainInstruction active={toAnalyze ? 'results' : 'enter-words'} />
-        <Guesses
-          values={guessInputs}
-          onInput={this.#onGuessesInput}
-          onSubmit={this.#onGuessesSubmit}
-        />
+        {toAnalyze ? (
+          <Analysis answer={toAnalyze.answer} guesses={toAnalyze.guesses} />
+        ) : (
+          <Guesses
+            values={guessInputs}
+            onInput={this.#onGuessesInput}
+            onSubmit={this.#onGuessesSubmit}
+          />
+        )}
       </>
     );
   }
