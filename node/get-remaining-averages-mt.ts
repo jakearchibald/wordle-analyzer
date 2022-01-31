@@ -11,12 +11,17 @@ const workers = Array.from(
 
 let queue: Promise<unknown> = Promise.resolve();
 
+interface RemainingReturn {
+  common: RemainingAverages;
+  other: RemainingAverages;
+}
+
 export function getRemainingAveragesMT(
   commonAnswers: string[],
   otherAnswers: string[],
   guesses: string[],
-): Promise<[RemainingAverages, RemainingAverages]> {
-  const result: Promise<[RemainingAverages, RemainingAverages]> = queue
+): Promise<RemainingReturn> {
+  const result: Promise<RemainingReturn> = queue
     .catch(() => {})
     .then(async () => {
       let done = 0;
@@ -72,7 +77,7 @@ export function getRemainingAveragesMT(
         .flat()
         .sort((a, b) => a[1] - b[1]);
 
-      return [fullCommonAverages, fullOtherAverages];
+      return { common: fullCommonAverages, other: fullOtherAverages };
     });
 
   queue = result;

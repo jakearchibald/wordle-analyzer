@@ -1,45 +1,51 @@
 import { createRequire } from 'module';
-import { getEliminationAveragesMT } from './get-elimination-averages-mt.js';
+import { getRemainingAveragesMT } from './get-remaining-averages-mt.js';
 import { generateRules, possibleAnswer, getBestPlay } from './utils.js';
 
 const require = createRequire(import.meta.url);
-const allWords = require('./all-words.json') as string[];
-const initialBestPlays = require('./eliminated-counts.json') as [
-  string,
-  number,
-][];
+const wordData =
+  require('./word-data.json') as typeof import('./word-data.json');
+const initialLeastRemaining = require('./remaining-counts.json') as {
+  common: [string, number][];
+  other: [string, number][];
+};
+const allWords = [...wordData.common, ...wordData.other];
 
-const actualAnswer = 'robot';
+const actualAnswer = 'light';
 const forceFirstGuess = '';
 let firstGuess = true;
-let possibleAnswers = allWords;
+let commonPossibleAnswers = wordData.common;
+let otherPossibleAnswers = wordData.other;
 
 while (true) {
-  const bestPlays = firstGuess
-    ? initialBestPlays
-    : (await getEliminationAveragesMT(possibleAnswers, allWords)).sort(
-        (a, b) => b[1] - a[1],
+  const leastRemainingPlays = firstGuess
+    ? initialLeastRemaining
+    : await getRemainingAveragesMT(
+        commonPossibleAnswers,
+        otherPossibleAnswers,
+        allWords,
       );
 
-  const bestPlay =
-    firstGuess && forceFirstGuess
-      ? bestPlays.find((n) => n[0] === forceFirstGuess)!
-      : getBestPlay(possibleAnswers, bestPlays);
-
-  const guess = bestPlay[0];
+  const guess = getBestPlay(
+    commonPossibleAnswers,
+    otherPossibleAnswers,
+    leastRemainingPlays.common,
+    leastRemainingPlays.other,
+  );
 
   firstGuess = false;
 
-  const remainingAnswers = possibleAnswers.length;
-
   console.log(
-    'Playing',
+    'The AI is playing',
     JSON.stringify(guess),
-    'which eliminates, on average,',
-    bestPlay[1].toFixed(2),
-    'of the possible',
-    remainingAnswers,
-    'answers.',
+    'which leaves, on average,',
+    leastRemainingPlays.common.find((n) => n[0] === guess)![1].toFixed(2),
+    'common remaining answers, of the total',
+    commonPossibleAnswers.length,
+    'and',
+    leastRemainingPlays.other.find((n) => n[0] === guess)![1].toFixed(2),
+    'overall remaining answers, of the total',
+    commonPossibleAnswers.length + otherPossibleAnswers.length,
   );
 
   if (guess === actualAnswer) {
@@ -54,7 +60,16 @@ while (true) {
     remainingMustNotContain,
   ] = generateRules(actualAnswer, guess);
 
-  const nextAnswers = possibleAnswers.filter((answer) =>
+  const nextCommonAnswers = commonPossibleAnswers.filter((answer) =>
+    possibleAnswer(
+      answer,
+      positionalMatches,
+      positionalNotMatches,
+      additionalKnownLetters,
+      remainingMustNotContain,
+    ),
+  );
+  const nextOtherAnswers = otherPossibleAnswers.filter((answer) =>
     possibleAnswer(
       answer,
       positionalMatches,
@@ -66,16 +81,23 @@ while (true) {
 
   console.log(
     JSON.stringify(guess),
-    'eliminated',
-    remainingAnswers - nextAnswers.length,
-    'answers. Leaving',
-    nextAnswers.length,
+    'actually leaves',
+    nextCommonAnswers.length,
+    'common answers',
+    'and',
+    nextCommonAnswers.length + nextOtherAnswers.length,
+    'total answers',
   );
 
-  if (nextAnswers.length < 30) {
-    console.log(nextAnswers);
+  if (nextCommonAnswers.length < 30) {
+    console.log('common', nextCommonAnswers);
+  }
+  if (nextOtherAnswers.length < 30) {
+    console.log('uncommon', nextOtherAnswers);
   }
 
-  possibleAnswers = nextAnswers;
+  commonPossibleAnswers = nextCommonAnswers;
+  otherPossibleAnswers = nextOtherAnswers;
+
   console.log('\nNext turn!\n');
 }

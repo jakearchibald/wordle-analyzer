@@ -1,58 +1,76 @@
 import { createRequire } from 'module';
-import { getEliminationAveragesMT } from './get-elimination-averages-mt.js';
+import { getRemainingAveragesMT } from './get-remaining-averages-mt.js';
 import { generateRules, possibleAnswer, getBestPlay } from './utils.js';
 
 const require = createRequire(import.meta.url);
-const allWords = require('./all-words.json') as string[];
-const initialBestPlays = require('./eliminated-counts.json') as [
-  string,
-  number,
-][];
+const wordData =
+  require('./word-data.json') as typeof import('./word-data.json');
+const initialLeastRemaining = require('./remaining-counts.json') as {
+  common: [string, number][];
+  other: [string, number][];
+};
+const allWords = [...wordData.common, ...wordData.other];
 
-const guesses = ['soare', 'pleat', 'baked', 'abbey'];
+const guesses = ['roate', 'dunks', 'blimp', 'light'];
 const actualAnswer = guesses.slice(-1)[0];
 let firstGuess = true;
-let possibleAnswers = allWords;
+let commonPossibleAnswers = wordData.common;
+let otherPossibleAnswers = wordData.other;
 
 for (const guess of guesses) {
   if (guess === actualAnswer) {
     console.log(`You found the answer!`, JSON.stringify(actualAnswer));
+    console.log(
+      commonPossibleAnswers.includes(guess) ? 'It is' : 'it is not',
+      'a common word.',
+    );
     process.exit();
   }
 
-  const bestPlays = firstGuess
-    ? initialBestPlays
-    : (await getEliminationAveragesMT(possibleAnswers, allWords)).sort(
-        (a, b) => b[1] - a[1],
+  const leastRemainingPlays = firstGuess
+    ? initialLeastRemaining
+    : await getRemainingAveragesMT(
+        commonPossibleAnswers,
+        otherPossibleAnswers,
+        allWords,
       );
 
-  const bestPlay = getBestPlay(possibleAnswers, bestPlays);
-  const remainingAnswers = possibleAnswers.length;
+  const bestPlay = getBestPlay(
+    commonPossibleAnswers,
+    otherPossibleAnswers,
+    leastRemainingPlays.common,
+    leastRemainingPlays.other,
+  );
 
   firstGuess = false;
 
   console.log(
-    'The best average play is',
-    JSON.stringify(bestPlay[0]),
-    'which eliminates, on average,',
-    bestPlay[1].toFixed(2),
-    'of the possible',
-    remainingAnswers,
-    'answers.',
+    'The computer would play',
+    JSON.stringify(bestPlay),
+    'which leaves, on average,',
+    leastRemainingPlays.common.find((n) => n[0] === bestPlay)![1].toFixed(2),
+    'common remaining answers, of the total',
+    commonPossibleAnswers.length,
+    'and',
+    leastRemainingPlays.other.find((n) => n[0] === bestPlay)![1].toFixed(2),
+    'overall remaining answers, of the total',
+    commonPossibleAnswers.length + otherPossibleAnswers.length,
   );
 
-  if (guess === bestPlay[0]) {
+  if (guess === bestPlay) {
     console.log(`That's what you went for!`);
   } else {
-    const playStats = bestPlays.find(([play]) => play === guess);
     console.log(
       'You played',
       JSON.stringify(guess),
-      'which eliminates, on average,',
-      playStats![1].toFixed(2),
-      'of the possible',
-      remainingAnswers,
-      'answers.',
+      'which leaves, on average,',
+      leastRemainingPlays.common.find((n) => n[0] === guess)![1].toFixed(2),
+      'common remaining answers, of the total',
+      commonPossibleAnswers.length,
+      'and',
+      leastRemainingPlays.other.find((n) => n[0] === guess)![1].toFixed(2),
+      'overall remaining answers, of the total',
+      commonPossibleAnswers.length + otherPossibleAnswers.length,
     );
   }
 
@@ -63,7 +81,16 @@ for (const guess of guesses) {
     remainingMustNotContain,
   ] = generateRules(actualAnswer, guess);
 
-  const nextAnswers = possibleAnswers.filter((answer) =>
+  const nextCommonAnswers = commonPossibleAnswers.filter((answer) =>
+    possibleAnswer(
+      answer,
+      positionalMatches,
+      positionalNotMatches,
+      additionalKnownLetters,
+      remainingMustNotContain,
+    ),
+  );
+  const nextOtherAnswers = otherPossibleAnswers.filter((answer) =>
     possibleAnswer(
       answer,
       positionalMatches,
@@ -75,14 +102,19 @@ for (const guess of guesses) {
 
   console.log(
     JSON.stringify(guess),
-    'eliminated',
-    remainingAnswers - nextAnswers.length,
-    'answers. Leaving',
-    nextAnswers.length,
+    'actually leaves',
+    nextCommonAnswers.length,
+    'common answers',
+    'and',
+    nextCommonAnswers.length + nextOtherAnswers.length,
+    'total answers',
   );
 
-  if (nextAnswers.length < 30) {
-    console.log(nextAnswers);
+  if (nextCommonAnswers.length < 30) {
+    console.log('common', nextCommonAnswers);
+  }
+  if (nextOtherAnswers.length < 30) {
+    console.log('uncommon', nextOtherAnswers);
   }
 
   {
@@ -91,9 +123,18 @@ for (const guess of guesses) {
       positionalNotMatches,
       additionalKnownLetters,
       remainingMustNotContain,
-    ] = generateRules(actualAnswer, bestPlay[0]);
+    ] = generateRules(actualAnswer, bestPlay);
 
-    const aiNextAnswers = possibleAnswers.filter((answer) =>
+    const aiCommonAnswers = commonPossibleAnswers.filter((answer) =>
+      possibleAnswer(
+        answer,
+        positionalMatches,
+        positionalNotMatches,
+        additionalKnownLetters,
+        remainingMustNotContain,
+      ),
+    );
+    const aiOtherAnswers = otherPossibleAnswers.filter((answer) =>
       possibleAnswer(
         answer,
         positionalMatches,
@@ -103,17 +144,19 @@ for (const guess of guesses) {
       ),
     );
 
-    if (guess !== bestPlay[0]) {
-      console.log(
-        JSON.stringify(bestPlay[0]),
-        'would have eliminated',
-        remainingAnswers - aiNextAnswers.length,
-        'answers. Leaving',
-        aiNextAnswers.length,
-      );
-    }
+    console.log(
+      JSON.stringify(bestPlay),
+      'would have left',
+      aiCommonAnswers.length,
+      'common answers',
+      'and',
+      aiCommonAnswers.length + aiOtherAnswers.length,
+      'total answers',
+    );
   }
 
-  possibleAnswers = nextAnswers;
+  commonPossibleAnswers = nextCommonAnswers;
+  otherPossibleAnswers = nextOtherAnswers;
+
   console.log('\nNext turn!\n');
 }

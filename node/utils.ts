@@ -215,32 +215,25 @@ export function getRemainingAverages(
 }
 
 export function getBestPlay(
-  remainingAnswers: string[],
-  eliminationCounts: RemainingAverages,
-): RemainingEntry {
-  if (remainingAnswers.length > 100) return eliminationCounts[0];
-
-  const threshold = 1.1;
-  const bestAvgElimination = eliminationCounts[0][1];
-  let first = true;
-
-  // Bias slightly towards a remaining answer, even if the elimination count isn't quite as high.
-  for (const eliminationEntry of eliminationCounts) {
-    if (first) {
-      first = false;
-      continue;
-    }
-
-    if (bestAvgElimination - eliminationEntry[1] > threshold) {
-      return eliminationCounts[0];
-    }
-
-    if (remainingAnswers.includes(eliminationEntry[0])) {
-      return eliminationEntry;
-    }
+  remainingCommonAnswers: string[],
+  remainingOtherAnswers: string[],
+  commonRemainingAverages: RemainingAverages,
+  otherRemainingAverages: RemainingAverages,
+): string {
+  if (remainingCommonAnswers.length > 4) {
+    return commonRemainingAverages[0][0];
   }
-
-  return eliminationCounts[0];
+  if (remainingCommonAnswers.length !== 0) {
+    return commonRemainingAverages.find(([word]) =>
+      remainingCommonAnswers.includes(word),
+    )![0];
+  }
+  if (remainingOtherAnswers.length > 4) {
+    return otherRemainingAverages[0][0];
+  }
+  return otherRemainingAverages.find(([word]) =>
+    remainingOtherAnswers.includes(word),
+  )![0];
 }
 
 if (!isMainThread) {
