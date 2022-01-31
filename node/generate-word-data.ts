@@ -25,12 +25,13 @@ const commonWords = await (async () => {
 })();
 
 const orderedAllWords = [...new Set<string>([...commonWords, ...allWords])];
+const commonWordCutoff = 4000;
 
 await writeFile(
   new URL('./word-data.json', import.meta.url),
   JSON.stringify({
-    common: orderedAllWords.slice(0, commonWords.length),
-    other: orderedAllWords.slice(commonWords.length),
+    common: orderedAllWords.slice(0, commonWordCutoff),
+    other: orderedAllWords.slice(commonWordCutoff),
   }),
 );
 
