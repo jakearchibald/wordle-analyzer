@@ -7,7 +7,7 @@ const wordData =
   require('./word-data.json') as typeof import('./word-data.json');
 const initialLeastRemaining = require('./remaining-counts.json') as {
   common: [string, number][];
-  other: [string, number][];
+  all: [string, number][];
 };
 const allWords = [...wordData.common, ...wordData.other];
 
@@ -39,20 +39,20 @@ for (const guess of guesses) {
     commonPossibleAnswers,
     otherPossibleAnswers,
     leastRemainingPlays.common,
-    leastRemainingPlays.other,
+    leastRemainingPlays.all,
   );
 
   firstGuess = false;
 
   console.log(
-    'The computer would play',
+    'The AI would play',
     JSON.stringify(bestPlay),
     'which leaves, on average,',
     leastRemainingPlays.common.find((n) => n[0] === bestPlay)![1].toFixed(2),
     'common remaining answers, of the total',
     commonPossibleAnswers.length,
     'and',
-    leastRemainingPlays.other.find((n) => n[0] === bestPlay)![1].toFixed(2),
+    leastRemainingPlays.all.find((n) => n[0] === bestPlay)![1].toFixed(2),
     'overall remaining answers, of the total',
     commonPossibleAnswers.length + otherPossibleAnswers.length,
   );
@@ -68,7 +68,7 @@ for (const guess of guesses) {
       'common remaining answers, of the total',
       commonPossibleAnswers.length,
       'and',
-      leastRemainingPlays.other.find((n) => n[0] === guess)![1].toFixed(2),
+      leastRemainingPlays.all.find((n) => n[0] === guess)![1].toFixed(2),
       'overall remaining answers, of the total',
       commonPossibleAnswers.length + otherPossibleAnswers.length,
     );

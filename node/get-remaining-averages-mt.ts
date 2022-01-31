@@ -13,7 +13,7 @@ let queue: Promise<unknown> = Promise.resolve();
 
 interface RemainingReturn {
   common: RemainingAverages;
-  other: RemainingAverages;
+  all: RemainingAverages;
 }
 
 export function getRemainingAveragesMT(
@@ -77,7 +77,7 @@ export function getRemainingAveragesMT(
         .flat()
         .sort((a, b) => a[1] - b[1]);
 
-      return { common: fullCommonAverages, other: fullOtherAverages };
+      return { common: fullCommonAverages, all: fullOtherAverages };
     });
 
   queue = result;

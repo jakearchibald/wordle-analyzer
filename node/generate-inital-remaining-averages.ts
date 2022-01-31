@@ -23,7 +23,7 @@ await writeFile(
       word,
       toTwoDecimalPlaces(averageRemaining),
     ]),
-    other: results.other.map(([word, averageRemaining]) => [
+    all: results.all.map(([word, averageRemaining]) => [
       word,
       toTwoDecimalPlaces(averageRemaining),
     ]),

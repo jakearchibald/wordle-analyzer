@@ -140,7 +140,6 @@ export function generateRules(
 
 /**
  * Figure out the average number of possibilities remaining for a particular guess.
- *
  */
 export function getRemainingAverages(
   commonAnswers: string[],
@@ -160,7 +159,7 @@ export function getRemainingAverages(
   for (const [i, guess] of guesses.entries()) {
     const remainingCache: {
       [key: string]:
-        | [allRemaining: number, commonRemaining: number]
+        | [commonRemaining: number, allRemaining: number]
         | undefined;
     } = {};
 
@@ -175,8 +174,8 @@ export function getRemainingAverages(
       const key = generateBlockColors(positionalMatches, positionalNotMatches);
 
       if (remainingCache[key]) {
-        allRemainingCounts[i][1].push(remainingCache[key]![0]);
         commonRemainingCounts[i][1].push(remainingCache[key]![0]);
+        allRemainingCounts[i][1].push(remainingCache[key]![1]);
         continue;
       }
 
@@ -200,18 +199,18 @@ export function getRemainingAverages(
 
       allRemainingCounts[i][1].push(validAnswers);
       commonRemainingCounts[i][1].push(validCommonAnswers);
-      remainingCache[key] = [validAnswers, validCommonAnswers];
+      remainingCache[key] = [validCommonAnswers, validAnswers];
     }
 
     if (parentPort) parentPort.postMessage('answer-done');
   }
 
-  return [allRemainingCounts, commonRemainingCounts].map((count) =>
+  return [commonRemainingCounts, allRemainingCounts].map((count) =>
     count.map(([guess, counts]) => [
       guess,
       counts.reduce((a, b) => a + b, 0) / counts.length,
     ]),
-  ) as [allGuesses: RemainingAverages, commonWords: RemainingAverages];
+  ) as [commonRemaining: RemainingAverages, allRemaining: RemainingAverages];
 }
 
 export function getBestPlay(
@@ -221,16 +220,20 @@ export function getBestPlay(
   otherRemainingAverages: RemainingAverages,
 ): string {
   if (remainingCommonAnswers.length > 4) {
+    console.log('going for a common elimination');
     return commonRemainingAverages[0][0];
   }
   if (remainingCommonAnswers.length !== 0) {
+    console.log('going for a common win');
     return commonRemainingAverages.find(([word]) =>
       remainingCommonAnswers.includes(word),
     )![0];
   }
   if (remainingOtherAnswers.length > 4) {
+    console.log('going for a uncommon elimination');
     return otherRemainingAverages[0][0];
   }
+  console.log('going for a uncommon win');
   return otherRemainingAverages.find(([word]) =>
     remainingOtherAnswers.includes(word),
   )![0];
