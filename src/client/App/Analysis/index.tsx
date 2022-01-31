@@ -2,20 +2,9 @@ import { h, Component, RenderableProps } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 
-interface GuessData {
-  guess: string;
-  // TODO: change to correct type
-  guessColors: string[];
-  inDictionary: boolean;
-  averageEliminations: number;
-  remainingAnswers: string[];
-}
+interface GuessData {}
 
-interface AnalysisData {
-  possibleAnswers: string[];
-  guess: GuessData;
-  aiGuess: GuessData;
-}
+interface AnalysisData {}
 
 interface Props {
   guesses: string[];

@@ -37,6 +37,11 @@ declare module 'service-worker:*' {
   export default url;
 }
 
+declare module 'entry-url:*' {
+  const url: string;
+  export default url;
+}
+
 declare module 'client-bundle:*' {
   const url: string;
   export default url;

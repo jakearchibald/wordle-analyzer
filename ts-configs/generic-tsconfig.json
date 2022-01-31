@@ -14,10 +14,13 @@
     "rootDir": "../",
     "outDir": "../.tmp/ts",
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "paths": {
       "static-build/*": ["src/static-build/*"],
       "client/*": ["src/client/*"],
-      "shared/*": ["src/shared/*"]
+      "shared/*": ["src/shared/*"],
+      "shared-types/*": ["src/shared-types/*"],
+      "workers/*": ["src/workers/*"]
     }
   }
 }

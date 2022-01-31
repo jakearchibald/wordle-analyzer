@@ -95,8 +95,8 @@ export default async function ({ watch }) {
             serviceWorkerPlugin({
               output: 'static/serviceworker.js',
             }),
-            ...commonPlugins(),
             entryURLPlugin(),
+            ...commonPlugins(),
             commonjs(),
             resolve(),
             replace({

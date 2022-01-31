@@ -3,5 +3,9 @@
   "compilerOptions": {
     "lib": ["webworker", "esnext"]
   },
-  "include": ["../src/workers"]
+  "include": [
+    "../src/workers",
+    "../src/workers/**/*.json",
+    "../src/shared-types"
+  ]
 }

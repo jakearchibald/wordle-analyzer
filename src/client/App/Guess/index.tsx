@@ -2,12 +2,11 @@ import { h, Component, RenderableProps } from 'preact';
 import * as utilStyles from '../../utils.module.css';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
-
-export type CellClue = 'a' | 'p' | 'c';
+import type { CellColors } from 'shared-types/index';
 
 interface Props {
   /** 5 chars of g (green), y (yellow), a (absent) */
-  cellClues?: [CellClue, CellClue, CellClue, CellClue, CellClue];
+  cellClues?: CellColors;
   value: string;
   selection?: [number, number];
   onCellMouseDown?: (index: number) => void;
