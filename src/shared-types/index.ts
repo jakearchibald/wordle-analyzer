@@ -11,15 +11,15 @@ export interface PlayAnalysis {
   guess: string;
   colors: CellColors;
   validForHardMode: boolean;
+  unusedClues: string[];
   averageEliminations: number;
   actualEliminations: number;
+  commonWord: boolean;
 }
 
 export interface GuessAnalysis {
   guessInDictionary: boolean;
-  remainingAnswers: string[];
-  /** Any reasons the clue had already been eliminated */
-  guessRedundancy: string[];
+  remainingAnswers: RemainingAnswers;
   clue: Clue;
   plays: [user: PlayAnalysis, ai: PlayAnalysis];
 }
@@ -34,3 +34,12 @@ export type CellColors = [
   CellColor,
   CellColor,
 ];
+
+export type RemainingEntry = [word: string, averageRemaining: number];
+export type RemainingAverages = RemainingEntry[];
+export type RemainingResult = {
+  common: RemainingAverages;
+  all: RemainingAverages;
+};
+
+export type RemainingAnswers = { common: string[]; other: string[] };

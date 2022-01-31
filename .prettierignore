@@ -1,1 +1,2 @@
-src/word-data.json
+src/workers/analyze/word-data.json
+src/workers/analyze/initial-remaining-counts.json
