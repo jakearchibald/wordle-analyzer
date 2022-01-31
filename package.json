@@ -5,11 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "generate-eliminated-counts": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/generate-eliminated-counts.ts",
+    "generate-inital-remaining-averages": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/generate-inital-remaining-averages.ts",
     "analyze-play": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/analyze-play.ts",
     "ai-play": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/ai-play.ts",
     "create-5-letter-frequency": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/create-5-letter-frequency.ts",
-    "create-popular-words": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/create-popular-words.ts"
+    "generate-word-data": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/generate-word-data.ts"
   },
   "author": "",
   "license": "ISC",

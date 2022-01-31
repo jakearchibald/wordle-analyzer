@@ -1,7 +1,7 @@
 import { parentPort, workerData, isMainThread } from 'worker_threads';
 
-export type EliminationEntry = [word: string, averageEliminations: number];
-export type EliminationAverages = EliminationEntry[];
+export type RemainingEntry = [word: string, averageRemaining: number];
+export type RemainingAverages = RemainingEntry[];
 type FiveLetters = [string, string, string, string, string];
 
 /**
@@ -139,24 +139,32 @@ export function generateRules(
 }
 
 /**
- * Figure out the average number of eliminations for a particular guess.
+ * Figure out the average number of possibilities remaining for a particular guess.
  *
- * @param answers Array of answers Wordle may select
- * @param guesses Array of guesses Wordle will accept
  */
-export function getEliminationAverages(
-  answers: string[],
+export function getRemainingAverages(
+  commonAnswers: string[],
+  otherAnswers: string[],
   guesses: string[],
-): EliminationAverages {
-  const eliminationCounts = guesses.map((guess) => [guess, []]) as [
+): [allGuesses: RemainingAverages, commonWords: RemainingAverages] {
+  const allRemainingCounts = guesses.map((guess) => [guess, []]) as [
     string,
     number[],
   ][];
+  const commonRemainingCounts = guesses.map((guess) => [guess, []]) as [
+    string,
+    number[],
+  ][];
+  const allAnswers = [...commonAnswers, ...otherAnswers];
 
   for (const [i, guess] of guesses.entries()) {
-    const eliminationCache: { [key: string]: number | undefined } = {};
+    const remainingCache: {
+      [key: string]:
+        | [allRemaining: number, commonRemaining: number]
+        | undefined;
+    } = {};
 
-    for (const answer of answers) {
+    for (const answer of allAnswers) {
       const [
         positionalMatches,
         positionalNotMatches,
@@ -166,14 +174,16 @@ export function getEliminationAverages(
 
       const key = generateBlockColors(positionalMatches, positionalNotMatches);
 
-      if (eliminationCache[key]) {
-        eliminationCounts[i][1].push(eliminationCache[key]!);
+      if (remainingCache[key]) {
+        allRemainingCounts[i][1].push(remainingCache[key]![0]);
+        commonRemainingCounts[i][1].push(remainingCache[key]![0]);
         continue;
       }
 
       let validAnswers = 0;
+      let validCommonAnswers = 0;
 
-      for (const answer of answers) {
+      for (const [answerIndex, answer] of allAnswers.entries()) {
         if (
           possibleAnswer(
             answer,
@@ -184,28 +194,30 @@ export function getEliminationAverages(
           )
         ) {
           validAnswers++;
+          if (answerIndex < commonAnswers.length) validCommonAnswers++;
         }
       }
 
-      const eliminations = answers.length - validAnswers;
-
-      eliminationCounts[i][1].push(eliminations);
-      eliminationCache[key] = eliminations;
+      allRemainingCounts[i][1].push(validAnswers);
+      commonRemainingCounts[i][1].push(validCommonAnswers);
+      remainingCache[key] = [validAnswers, validCommonAnswers];
     }
 
     if (parentPort) parentPort.postMessage('answer-done');
   }
 
-  return eliminationCounts.map(([guess, counts]) => [
-    guess,
-    counts.reduce((a, b) => a + b, 0) / counts.length,
-  ]);
+  return [allRemainingCounts, commonRemainingCounts].map((count) =>
+    count.map(([guess, counts]) => [
+      guess,
+      counts.reduce((a, b) => a + b, 0) / counts.length,
+    ]),
+  ) as [allGuesses: RemainingAverages, commonWords: RemainingAverages];
 }
 
 export function getBestPlay(
   remainingAnswers: string[],
-  eliminationCounts: EliminationAverages,
-): EliminationEntry {
+  eliminationCounts: RemainingAverages,
+): RemainingEntry {
   if (remainingAnswers.length > 100) return eliminationCounts[0];
 
   const threshold = 1.1;
@@ -233,7 +245,11 @@ export function getBestPlay(
 
 if (!isMainThread) {
   parentPort!.on('message', (message) => {
-    const result = getEliminationAverages(message.answers, message.guesses);
+    const result = getRemainingAverages(
+      message.commonAnswers,
+      message.otherAnswers,
+      message.guesses,
+    );
     parentPort!.postMessage(result);
   });
 }

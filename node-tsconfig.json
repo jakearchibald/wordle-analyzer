@@ -5,5 +5,5 @@
     "types": ["node"],
     "resolveJsonModule": true
   },
-  "include": ["./node/**/*"]
+  "include": ["./node/**/*", "./node/**/*.json"]
 }

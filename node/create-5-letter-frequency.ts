@@ -26,8 +26,7 @@ export function only5LetterWords() {
       }
       callback();
     },
-    encoding: 'utf8',
-    decodeStrings: false,
+    objectMode: true,
   });
 }
 
