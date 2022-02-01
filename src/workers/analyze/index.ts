@@ -221,7 +221,7 @@ function getUnusedClues(guess: string, clues: Clue[]): string[] {
           unusedClues.add(
             `The ${
               numberWithOrdinal[i]
-            } letter must be ${clue.positionalMatches[i].toUpperCase()}`,
+            } letter must be "${clue.positionalMatches[i].toUpperCase()}"`,
           );
         } else {
           continue;
@@ -233,9 +233,9 @@ function getUnusedClues(guess: string, clues: Clue[]): string[] {
         unusedClues.add(
           `The ${
             numberWithOrdinal[i]
-          } letter must not be be ${clue.positionalNotMatches[
+          } letter must not be be "${clue.positionalNotMatches[
             i
-          ].toUpperCase()}`,
+          ].toUpperCase()}"`,
         );
       }
 
@@ -247,13 +247,15 @@ function getUnusedClues(guess: string, clues: Clue[]): string[] {
         // remainingMustNotContain is only checked if the letter is not found in positionalMatches or additionalRequiredLettersCopy.
         // This allows a letter to appear in positionalMatches and/or additionalRequiredLetters, and remainingMustNotContain.
         // Eg, if additionalRequiredLetters contains 's' and remainingMustNotContain contains 's', this ensures the answer must contain one 's'.
-        unusedClues.add(`The guess contains too many ${letter.toUpperCase()}s`);
+        unusedClues.add(
+          `The guess contains too many "${letter.toUpperCase()}"s`,
+        );
       }
     }
 
     for (const unusedLetter of additionalRequiredLettersCopy) {
       unusedClues.add(
-        `The guess contains too few ${unusedLetter.toUpperCase()}s`,
+        `The guess contains too few "${unusedLetter.toUpperCase()}"s`,
       );
     }
   }

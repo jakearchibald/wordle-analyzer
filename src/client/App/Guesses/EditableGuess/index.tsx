@@ -66,7 +66,7 @@ export default class EditableGuess extends Component<Props, State> {
   ) {
     return (
       <div class={styles.editableGuess}>
-        <div aria-hidden>
+        <div aria-hidden="true">
           <Guess
             value={value}
             selection={inputHasFocus ? selection : undefined}

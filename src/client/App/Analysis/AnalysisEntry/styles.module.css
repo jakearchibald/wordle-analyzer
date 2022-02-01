@@ -1,2 +1,42 @@
 .analysis-entry {
 }
+
+.analysis-grid {
+  width: max-content;
+  margin: 2rem auto;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.main-heading {
+  margin: 0;
+  text-align: center;
+  font-weight: normal;
+  background: var(--theme-grey-1);
+  padding: 0.5em;
+  font-size: 1.4rem;
+}
+
+.sub-heading {
+  margin: 0;
+  text-align: center;
+  font-weight: normal;
+  background: var(--theme-grey-1);
+  padding: 0.5em;
+  font-size: 1.2rem;
+}
+
+.remaining-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.remaining-list > li {
+  margin: 0;
+  display: block;
+}

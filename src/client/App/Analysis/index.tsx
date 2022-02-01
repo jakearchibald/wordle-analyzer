@@ -82,11 +82,11 @@ export default class Analysis extends Component<Props, State> {
   render({}: RenderableProps<Props>, { analysis, aiPlay }: State) {
     return (
       <div class={styles.analysis}>
-        {analysis.map((guessAnalysis) =>
+        {analysis.map((guessAnalysis, i) =>
           typeof guessAnalysis === 'number' ? (
             <progress value={guessAnalysis} />
           ) : (
-            <AnalysisEntry guessAnalysis={guessAnalysis} />
+            <AnalysisEntry guessAnalysis={guessAnalysis} first={i === 0} />
           ),
         )}
       </div>
