@@ -1,5 +1,5 @@
 import dataUrl from 'url:./word-data.json';
-import remainingCountUrl from 'url:./initial-remaining-counts.json';
+import remainingAveragesUrl from 'url:./initial-remaining-averages.json';
 import {
   GuessAnalysis,
   FiveLetters,
@@ -7,6 +7,7 @@ import {
   RemainingResult,
   RemainingAnswers,
   CellColors,
+  PlayAnalysis,
 } from 'shared-types/index';
 
 type WordDataType = typeof import('./word-data.json');
@@ -22,9 +23,14 @@ const getAllWords = () =>
 let initialRemainingAverages: Promise<RemainingResult> | undefined;
 const getInitialRemainingAverages = () =>
   initialRemainingAverages ||
-  (initialRemainingAverages = fetch(remainingCountUrl).then((res) =>
+  (initialRemainingAverages = fetch(remainingAveragesUrl).then((res) =>
     res.json(),
   ));
+
+let commonWordSet: Promise<Set<string>> | undefined;
+const getCommonWordSet = () =>
+  commonWordSet ||
+  (commonWordSet = getWordData().then((data) => new Set(data.common)));
 
 const threadPorts: MessagePort[] = [];
 
@@ -154,13 +160,114 @@ function possibleAnswer(
   return additionalRequiredLettersCopy.length === 0;
 }
 
+function validHardModeGuess(guess: string, clues: Clue[]): boolean {
+  // Hard mode in wordle means:
+  // Green letters must be played in their correct position
+  // Yellow letters must be used in the remaining squares
+  let requiredLetters = '';
+  const positionalMatches: FiveLetters = ['', '', '', '', ''];
+
+  for (const clue of clues) {
+    let newRequiredLetters = clue.additionalRequiredLetters.join('');
+
+    // Flatten positional matches
+    for (const [i, positionalMatch] of clue.positionalMatches.entries()) {
+      if (positionalMatch) {
+        positionalMatches[i] = positionalMatch;
+        newRequiredLetters += positionalMatch;
+      }
+    }
+
+    // Required letters may have already been captured.
+    // Dedupe by removing ones we've already found:
+    for (const letter of newRequiredLetters) {
+      requiredLetters = requiredLetters.replace(letter, '');
+    }
+    // Add the new letters to the end.
+    requiredLetters += newRequiredLetters;
+  }
+
+  // Now check the guess:
+  // First, required letters:
+  let requiredLettersRemaining = requiredLetters;
+  for (const letter of guess) {
+    requiredLettersRemaining = requiredLettersRemaining.replace(letter, '');
+  }
+
+  if (requiredLettersRemaining.length !== 0) return false;
+
+  // Now positional matches:
+  for (const [i, positionalMatch] of positionalMatches.entries()) {
+    if (positionalMatch && positionalMatch !== guess[i]) return false;
+  }
+
+  return true;
+}
+
+const numberWithOrdinal = ['1st', '2nd', '3rd', '4th', '5th'];
+
+function getUnusedClues(guess: string, clues: Clue[]): string[] {
+  const unusedClues = new Set<string>();
+
+  for (const clue of clues) {
+    const additionalRequiredLettersCopy =
+      clue.additionalRequiredLetters.slice();
+
+    for (let i = 0; i < guess.length; i++) {
+      const letter = guess[i];
+
+      if (clue.positionalMatches[i]) {
+        if (clue.positionalMatches[i] !== letter) {
+          unusedClues.add(
+            `The ${
+              numberWithOrdinal[i]
+            } letter must be ${clue.positionalMatches[i].toUpperCase()}`,
+          );
+        } else {
+          continue;
+        }
+      } else if (
+        clue.positionalNotMatches[i] &&
+        letter === clue.positionalNotMatches[i]
+      ) {
+        unusedClues.add(
+          `The ${
+            numberWithOrdinal[i]
+          } letter must not be be ${clue.positionalNotMatches[
+            i
+          ].toUpperCase()}`,
+        );
+      }
+
+      const index = additionalRequiredLettersCopy.indexOf(letter);
+
+      if (index !== -1) {
+        additionalRequiredLettersCopy.splice(index, 1);
+      } else if (clue.remainingMustNotContain.has(letter)) {
+        // remainingMustNotContain is only checked if the letter is not found in positionalMatches or additionalRequiredLettersCopy.
+        // This allows a letter to appear in positionalMatches and/or additionalRequiredLetters, and remainingMustNotContain.
+        // Eg, if additionalRequiredLetters contains 's' and remainingMustNotContain contains 's', this ensures the answer must contain one 's'.
+        unusedClues.add(`The guess contains too many ${letter.toUpperCase()}s`);
+      }
+    }
+
+    for (const unusedLetter of additionalRequiredLettersCopy) {
+      unusedClues.add(
+        `The guess contains too few ${unusedLetter.toUpperCase()}s`,
+      );
+    }
+  }
+
+  return [...unusedClues];
+}
+
 /**
  * Figure out the average number of possibilities remaining for a particular guess.
  */
 function getRemainingAverages(
   remainingAnswers: RemainingAnswers,
   guesses: string[],
-  progressPort?: MessageEventSource,
+  onAnswerDone?: () => void,
 ): RemainingResult {
   const counts = {
     common: guesses.map((guess) => [guess, []]) as [string, number[]][],
@@ -216,7 +323,7 @@ function getRemainingAverages(
       remainingCache[key] = [validCommonAnswers, validAnswers];
     }
 
-    if (progressPort) progressPort.postMessage('answer-done');
+    if (onAnswerDone) onAnswerDone();
   }
 
   // Convert the list of counts to averages
@@ -234,6 +341,7 @@ function getRemainingAverages(
 /** Multithreaded version of getRemainingAverages */
 async function getRemainingAveragesMT(
   remainingAnswers: RemainingAnswers,
+  onProgress: (done: number, expecting: number) => void,
 ): Promise<RemainingResult> {
   if (threadPorts.length === 0) {
     throw Error('No worker threads available');
@@ -242,7 +350,7 @@ async function getRemainingAveragesMT(
   const guesses = await getAllWords();
 
   let done = 0;
-  const expected = guesses.length;
+  const expecting = guesses.length;
 
   const groupSize = Math.ceil(guesses.length / threadPorts.length);
   const guessesGroups = Array.from({ length: threadPorts.length }, (_, i) =>
@@ -253,32 +361,40 @@ async function getRemainingAveragesMT(
     guessesGroups.map(
       (guessesGroup, i) =>
         new Promise<RemainingResult>((resolve, reject) => {
-          const port = threadPorts[i];
-          port.postMessage({
-            action: 'get-remaining-averages',
-            remainingAnswers,
-            guesses: guessesGroup,
-          });
+          const mainPort = threadPorts[i];
+          const { port1, port2 } = new MessageChannel();
+          mainPort.postMessage(
+            {
+              action: 'get-remaining-averages',
+              remainingAnswers,
+              guesses: guessesGroup,
+              returnPort: port2,
+            },
+            [port2],
+          );
 
-          function portListener({ data: message }: MessageEvent) {
-            if (message === 'answer-done') {
-              done++;
-              self.postMessage({ type: 'progress', done, expected });
-              return;
-            }
-            if (message.type === 'error') {
-              reject(message.error);
-              port.removeEventListener('message', portListener);
-              return;
-            }
-            if (message.type === 'done') {
-              resolve(message.result);
-              port.removeEventListener('message', portListener);
-              return;
-            }
-          }
+          port1.addEventListener(
+            'message',
+            ({ data: message }: MessageEvent) => {
+              if (message === 'progress') {
+                done++;
+                onProgress(done, expecting);
+                return;
+              }
+              if (message.action === 'error') {
+                reject(message.error);
+                port1.close();
+                return;
+              }
+              if (message.action === 'done') {
+                resolve(message.result);
+                port1.close();
+                return;
+              }
+            },
+          );
 
-          port.addEventListener('message', portListener);
+          port1.start();
         }),
     ),
   );
@@ -319,32 +435,15 @@ export function getBestPlay(
   )![0];
 }
 
-async function analyzeGuess(
+function getPlayAnalysis(
   guess: string,
   answer: string,
   previousClues: Clue[],
-  remainingAnswers?: RemainingAnswers,
-): Promise<GuessAnalysis> {
-  let remainingAverages: RemainingResult | undefined;
-
-  if (!remainingAnswers) {
-    [remainingAnswers, remainingAverages] = await Promise.all([
-      getWordData(),
-      getInitialRemainingAverages(),
-    ]);
-  }
-
-  const allWords = await getAllWords();
-
-  const guessInDictionary = allWords.includes(guess);
+  remainingAnswers: RemainingAnswers,
+  remainingAverages: RemainingResult,
+  commonWords: Set<string>,
+): PlayAnalysis {
   const clue = generateClue(answer, guess);
-
-  if (!remainingAverages) {
-    remainingAverages = await getRemainingAveragesMT(remainingAnswers);
-  }
-
-  const aiGuess = getBestPlay(remainingAnswers, remainingAverages);
-  const aiClue = generateClue(answer, aiGuess);
 
   const newRemainingAnswers = Object.fromEntries(
     Object.entries(remainingAnswers).map(([key, answers]) => [
@@ -361,52 +460,157 @@ async function analyzeGuess(
     ]),
   ) as RemainingAnswers;
 
+  const commonRemainingResult = remainingAverages.common.find(
+    (item) => item[0] === guess,
+  );
+  const allRemainingResult = remainingAverages.all.find(
+    (item) => item[0] === guess,
+  );
+
   return {
-    guessInDictionary,
+    guess,
     clue,
+    colors: generateBlockColors(
+      clue.positionalMatches,
+      clue.positionalNotMatches,
+    ).split('') as CellColors,
+    validForHardMode: validHardModeGuess(guess, previousClues),
+    unusedClues: getUnusedClues(guess, previousClues),
     remainingAnswers: newRemainingAnswers,
-    plays: (
-      [
-        [guess, clue],
-        [aiGuess, aiClue],
-      ] as const
-    ).map(([guess, clue]) => ({
-      guess,
-      colors: generateBlockColors(
-        clue.positionalMatches,
-        clue.positionalNotMatches,
-      ).split('') as CellColors,
-      // TODO: more of this
-    })),
+    averageRemaining:
+      commonRemainingResult && allRemainingResult
+        ? {
+            common: commonRemainingResult[1],
+            all: allRemainingResult[1],
+          }
+        : undefined,
+    commonWord: commonWords.has(guess),
   };
 }
 
-function messageListener(event: MessageEvent) {
+async function analyzeGuess(
+  guess: string,
+  answer: string,
+  previousClues: Clue[],
+  remainingAnswers: RemainingAnswers | undefined,
+  onProgress: (done: number, expecting: number) => void,
+): Promise<GuessAnalysis> {
+  let remainingAverages: RemainingResult | undefined;
+
+  if (!remainingAnswers) {
+    [remainingAnswers, remainingAverages] = await Promise.all([
+      getWordData(),
+      getInitialRemainingAverages(),
+    ]);
+  }
+
+  if (!remainingAverages) {
+    remainingAverages = await getRemainingAveragesMT(
+      remainingAnswers,
+      onProgress,
+    );
+  }
+
+  const commonWords = await getCommonWordSet();
+  const aiGuess = getBestPlay(remainingAnswers, remainingAverages);
+  const userPlay = getPlayAnalysis(
+    guess,
+    answer,
+    previousClues,
+    remainingAnswers,
+    remainingAverages,
+    commonWords,
+  );
+  const aiPlay =
+    aiGuess === guess
+      ? userPlay
+      : getPlayAnalysis(
+          aiGuess,
+          answer,
+          previousClues,
+          remainingAnswers,
+          remainingAverages,
+          commonWords,
+        );
+
+  return {
+    beforeRemainingCounts: {
+      common: remainingAnswers.common.length,
+      other: remainingAnswers.other.length,
+    },
+    plays: { user: userPlay, ai: aiPlay },
+  };
+}
+
+async function messageListener(event: MessageEvent) {
   if (event.data.action === 'listen-to-port') {
     const port = event.data.port as MessagePort;
     port.addEventListener('message', messageListener);
     port.start();
     return;
   }
-  if (event.data.action === 'add-thread-ports') {
-    const ports = event.data.ports as MessagePort[];
-    threadPorts.push(...ports);
-    for (const port of ports) port.start();
+  if (event.data.action === 'add-thread-port') {
+    const port = event.data.port as MessagePort;
+    threadPorts.push(port);
+    port.start();
     return;
   }
   if (event.data.action === 'get-remaining-averages') {
     const remainingAnswers = event.data.remainingAnswers;
     const guesses = event.data.guesses;
+    const returnPort = event.data.returnPort as MessagePort;
 
-    const result = getRemainingAverages(
-      remainingAnswers,
-      guesses,
-      event.source!,
-    );
-    event.source!.postMessage({
-      action: 'get-remaining-averages-done',
-      result,
-    });
+    try {
+      const result = getRemainingAverages(remainingAnswers, guesses, () => {
+        returnPort.postMessage('progress');
+      });
+      returnPort.postMessage({
+        action: 'done',
+        result,
+      });
+    } catch (err: any) {
+      returnPort.postMessage({
+        action: 'error',
+        message: err.message,
+      });
+    } finally {
+      returnPort.close();
+    }
+    return;
+  }
+  if (event.data.action === 'analyze-guess') {
+    const guess = event.data.guess;
+    const answer = event.data.answer;
+    const previousClues = event.data.previousClues;
+    const remainingAnswers = event.data.remainingAnswers;
+    const returnPort = event.data.returnPort as MessagePort;
+
+    try {
+      const result = await analyzeGuess(
+        guess,
+        answer,
+        previousClues,
+        remainingAnswers,
+        (done, expecting) => {
+          returnPort.postMessage({
+            action: 'progress',
+            done,
+            expecting,
+          });
+        },
+      );
+      returnPort.postMessage({
+        action: 'done',
+        result,
+      });
+    } catch (err: any) {
+      returnPort.postMessage({
+        action: 'error',
+        message: err.message,
+      });
+    } finally {
+      returnPort.close();
+    }
     return;
   }
 }

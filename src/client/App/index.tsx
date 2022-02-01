@@ -16,7 +16,7 @@ interface State {
 export default class App extends Component<Props, State> {
   state: State = {
     guessInputs: Array.from({ length: 7 }, () => ''),
-    toAnalyze: { guesses: ['roate', 'dunks', 'perky'], answer: 'perky' },
+    toAnalyze: { guesses: ['roate', 'stole', 'those'], answer: 'those' },
   };
 
   #onGuessesInput = (guesses: string[]) => {

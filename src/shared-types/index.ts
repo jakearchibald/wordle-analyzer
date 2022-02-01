@@ -9,19 +9,23 @@ export interface Clue {
 
 export interface PlayAnalysis {
   guess: string;
+  clue: Clue;
   colors: CellColors;
   validForHardMode: boolean;
   unusedClues: string[];
-  averageEliminations: number;
-  actualEliminations: number;
+  remainingAnswers: RemainingAnswers;
+  averageRemaining: { common: number; all: number } | undefined;
   commonWord: boolean;
 }
 
 export interface GuessAnalysis {
-  guessInDictionary: boolean;
-  remainingAnswers: RemainingAnswers;
-  clue: Clue;
-  plays: [user: PlayAnalysis, ai: PlayAnalysis];
+  beforeRemainingCounts: { common: number; other: number };
+  plays: { user: PlayAnalysis; ai: PlayAnalysis };
+}
+
+export interface AIPlay {
+  beforeRemainingCounts: { common: number; other: number };
+  play: PlayAnalysis;
 }
 
 /** (a)bsent (p)resent (c)orrect */

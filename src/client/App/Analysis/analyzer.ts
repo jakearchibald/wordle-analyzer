@@ -1,15 +1,75 @@
 import workerURL from 'entry-url:workers/analyze';
-import { GuessAnalysis } from 'shared-types/index';
+import { Clue, GuessAnalysis, RemainingAnswers } from 'shared-types/index';
 
 const workerCount = navigator.hardwareConcurrency;
-const workerQueue: Promise<unknown> = Promise.resolve();
+let workerQueue: Promise<unknown> = Promise.resolve();
 const mainWorker = new Worker(workerURL);
 const subWorkers = Array.from(
   { length: workerCount },
   () => new Worker(workerURL),
 );
 
+for (const subWorker of subWorkers) {
+  const channel = new MessageChannel();
+  subWorker.postMessage({ action: 'listen-to-port', port: channel.port1 }, [
+    channel.port1,
+  ]);
+  mainWorker.postMessage({ action: 'add-thread-port', port: channel.port2 }, [
+    channel.port2,
+  ]);
+}
+
+interface AnalyzeGuessOptions {
+  remainingAnswers?: RemainingAnswers;
+  onProgress?: (done: number, expecting: number) => void;
+}
+
 export function analyzeGuess(
   guess: string,
-  remainingAnswers?: string[],
-): GuessAnalysis {}
+  answer: string,
+  previousClues: Clue[],
+  { remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
+): Promise<GuessAnalysis> {
+  const { port1, port2 } = new MessageChannel();
+
+  mainWorker.postMessage(
+    {
+      action: 'analyze-guess',
+      guess,
+      answer,
+      previousClues,
+      remainingAnswers,
+      returnPort: port2,
+    },
+    [port2],
+  );
+
+  return new Promise<GuessAnalysis>((resolve, reject) => {
+    let rafId: number = -1;
+
+    function done() {
+      port1.close();
+      cancelAnimationFrame(rafId);
+    }
+
+    port1.addEventListener('message', (event: MessageEvent) => {
+      if (event.data.action === 'done') {
+        done();
+        resolve(event.data.result);
+        return;
+      }
+      if (event.data.action === 'error') {
+        done();
+        reject(Error(event.data.message));
+        return;
+      }
+      if (event.data.action === 'progress') {
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() =>
+          onProgress?.(event.data.done, event.data.expecting),
+        );
+      }
+    });
+    port1.start();
+  });
+}

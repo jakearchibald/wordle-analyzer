@@ -1,10 +1,14 @@
 import { h, Component, RenderableProps } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
-
-interface GuessData {}
-
-interface AnalysisData {}
+import { analyzeGuess } from './analyzer';
+import {
+  AIPlay,
+  Clue,
+  GuessAnalysis,
+  RemainingAnswers,
+} from 'shared-types/index';
+import AnalysisEntry from './AnalysisEntry';
 
 interface Props {
   guesses: string[];
@@ -12,17 +16,80 @@ interface Props {
 }
 
 interface State {
-  guesses: string[];
-  answer: string;
-
   /** Number is 0-1 representing progress */
-  analysis: (AnalysisData | number)[];
+  analysis: (GuessAnalysis | number)[];
   /** Number is 0-1 representing progress */
-  aiPlay: (GuessData | number)[];
+  aiPlay: (AIPlay | number)[];
 }
 
 export default class Analysis extends Component<Props, State> {
-  render({}: RenderableProps<Props>) {
-    return <div class={styles.analysis}>hello there</div>;
+  state: Readonly<State> = {
+    analysis: [],
+    aiPlay: [],
+  };
+
+  constructor(props: Props) {
+    super(props);
+    this.#analyze();
+  }
+
+  componentDidUpdate(previousProps: Props) {
+    if (
+      previousProps.guesses !== this.props.guesses ||
+      previousProps.answer !== this.props.answer
+    ) {
+      this.#analyze();
+    }
+  }
+
+  async #analyze() {
+    this.setState({
+      analysis: [],
+      aiPlay: [],
+    });
+
+    const previousClues: Clue[] = [];
+    let remainingAnswers: RemainingAnswers | undefined = undefined;
+
+    for (const [i, guess] of this.props.guesses.entries()) {
+      const result: GuessAnalysis = await analyzeGuess(
+        guess,
+        this.props.answer,
+        previousClues,
+        {
+          remainingAnswers,
+          onProgress: (done, expecting) => {
+            this.setState((state) => {
+              const analysis = state.analysis.slice();
+              analysis[i] = done / expecting;
+              return { analysis };
+            });
+          },
+        },
+      );
+
+      this.setState((state) => {
+        const analysis = state.analysis.slice();
+        analysis[i] = result;
+        return { analysis };
+      });
+
+      previousClues.push(result.plays.user.clue);
+      remainingAnswers = result.plays.user.remainingAnswers;
+    }
+  }
+
+  render({}: RenderableProps<Props>, { analysis, aiPlay }: State) {
+    return (
+      <div class={styles.analysis}>
+        {analysis.map((guessAnalysis) =>
+          typeof guessAnalysis === 'number' ? (
+            <progress value={guessAnalysis} />
+          ) : (
+            <AnalysisEntry guessAnalysis={guessAnalysis} />
+          ),
+        )}
+      </div>
+    );
   }
 }
