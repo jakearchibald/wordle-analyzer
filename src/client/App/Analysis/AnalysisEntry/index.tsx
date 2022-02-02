@@ -26,30 +26,25 @@ export default class AnalysisEntry extends Component<Props, State> {
 
     return (
       <div class={styles.analysisEntry}>
-        <div class={styles.analysisGrid}>
-          {plays.map((play, i) => {
-            let row = 1;
-
-            return (
-              <>
-                <h2
-                  class={styles.mainHeading}
-                  style={{ gridArea: `${row++}/${i + 1}` }}
-                >
-                  {i === 0 ? 'You played' : 'AI would play'}
-                </h2>
-                <div style={{ gridArea: `${row++}/${i + 1}` }}>
-                  <div class={guessStyles.small}>
-                    <Guess value={play.guess} cellClues={play.colors} />
-                  </div>
-                </div>
-                <h3
-                  class={styles.subHeading}
-                  style={{ gridArea: `${row++}/1 / span 1 /span 2` }}
-                >
-                  Possible answer?
-                </h3>
-                <div style={{ gridArea: `${row++}/${i + 1}` }}>
+        <table>
+          <tr>
+            <td></td>
+            <th scope="col">You played</th>
+            <th scope="col">AI would play</th>
+          </tr>
+          <tr>
+            <th scope="row">Guess</th>
+            {plays.map((play) => (
+              <td class={guessStyles.small}>
+                <Guess value={play.guess} cellClues={play.colors} />
+              </td>
+            ))}
+          </tr>
+          {!first && (
+            <tr>
+              <th scope="row">Possible answer?</th>
+              {plays.map((play) => (
+                <td>
                   <div>{boolToYesNo(play.unusedClues.length === 0)}</div>
                   {play.unusedClues.length !== 0 && (
                     <ul>
@@ -58,70 +53,60 @@ export default class AnalysisEntry extends Component<Props, State> {
                       ))}
                     </ul>
                   )}
-                </div>
-                {!first && (
-                  <>
-                    <h3
-                      class={styles.subHeading}
-                      style={{ gridArea: `${row++}/1 / span 1 /span 2` }}
-                    >
-                      Valid 'hard mode' guess?
-                    </h3>
-                    <div style={{ gridArea: `${row++}/${i + 1}` }}>
-                      {boolToYesNo(play.validForHardMode)}
-                    </div>
-                  </>
-                )}
-                <h3
-                  class={styles.subHeading}
-                  style={{ gridArea: `${row++}/1 / span 1 /span 2` }}
-                >
-                  Common word?
-                </h3>
-                <div style={{ gridArea: `${row++}/${i + 1}` }}>
-                  {boolToYesNo(play.commonWord)}
-                </div>
-                <h3
-                  class={styles.subHeading}
-                  style={{ gridArea: `${row++}/1 / span 1 /span 2` }}
-                >
-                  Average eliminations
-                </h3>
-                <div style={{ gridArea: `${row++}/${i + 1}` }}>
-                  {play.averageRemaining
-                    ? toTwoDecimalPlaces(
-                        (1 - play.averageRemaining.all / totalRemaining) * 100,
-                      ) +
-                      '%' +
-                      ` (leaving ${toTwoDecimalPlaces(
-                        play.averageRemaining.all,
-                      )})`
-                    : 'Word not found'}
-                </div>
-                <h3
-                  class={styles.subHeading}
-                  style={{ gridArea: `${row++}/1 / span 1 /span 2` }}
-                >
-                  Actual eliminations
-                </h3>
-                <div style={{ gridArea: `${row++}/${i + 1}` }}>
-                  {toTwoDecimalPlaces(
-                    (1 -
-                      (play.remainingAnswers.common.length +
-                        play.remainingAnswers.other.length) /
-                        totalRemaining) *
-                      100,
-                  ) +
+                </td>
+              ))}
+            </tr>
+          )}
+          {!first && (
+            <tr>
+              <th scope="row">Valid for 'hard mode'?</th>
+              {plays.map((play) => (
+                <td>{boolToYesNo(play.validForHardMode)}</td>
+              ))}
+            </tr>
+          )}
+          <tr>
+            <th scope="row">Common word?</th>
+            {plays.map((play) => (
+              <td>{boolToYesNo(play.commonWord)}</td>
+            ))}
+          </tr>
+          <tr>
+            <th scope="row">Average eliminations</th>
+            {plays.map((play) => (
+              <td>
+                {play.averageRemaining
+                  ? toTwoDecimalPlaces(
+                      (1 - play.averageRemaining.all / totalRemaining) * 100,
+                    ) +
                     '%' +
-                    ` (leaving ${
-                      play.remainingAnswers.common.length +
-                      play.remainingAnswers.other.length
-                    })`}
-                </div>
-              </>
-            );
-          })}
-        </div>
+                    ` (leaving ${toTwoDecimalPlaces(
+                      play.averageRemaining.all,
+                    )})`
+                  : 'Word not found'}
+              </td>
+            ))}
+          </tr>
+          <tr>
+            <th scope="row">Actual eliminations</th>
+            {plays.map((play) => (
+              <td>
+                {toTwoDecimalPlaces(
+                  (1 -
+                    (play.remainingAnswers.common.length +
+                      play.remainingAnswers.other.length) /
+                      totalRemaining) *
+                    100,
+                ) +
+                  '%' +
+                  ` (leaving ${
+                    play.remainingAnswers.common.length +
+                    play.remainingAnswers.other.length
+                  })`}
+              </td>
+            ))}
+          </tr>
+        </table>
 
         {userRemainingAnswers.common.length +
           userRemainingAnswers.other.length <
