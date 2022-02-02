@@ -4,11 +4,11 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.3rem;
+  --size: 3.7rem;
 }
 
 .cell {
   grid-row: 1;
-  --size: 3.7rem;
   border: 2px solid var(--theme-grey-1);
   display: grid;
   align-items: center;
@@ -56,8 +56,18 @@
 
 .single-highlight {
   justify-self: start;
+
+  &.last-highlight {
+    justify-self: end;
+  }
 }
 
-.single-highlight.last-highlight {
-  justify-self: end;
+.small {
+  & .guess {
+    --size: 1.8rem;
+    gap: 1px;
+  }
+  & .cell {
+    font-size: 1.2rem;
+  }
 }

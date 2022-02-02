@@ -1,6 +1,7 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
+import * as guessStyles from '../../Guess/styles.module.css';
 import { GuessAnalysis } from 'shared-types/index';
 import Guess from 'client/App/Guess';
 
@@ -38,7 +39,9 @@ export default class AnalysisEntry extends Component<Props, State> {
                   {i === 0 ? 'You played' : 'AI would play'}
                 </h2>
                 <div style={{ gridArea: `${row++}/${i + 1}` }}>
-                  <Guess value={play.guess} cellClues={play.colors} />
+                  <div class={guessStyles.small}>
+                    <Guess value={play.guess} cellClues={play.colors} />
+                  </div>
                 </div>
                 <h3
                   class={styles.subHeading}
@@ -128,7 +131,7 @@ export default class AnalysisEntry extends Component<Props, State> {
               ...userRemainingAnswers.common,
               ...userRemainingAnswers.other,
             ].map((remaining) => (
-              <li>
+              <li class={guessStyles.small}>
                 <Guess value={remaining} />
               </li>
             ))}

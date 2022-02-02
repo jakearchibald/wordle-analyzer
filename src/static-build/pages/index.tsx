@@ -37,6 +37,7 @@ const Index: FunctionalComponent<Props> = () => (
       {imports.map((preload) => (
         <link rel="modulepreload" href={preload} />
       ))}
+      <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
     </head>
     <body>
       <Header />
