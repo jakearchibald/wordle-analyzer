@@ -2,12 +2,16 @@ import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import * as guessStyles from '../../Guess/styles.module.css';
-import { GuessAnalysis } from 'shared-types/index';
+import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
 import Guess from 'client/App/Guess';
+
+export interface GuessAnalysisWithRemainingAnswers extends GuessAnalysis {
+  beforeRemainingAnswers?: RemainingAnswers;
+}
 
 interface Props {
   first: boolean;
-  guessAnalysis: GuessAnalysis;
+  guessAnalysis: GuessAnalysisWithRemainingAnswers;
 }
 
 interface State {}
@@ -22,10 +26,26 @@ export default class AnalysisEntry extends Component<Props, State> {
       guessAnalysis.beforeRemainingCounts.common +
       guessAnalysis.beforeRemainingCounts.other;
 
-    const userRemainingAnswers = guessAnalysis.plays.user.remainingAnswers;
-
     return (
       <div class={styles.analysisEntry}>
+        <h2>
+          {totalRemaining} remaining{' '}
+          {totalRemaining === 1 ? 'possibility' : 'possibilities'} (
+          {guessAnalysis.beforeRemainingCounts.common} 'common'{' '}
+          {guessAnalysis.beforeRemainingCounts.common === 1 ? 'word' : 'words'})
+        </h2>
+        {guessAnalysis.beforeRemainingAnswers && totalRemaining < 30 && (
+          <ul class={styles.remainingList}>
+            {[
+              ...guessAnalysis.beforeRemainingAnswers.common,
+              ...guessAnalysis.beforeRemainingAnswers.other,
+            ].map((remaining) => (
+              <li class={guessStyles.small}>
+                <Guess value={remaining} />
+              </li>
+            ))}
+          </ul>
+        )}
         <table>
           <tr>
             <td></td>
@@ -107,21 +127,6 @@ export default class AnalysisEntry extends Component<Props, State> {
             ))}
           </tr>
         </table>
-
-        {userRemainingAnswers.common.length +
-          userRemainingAnswers.other.length <
-          30 && (
-          <ul class={styles.remainingList}>
-            {[
-              ...userRemainingAnswers.common,
-              ...userRemainingAnswers.other,
-            ].map((remaining) => (
-              <li class={guessStyles.small}>
-                <Guess value={remaining} />
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     );
   }

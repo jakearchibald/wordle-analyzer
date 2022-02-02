@@ -8,7 +8,9 @@ import {
   GuessAnalysis,
   RemainingAnswers,
 } from 'shared-types/index';
-import AnalysisEntry from './AnalysisEntry';
+import AnalysisEntry, {
+  GuessAnalysisWithRemainingAnswers,
+} from './AnalysisEntry';
 
 interface Props {
   guesses: string[];
@@ -17,7 +19,7 @@ interface Props {
 
 interface State {
   /** Number is 0-1 representing progress */
-  analysis: (GuessAnalysis | number)[];
+  analysis: (GuessAnalysisWithRemainingAnswers | number)[];
   /** Number is 0-1 representing progress */
   aiPlay: (AIPlay | number)[];
 }
@@ -70,7 +72,7 @@ export default class Analysis extends Component<Props, State> {
 
       this.setState((state) => {
         const analysis = state.analysis.slice();
-        analysis[i] = result;
+        analysis[i] = { ...result, beforeRemainingAnswers: remainingAnswers };
         return { analysis };
       });
 
