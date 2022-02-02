@@ -46,7 +46,7 @@ export default class AnalysisEntry extends Component<Props, State> {
             ))}
           </ul>
         )}
-        <table>
+        <table class={styles.analysisTable}>
           <tr>
             <td></td>
             <th scope="col">You played</th>
@@ -95,15 +95,19 @@ export default class AnalysisEntry extends Component<Props, State> {
             <th scope="row">Average eliminations</th>
             {plays.map((play) => (
               <td>
-                {play.averageRemaining
-                  ? toTwoDecimalPlaces(
+                {play.averageRemaining ? (
+                  <>
+                    {toTwoDecimalPlaces(
                       (1 - play.averageRemaining.all / totalRemaining) * 100,
-                    ) +
-                    '%' +
-                    ` (leaving ${toTwoDecimalPlaces(
-                      play.averageRemaining.all,
-                    )})`
-                  : 'Word not found'}
+                    )}
+                    %{' '}
+                    <span class={styles.noBreak}>
+                      (leaving {toTwoDecimalPlaces(play.averageRemaining.all)})
+                    </span>
+                  </>
+                ) : (
+                  'Word not found'
+                )}
               </td>
             ))}
           </tr>
@@ -117,12 +121,14 @@ export default class AnalysisEntry extends Component<Props, State> {
                       play.remainingAnswers.other.length) /
                       totalRemaining) *
                     100,
-                ) +
-                  '%' +
-                  ` (leaving ${
-                    play.remainingAnswers.common.length +
-                    play.remainingAnswers.other.length
-                  })`}
+                )}
+                %{' '}
+                <span class={styles.noBreak}>
+                  (leaving{' '}
+                  {play.remainingAnswers.common.length +
+                    play.remainingAnswers.other.length}
+                  )
+                </span>
               </td>
             ))}
           </tr>
