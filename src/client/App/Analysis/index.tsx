@@ -171,11 +171,14 @@ export default class Analysis extends Component<Props, State> {
           <>
             <h2 class={styles.pillHeading}>AI playthrough</h2>
 
-            <p>
-              The AI mostly tries to eliminate as many answers as possible with
-              each guess, although as there are fewer options left, although if
-              there's a possible answer that's almost as good, it'll play that.
-            </p>
+            <div class={styles.preCommentary}>
+              <p>
+                The AI mostly tries to eliminate as many answers as possible
+                with each guess, although as there are fewer options left,
+                although if there's a possible answer that's almost as good,
+                it'll play that.
+              </p>
+            </div>
 
             <div class={styles.guesses}>
               {aiPlays.map((aiPlay, i) =>

@@ -10,6 +10,8 @@
   --theme-table-cell: hsl(214deg, 7%, 94%);
   --theme-table-cell-alt: hsl(214deg, 7%, 97%);
   --theme-table-heading-alt: hsl(214deg, 9%, 88%);
+
+  --content-padding: 0.7rem;
 }
 
 @media (prefers-color-scheme: dark) {

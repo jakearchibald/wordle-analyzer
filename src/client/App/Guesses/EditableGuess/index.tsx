@@ -7,6 +7,7 @@ interface Props {
   value: string;
   label: string;
   onInput: (value: string) => void;
+  autoFocus: boolean;
 }
 
 interface State {
@@ -61,7 +62,7 @@ export default class EditableGuess extends Component<Props, State> {
   };
 
   render(
-    { label, value }: RenderableProps<Props>,
+    { label, value, autoFocus }: RenderableProps<Props>,
     { selection, inputHasFocus }: State,
   ) {
     return (
@@ -75,7 +76,7 @@ export default class EditableGuess extends Component<Props, State> {
         </div>
         <input
           aria-label={label}
-          autoFocus={true}
+          autoFocus={autoFocus}
           onFocus={this.#onInputFocus}
           onBlur={this.#onInputBlur}
           ref={this.#input}

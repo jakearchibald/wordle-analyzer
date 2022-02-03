@@ -23,7 +23,9 @@ export default class Guesses extends Component<Props> {
     if (!inputValid(this.props.values)) return;
 
     this.props.onSubmit(
-      this.props.values.filter((value) => value.length === 5),
+      this.props.values
+        .filter((value) => value.length === 5)
+        .map((value) => value.toLowerCase()),
     );
   };
 
@@ -43,6 +45,7 @@ export default class Guesses extends Component<Props> {
         <div class={styles.guesses}>
           {values.map((value, index) => (
             <EditableGuess
+              autoFocus={index === 0}
               onInput={this.#onInputs[index]}
               value={value}
               label={`Guess ${index + 1}`}

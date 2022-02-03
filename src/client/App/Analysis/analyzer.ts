@@ -7,7 +7,8 @@ import {
   RemainingAnswers,
 } from 'shared-types/index';
 
-const workerCount = navigator.hardwareConcurrency;
+// Default to 4, since this value isn't given in Safari.
+const workerCount = navigator.hardwareConcurrency || 4;
 const mainWorker = new Worker(workerURL);
 const subWorkers = Array.from(
   { length: workerCount },
