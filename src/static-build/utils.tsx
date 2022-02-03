@@ -57,9 +57,7 @@ export function escapeStyleScriptContent(str: string): string {
     .replace(/<\/style/g, '<\\/style');
 }
 
-const productionURL = () => {
-  return 'https://wordle-analyzer.netlify.app';
-};
+const productionURL = 'https://wordle-analyzer.netlify.app';
 
 /**
  * Origin of the site, depending on the environment.
@@ -67,10 +65,10 @@ const productionURL = () => {
 export const siteOrigin = (() => {
   if (process.env.DEV_PORT) return `http://localhost:${process.env.DEV_PORT}`;
   // https://docs.netlify.com/configure-builds/environment-variables/#build-metadata
-  if (process.env.CONTEXT === 'production') return productionURL();
+  if (process.env.CONTEXT === 'production') return productionURL;
   if (process.env.DEPLOY_PRIME_URL) return process.env.DEPLOY_PRIME_URL;
   console.warn(
-    `Unable to determine site origin, defaulting to ${productionURL()}`,
+    `Unable to determine site origin, defaulting to ${productionURL}`,
   );
-  return productionURL();
+  return productionURL;
 })();

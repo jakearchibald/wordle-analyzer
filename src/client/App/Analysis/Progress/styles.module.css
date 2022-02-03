@@ -1,0 +1,15 @@
+.progress {
+  height: 20px;
+  border: 1px solid var(--theme-grey-2);
+  position: relative;
+
+  &::before {
+    content: '';
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: calc(var(--progress) * 100%);
+    background: var(--theme-grey-2);
+    position: absolute;
+  }
+}

@@ -16,10 +16,10 @@ interface State {
 export default class App extends Component<Props, State> {
   state: State = {
     guessInputs: Array.from({ length: 7 }, () => ''),
-    toAnalyze: {
+    /*toAnalyze: {
       guesses: ['roate', 'punks', 'grass', 'swarm', 'scary', 'shard'],
       answer: 'shard',
-    },
+    },*/
   };
 
   #onGuessesInput = (guesses: string[]) => {

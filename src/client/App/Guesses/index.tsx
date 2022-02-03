@@ -55,7 +55,7 @@ export default class Guesses extends Component<Props> {
             class={utilStyles.button}
             disabled={!inputValid(values)}
           >
-            Analyse
+            Analyze
           </button>
         </div>
       </form>

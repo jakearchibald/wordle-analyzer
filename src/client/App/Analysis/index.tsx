@@ -12,6 +12,7 @@ import {
 import Guess from '../Guess';
 import PreCommentary from './PreCommentary';
 import AnalysisEntry from './AnalysisEntry';
+import Progress from './Progress';
 
 interface Props {
   guesses: string[];
@@ -140,7 +141,9 @@ export default class Analysis extends Component<Props, State> {
           <div>
             <h2 class={styles.pillHeading}>Guess {i + 1}</h2>
             {typeof guessAnalysis === 'number' ? (
-              <progress value={guessAnalysis} />
+              <div class={styles.progressContainer}>
+                <Progress value={guessAnalysis} />
+              </div>
             ) : (
               <>
                 <div class={styles.preCommentary}>
@@ -177,7 +180,9 @@ export default class Analysis extends Component<Props, State> {
             <div class={styles.guesses}>
               {aiPlays.map((aiPlay, i) =>
                 typeof aiPlay === 'number' ? (
-                  <progress value={aiPlay} />
+                  <div class={styles.progressContainer}>
+                    <Progress value={aiPlay} />
+                  </div>
                 ) : (
                   <Guess
                     value={aiPlay.play.guess}

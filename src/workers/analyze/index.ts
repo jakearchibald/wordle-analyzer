@@ -346,6 +346,13 @@ async function getRemainingAveragesMT(
     throw Error('No worker threads available');
   }
 
+  if (
+    remainingAnswers.common.length === 0 &&
+    remainingAnswers.other.length === 0
+  ) {
+    throw Error('No remaining answers');
+  }
+
   const guesses = await getAllWords();
 
   let done = 0;

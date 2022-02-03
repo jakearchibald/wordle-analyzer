@@ -15,6 +15,7 @@ import { h, FunctionalComponent } from 'preact';
 import 'add-css:shared/base.css';
 import initialCss from 'prerender-css:';
 import { src, imports } from 'client-bundle:client';
+import analyticsUrl from 'client-bundle:client/analytics/index.js';
 import Header from 'shared/Header';
 import MainInstruction from 'shared/MainInstruction';
 // import favicon from 'url:static-build/assets/favicon.ico';
@@ -38,6 +39,7 @@ const Index: FunctionalComponent<Props> = () => (
         <link rel="modulepreload" href={preload} />
       ))}
       <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
+      <script src={analyticsUrl} async />
     </head>
     <body>
       <Header />
