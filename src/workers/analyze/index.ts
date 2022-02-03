@@ -8,6 +8,7 @@ import {
   RemainingAnswers,
   CellColors,
   PlayAnalysis,
+  AIPlay,
 } from 'shared-types/index';
 
 type WordDataType = typeof import('./word-data.json');
@@ -417,24 +418,26 @@ export function getBestPlay(
   remainingAnswers: RemainingAnswers,
   remainingResult: RemainingResult,
 ): string {
-  if (remainingAnswers.common.length > 4) {
-    // Pick the answer that eliminates most common words
-    return remainingResult.common[0][0];
+  // Focus on the common words first.
+  for (const [remaining, bestGuesses] of [
+    [remainingAnswers.common, remainingResult.common] as const,
+    [remainingAnswers.other, remainingResult.all] as const,
+  ]) {
+    // Ran out of common answers.
+    if (remaining.length === 0) continue;
+
+    const bestGuess = bestGuesses[0];
+
+    // Try to find a guess that's still a remaining answer.
+    for (const guess of bestGuesses) {
+      // If the remaining answers don't eliminate enough, just go with the best guess.
+      if (guess[1] - bestGuess[1] > 0.5) return bestGuess[0];
+      // Otherwise, go with a guess that's also a remaining answer.
+      if (remaining.includes(guess[0])) return guess[0];
+    }
   }
-  if (remainingAnswers.common.length !== 0) {
-    // Go for a common-word win
-    return remainingResult.common.find(([word]) =>
-      remainingAnswers.common.includes(word),
-    )![0];
-  }
-  if (remainingAnswers.other.length > 4) {
-    // Pick the answer that eliminates most words
-    return remainingResult.all[0][0];
-  }
-  // Go for a win
-  return remainingResult.all.find(([word]) =>
-    remainingAnswers.other.includes(word),
-  )![0];
+
+  throw Error('No remaining answers');
 }
 
 function getPlayAnalysis(
@@ -544,6 +547,48 @@ async function analyzeGuess(
   };
 }
 
+async function getAiPlay(
+  answer: string,
+  previousClues: Clue[],
+  remainingAnswers: RemainingAnswers | undefined,
+  onProgress: (done: number, expecting: number) => void,
+): Promise<AIPlay> {
+  let remainingAverages: RemainingResult | undefined;
+
+  if (!remainingAnswers) {
+    [remainingAnswers, remainingAverages] = await Promise.all([
+      getWordData(),
+      getInitialRemainingAverages(),
+    ]);
+  }
+
+  if (!remainingAverages) {
+    remainingAverages = await getRemainingAveragesMT(
+      remainingAnswers,
+      onProgress,
+    );
+  }
+
+  const commonWords = await getCommonWordSet();
+  const guess = getBestPlay(remainingAnswers, remainingAverages);
+  const play = getPlayAnalysis(
+    guess,
+    answer,
+    previousClues,
+    remainingAnswers,
+    remainingAverages,
+    commonWords,
+  );
+
+  return {
+    beforeRemainingCounts: {
+      common: remainingAnswers.common.length,
+      other: remainingAnswers.other.length,
+    },
+    play,
+  };
+}
+
 async function messageListener(event: MessageEvent) {
   if (event.data.action === 'listen-to-port') {
     const port = event.data.port as MessagePort;
@@ -590,6 +635,39 @@ async function messageListener(event: MessageEvent) {
     try {
       const result = await analyzeGuess(
         guess,
+        answer,
+        previousClues,
+        remainingAnswers,
+        (done, expecting) => {
+          returnPort.postMessage({
+            action: 'progress',
+            done,
+            expecting,
+          });
+        },
+      );
+      returnPort.postMessage({
+        action: 'done',
+        result,
+      });
+    } catch (err: any) {
+      returnPort.postMessage({
+        action: 'error',
+        message: err.message,
+      });
+    } finally {
+      returnPort.close();
+    }
+    return;
+  }
+  if (event.data.action === 'ai-play') {
+    const answer = event.data.answer;
+    const previousClues = event.data.previousClues;
+    const remainingAnswers = event.data.remainingAnswers;
+    const returnPort = event.data.returnPort as MessagePort;
+
+    try {
+      const result = await getAiPlay(
         answer,
         previousClues,
         remainingAnswers,

@@ -1,5 +1,10 @@
 import workerURL from 'entry-url:workers/analyze';
-import { Clue, GuessAnalysis, RemainingAnswers } from 'shared-types/index';
+import {
+  AIPlay,
+  Clue,
+  GuessAnalysis,
+  RemainingAnswers,
+} from 'shared-types/index';
 
 const workerCount = navigator.hardwareConcurrency;
 let workerQueue: Promise<unknown> = Promise.resolve();
@@ -45,6 +50,54 @@ export function analyzeGuess(
   );
 
   return new Promise<GuessAnalysis>((resolve, reject) => {
+    let rafId: number = -1;
+
+    function done() {
+      port1.close();
+      cancelAnimationFrame(rafId);
+    }
+
+    port1.addEventListener('message', (event: MessageEvent) => {
+      if (event.data.action === 'done') {
+        done();
+        resolve(event.data.result);
+        return;
+      }
+      if (event.data.action === 'error') {
+        done();
+        reject(Error(event.data.message));
+        return;
+      }
+      if (event.data.action === 'progress') {
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() =>
+          onProgress?.(event.data.done, event.data.expecting),
+        );
+      }
+    });
+    port1.start();
+  });
+}
+
+export function aiPlay(
+  answer: string,
+  previousClues: Clue[],
+  { remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
+): Promise<AIPlay> {
+  const { port1, port2 } = new MessageChannel();
+
+  mainWorker.postMessage(
+    {
+      action: 'ai-play',
+      answer,
+      previousClues,
+      remainingAnswers,
+      returnPort: port2,
+    },
+    [port2],
+  );
+
+  return new Promise<AIPlay>((resolve, reject) => {
     let rafId: number = -1;
 
     function done() {

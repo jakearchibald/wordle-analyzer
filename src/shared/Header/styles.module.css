@@ -6,10 +6,10 @@
 }
 
 .header h1 {
-  margin: 0.2em 0;
-  font-size: inherit;
   font-weight: 700;
   font-size: 36px;
   letter-spacing: 0.2rem;
+  margin: 0.4em 0;
   text-align: center;
+  line-height: 1;
 }

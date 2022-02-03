@@ -4,6 +4,7 @@
   background: var(--theme-grey-1);
   text-align: center;
   align-items: center;
+  line-height: 1.2;
 }
 
 .instructions > * {

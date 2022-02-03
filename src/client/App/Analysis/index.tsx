@@ -1,7 +1,7 @@
 import { h, Component, RenderableProps } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
-import { analyzeGuess } from './analyzer';
+import { aiPlay, analyzeGuess } from './analyzer';
 import {
   AIPlay,
   Clue,
@@ -12,6 +12,10 @@ import AnalysisEntry, {
   GuessAnalysisWithRemainingAnswers,
 } from './AnalysisEntry';
 
+interface AiPlayWithRemainingAnswers extends AIPlay {
+  beforeRemainingAnswers?: RemainingAnswers;
+}
+
 interface Props {
   guesses: string[];
   answer: string;
@@ -21,13 +25,13 @@ interface State {
   /** Number is 0-1 representing progress */
   analysis: (GuessAnalysisWithRemainingAnswers | number)[];
   /** Number is 0-1 representing progress */
-  aiPlay: (AIPlay | number)[];
+  aiPlays: (AiPlayWithRemainingAnswers | number)[];
 }
 
 export default class Analysis extends Component<Props, State> {
   state: Readonly<State> = {
     analysis: [],
-    aiPlay: [],
+    aiPlays: [],
   };
 
   constructor(props: Props) {
@@ -47,50 +51,90 @@ export default class Analysis extends Component<Props, State> {
   async #analyze() {
     this.setState({
       analysis: [],
-      aiPlay: [],
+      aiPlays: [],
     });
 
-    const previousClues: Clue[] = [];
-    let remainingAnswers: RemainingAnswers | undefined = undefined;
+    {
+      const previousClues: Clue[] = [];
+      let remainingAnswers: RemainingAnswers | undefined = undefined;
 
-    for (const [i, guess] of this.props.guesses.entries()) {
-      const result: GuessAnalysis = await analyzeGuess(
-        guess,
-        this.props.answer,
-        previousClues,
-        {
+      for (const [i, guess] of this.props.guesses.entries()) {
+        const result: GuessAnalysis = await analyzeGuess(
+          guess,
+          this.props.answer,
+          previousClues,
+          {
+            remainingAnswers,
+            onProgress: (done, expecting) => {
+              this.setState((state) => {
+                const analysis = state.analysis.slice();
+                analysis[i] = done / expecting;
+                return { analysis };
+              });
+            },
+          },
+        );
+
+        this.setState((state) => {
+          const analysis = state.analysis.slice();
+          analysis[i] = { ...result, beforeRemainingAnswers: remainingAnswers };
+          return { analysis };
+        });
+
+        previousClues.push(result.plays.user.clue);
+        remainingAnswers = result.plays.user.remainingAnswers;
+      }
+    }
+
+    {
+      const previousClues: Clue[] = [];
+      let remainingAnswers: RemainingAnswers | undefined = undefined;
+
+      for (let guess = 0; ; guess++) {
+        const result: AIPlay = await aiPlay(this.props.answer, previousClues, {
           remainingAnswers,
           onProgress: (done, expecting) => {
             this.setState((state) => {
-              const analysis = state.analysis.slice();
-              analysis[i] = done / expecting;
-              return { analysis };
+              const aiPlays = state.aiPlays.slice();
+              aiPlays[guess] = done / expecting;
+              return { aiPlays };
             });
           },
-        },
-      );
+        });
 
-      this.setState((state) => {
-        const analysis = state.analysis.slice();
-        analysis[i] = { ...result, beforeRemainingAnswers: remainingAnswers };
-        return { analysis };
-      });
+        this.setState((state) => {
+          const aiPlays = state.aiPlays.slice();
+          aiPlays[guess] = {
+            ...result,
+            beforeRemainingAnswers: remainingAnswers,
+          };
+          return { aiPlays };
+        });
 
-      previousClues.push(result.plays.user.clue);
-      remainingAnswers = result.plays.user.remainingAnswers;
+        if (result.play.guess === this.props.answer) break;
+
+        previousClues.push(result.play.clue);
+        remainingAnswers = result.play.remainingAnswers;
+      }
     }
   }
 
-  render({}: RenderableProps<Props>, { analysis, aiPlay }: State) {
+  render({}: RenderableProps<Props>, { analysis, aiPlays }: State) {
     return (
       <div class={styles.analysis}>
-        {analysis.map((guessAnalysis, i) =>
-          typeof guessAnalysis === 'number' ? (
-            <progress value={guessAnalysis} />
-          ) : (
-            <AnalysisEntry guessAnalysis={guessAnalysis} first={i === 0} />
-          ),
-        )}
+        {analysis.map((guessAnalysis, i) => (
+          <div>
+            <h2>Guess {i + 1}</h2>
+            {typeof guessAnalysis === 'number' ? (
+              <progress value={guessAnalysis} />
+            ) : (
+              <AnalysisEntry guessAnalysis={guessAnalysis} first={i === 0} />
+            )}
+          </div>
+        ))}
+        {aiPlays.map((aiPlay, i) => (
+          <div>{typeof aiPlay !== 'number' && aiPlay.play.guess}</div>
+        ))}
       </div>
     );
   }
