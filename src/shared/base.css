@@ -7,6 +7,9 @@
   --theme-correct: #6aaa64;
   --theme-absent: #787c7e;
   --theme-filled-tile-text: #fff;
+  --theme-table-cell: hsl(214deg, 7%, 94%);
+  --theme-table-cell-alt: hsl(214deg, 7%, 97%);
+  --theme-table-heading-alt: hsl(214deg, 9%, 88%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +22,9 @@
     --theme-correct: #538d4e;
     --theme-absent: #3a3a3c;
     --theme-filled-tile-text: #d7dadc;
+    --theme-table-cell: hsl(214deg, 7%, 12%);
+    --theme-table-cell-alt: hsl(214deg, 7%, 9%);
+    --theme-table-heading-alt: hsl(214deg, 9%, 16%);
   }
 }
 

@@ -1,6 +1,13 @@
 .analysis {
   max-width: 665px;
   margin: 0 auto;
+  --content-padding: 0.7rem;
+}
+
+.pre-commentary {
+  padding: 0 var(--content-padding);
+  text-align: left;
+  line-height: 1.9;
 }
 
 .guesses {
@@ -10,11 +17,14 @@
   margin: 1rem 0;
 }
 
-.guess-heading {
+.pill-heading {
   background: var(--theme-grey-1);
   font-size: 1.2rem;
   padding: 0.5rem 1.4rem;
-  margin: 1.5em auto;
-  width: max-content;
+  margin: 1.9rem auto;
+  margin-top: 5rem;
   border-radius: 1000px;
+  min-width: 7rem;
+  width: max-content;
+  text-align: center;
 }

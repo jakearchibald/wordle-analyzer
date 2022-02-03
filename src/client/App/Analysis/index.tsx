@@ -9,14 +9,9 @@ import {
   GuessAnalysis,
   RemainingAnswers,
 } from 'shared-types/index';
-import AnalysisEntry, {
-  GuessAnalysisWithRemainingAnswers,
-} from './AnalysisEntry';
 import Guess from '../Guess';
-
-interface AiPlayWithRemainingAnswers extends AIPlay {
-  beforeRemainingAnswers?: RemainingAnswers;
-}
+import PreCommentary from './PreCommentary';
+import AnalysisEntry from './AnalysisEntry';
 
 interface Props {
   guesses: string[];
@@ -25,9 +20,9 @@ interface Props {
 
 interface State {
   /** Number is 0-1 representing progress */
-  analysis: (GuessAnalysisWithRemainingAnswers | number)[];
+  analysis: (GuessAnalysis | number)[];
   /** Number is 0-1 representing progress */
-  aiPlays: (AiPlayWithRemainingAnswers | number)[];
+  aiPlays: (AIPlay | number)[];
   guessCellColors: CellColors[] | undefined;
 }
 
@@ -89,7 +84,7 @@ export default class Analysis extends Component<Props, State> {
 
         this.setState((state) => {
           const analysis = state.analysis.slice();
-          analysis[i] = { ...result, beforeRemainingAnswers: remainingAnswers };
+          analysis[i] = { ...result };
           return { analysis };
         });
 
@@ -116,10 +111,7 @@ export default class Analysis extends Component<Props, State> {
 
         this.setState((state) => {
           const aiPlays = state.aiPlays.slice();
-          aiPlays[guess] = {
-            ...result,
-            beforeRemainingAnswers: remainingAnswers,
-          };
+          aiPlays[guess] = { ...result };
           return { aiPlays };
         });
 
@@ -144,30 +136,58 @@ export default class Analysis extends Component<Props, State> {
             ))}
           </div>
         )}
-        {analysis.map((guessAnalysis, i) => (
+        {analysis.map((guessAnalysis, i, allGuessAnalysis) => (
           <div>
-            <h2 class={styles.guessHeading}>Guess {i + 1}</h2>
+            <h2 class={styles.pillHeading}>Guess {i + 1}</h2>
             {typeof guessAnalysis === 'number' ? (
               <progress value={guessAnalysis} />
             ) : (
-              <AnalysisEntry
-                guessAnalysis={guessAnalysis}
-                first={i === 0}
-                answer={answer}
-              />
-            )}
-          </div>
-        ))}
-        {aiPlays.map((aiPlay, i) => (
-          <div>
-            {typeof aiPlay !== 'number' && (
               <>
-                {aiPlay.play.guess} -{' '}
-                {aiPlay.play.unusedClues.length === 0 && 'possible answer'}
+                <div class={styles.preCommentary}>
+                  <PreCommentary
+                    guessAnalysis={guessAnalysis}
+                    turn={i}
+                    remainingAnswers={
+                      i > 0
+                        ? (allGuessAnalysis[i - 1] as GuessAnalysis).plays.user
+                            .remainingAnswers
+                        : undefined
+                    }
+                  />
+                </div>
+                <AnalysisEntry
+                  guessAnalysis={guessAnalysis}
+                  first={i === 0}
+                  answer={answer}
+                />
               </>
             )}
           </div>
         ))}
+        {aiPlays.length !== 0 && (
+          <>
+            <h2 class={styles.pillHeading}>AI playthrough</h2>
+
+            <p>
+              The AI mostly tries to eliminate as many answers as possible with
+              each guess, although as there are fewer options left, although if
+              there's a possible answer that's almost as good, it'll play that.
+            </p>
+
+            <div class={styles.guesses}>
+              {aiPlays.map((aiPlay, i) =>
+                typeof aiPlay === 'number' ? (
+                  <progress value={aiPlay} />
+                ) : (
+                  <Guess
+                    value={aiPlay.play.guess}
+                    cellClues={aiPlay.play.colors}
+                  />
+                ),
+              )}
+            </div>
+          </>
+        )}
       </div>
     );
   }

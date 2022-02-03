@@ -5,14 +5,10 @@ import * as guessStyles from '../../Guess/styles.module.css';
 import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
 import Guess from 'client/App/Guess';
 
-export interface GuessAnalysisWithRemainingAnswers extends GuessAnalysis {
-  beforeRemainingAnswers?: RemainingAnswers;
-}
-
 interface Props {
   first: boolean;
   answer: string;
-  guessAnalysis: GuessAnalysisWithRemainingAnswers;
+  guessAnalysis: GuessAnalysis;
 }
 
 interface State {}
@@ -31,30 +27,11 @@ export default class AnalysisEntry extends Component<Props, State> {
 
     return (
       <div class={styles.analysisEntry}>
-        <p class={styles.remainingDescription}>
-          {totalRemaining} remaining{' '}
-          {totalRemaining === 1 ? 'answer' : 'answers'} (
-          {guessAnalysis.beforeRemainingCounts.common} 'common'{' '}
-          {guessAnalysis.beforeRemainingCounts.common === 1 ? 'word' : 'words'}
-          ).
-        </p>
-        {guessAnalysis.beforeRemainingAnswers && totalRemaining < 30 && (
-          <ul class={styles.remainingList}>
-            {[
-              ...guessAnalysis.beforeRemainingAnswers.common,
-              ...guessAnalysis.beforeRemainingAnswers.other,
-            ].map((remaining) => (
-              <li class={guessStyles.small}>
-                <Guess value={remaining} />
-              </li>
-            ))}
-          </ul>
-        )}
         <table class={styles.analysisTable}>
           <tr>
             <td></td>
-            <th scope="col">You played</th>
-            <th scope="col">AI would play</th>
+            <th scope="col">Played</th>
+            <th scope="col">AI would have played</th>
           </tr>
           <tr>
             <th scope="row">Guess</th>
@@ -71,7 +48,7 @@ export default class AnalysisEntry extends Component<Props, State> {
                 <td>
                   <div>{boolToYesNo(play.unusedClues.length === 0)}</div>
                   {play.unusedClues.length !== 0 && (
-                    <ul>
+                    <ul class={styles.unusedClueList}>
                       {play.unusedClues.map((clue) => (
                         <li>{clue}</li>
                       ))}

@@ -17,8 +17,8 @@ export default class App extends Component<Props, State> {
   state: State = {
     guessInputs: Array.from({ length: 7 }, () => ''),
     toAnalyze: {
-      guesses: ['roate', 'dunks', 'blimp', 'light'],
-      answer: 'light',
+      guesses: ['roate', 'punks', 'grass', 'swarm', 'scary', 'shard'],
+      answer: 'shard',
     },
   };
 
@@ -28,7 +28,9 @@ export default class App extends Component<Props, State> {
 
   #onGuessesSubmit = (guesses: string[]) => {
     // TODO: replace this with history API stuff
-    this.setState({ toAnalyze: { guesses, answer: guesses.slice(-1)[0] } });
+    this.setState({
+      toAnalyze: { guesses: guesses.slice(0, 6), answer: guesses.slice(-1)[0] },
+    });
   };
 
   render(_: RenderableProps<Props>, { guessInputs, toAnalyze }: State) {

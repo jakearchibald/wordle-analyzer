@@ -14,7 +14,7 @@ const instructions = {
   ),
   results: (
     <>
-      <p>Here are your results:</p>
+      <p>Here are the results:</p>
     </>
   ),
 } as const;

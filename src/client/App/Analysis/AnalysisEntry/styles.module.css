@@ -1,37 +1,18 @@
 .analysis-entry {
-  --content-padding: 0.7rem;
-}
-
-.remaining-description {
-  padding: 0 var(--content-padding);
-}
-
-.remaining-list {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-flow: row wrap;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.remaining-list > li {
-  margin: 0;
-  display: block;
 }
 
 .analysis-table {
   max-width: 665px;
-  margin: 0 auto;
+  margin: 1.9rem auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
 
   & th {
-    background: hsl(214deg, 9%, 84%);
+    background: var(--theme-grey-1);
   }
 
   & td {
-    background: hsl(214deg, 7%, 94%);
+    background: var(--theme-table-cell);
     text-align: center;
   }
 
@@ -47,19 +28,7 @@
         height: 1px;
         overflow: hidden;
         padding: 0;
-        clip: rect(0, 0, 0, 0);
-      }
-    }
-
-    @media (min-width: 550px) {
-      &:nth-child(odd) {
-        & th[scope='row'] {
-          background: hsl(214deg, 9%, 88%);
-        }
-
-        & td {
-          background: hsl(214deg, 7%, 97%);
-        }
+        opacity: 0;
       }
     }
   }
@@ -83,6 +52,16 @@
           position: static;
         }
       }
+
+      &:nth-child(odd) {
+        & th[scope='row'] {
+          background: var(--theme-table-heading-alt);
+        }
+
+        & td {
+          background: var(--theme-table-cell-alt);
+        }
+      }
     }
 
     & th:first-child {
@@ -97,4 +76,26 @@
 
 .no-break {
   white-space: nowrap;
+}
+
+.unused-clue-list {
+  display: block;
+
+  margin: 0 auto;
+  padding: 0;
+  text-align: left;
+  width: max-content;
+
+  & li {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: start;
+
+    &::before {
+      content: '-';
+      margin-right: 0.5rem;
+    }
+  }
 }

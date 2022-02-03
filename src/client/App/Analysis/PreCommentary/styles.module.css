@@ -1,0 +1,30 @@
+.remaining-list {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 1rem;
+  margin: 1.8rem 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.remaining-word {
+  margin: 0;
+  padding: 0;
+  display: block;
+  color: var(--theme-black);
+  font-weight: bold;
+  gap: 1px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+}
+
+.remaining-letter {
+  display: grid;
+  --size: 1.8rem;
+  width: var(--size);
+  height: var(--size);
+  justify-content: center;
+  align-items: center;
+  background: var(--theme-grey-1);
+}
