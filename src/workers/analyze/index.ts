@@ -589,6 +589,16 @@ async function getAiPlay(
   };
 }
 
+function getPlayColors(answer: string, guesses: string[]): CellColors[] {
+  return guesses.map((guess) => {
+    const clue = generateClue(answer, guess);
+    return generateBlockColors(
+      clue.positionalMatches,
+      clue.positionalNotMatches,
+    ).split('') as CellColors;
+  });
+}
+
 async function messageListener(event: MessageEvent) {
   if (event.data.action === 'listen-to-port') {
     const port = event.data.port as MessagePort;
@@ -679,6 +689,27 @@ async function messageListener(event: MessageEvent) {
           });
         },
       );
+      returnPort.postMessage({
+        action: 'done',
+        result,
+      });
+    } catch (err: any) {
+      returnPort.postMessage({
+        action: 'error',
+        message: err.message,
+      });
+    } finally {
+      returnPort.close();
+    }
+    return;
+  }
+  if (event.data.action === 'guesses-colors') {
+    const answer = event.data.answer;
+    const guesses = event.data.guesses;
+    const returnPort = event.data.returnPort as MessagePort;
+
+    try {
+      const result = getPlayColors(answer, guesses);
       returnPort.postMessage({
         action: 'done',
         result,

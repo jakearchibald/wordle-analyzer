@@ -11,29 +11,33 @@ export interface GuessAnalysisWithRemainingAnswers extends GuessAnalysis {
 
 interface Props {
   first: boolean;
+  answer: string;
   guessAnalysis: GuessAnalysisWithRemainingAnswers;
 }
 
 interface State {}
 
-const boolToYesNo = (bool: boolean) => (bool ? 'Yes' : 'No');
+const boolToYesNo = (bool: boolean) => (bool ? '✅' : '❌');
 const toTwoDecimalPlaces = (num: number) => Math.round(num * 100) / 100;
 
 export default class AnalysisEntry extends Component<Props, State> {
-  render({ guessAnalysis, first }: RenderableProps<Props>) {
+  render({ guessAnalysis, first, answer }: RenderableProps<Props>) {
     const plays = [guessAnalysis.plays.user, guessAnalysis.plays.ai];
     const totalRemaining =
       guessAnalysis.beforeRemainingCounts.common +
       guessAnalysis.beforeRemainingCounts.other;
 
+    const bothGuessesRight = plays.every((play) => play.guess === answer);
+
     return (
       <div class={styles.analysisEntry}>
-        <h2>
+        <p class={styles.remainingDescription}>
           {totalRemaining} remaining{' '}
-          {totalRemaining === 1 ? 'possibility' : 'possibilities'} (
+          {totalRemaining === 1 ? 'answer' : 'answers'} (
           {guessAnalysis.beforeRemainingCounts.common} 'common'{' '}
-          {guessAnalysis.beforeRemainingCounts.common === 1 ? 'word' : 'words'})
-        </h2>
+          {guessAnalysis.beforeRemainingCounts.common === 1 ? 'word' : 'words'}
+          ).
+        </p>
         {guessAnalysis.beforeRemainingAnswers && totalRemaining < 30 && (
           <ul class={styles.remainingList}>
             {[
@@ -60,7 +64,7 @@ export default class AnalysisEntry extends Component<Props, State> {
               </td>
             ))}
           </tr>
-          {!first && (
+          {!first && !bothGuessesRight && (
             <tr>
               <th scope="row">Possible answer?</th>
               {plays.map((play) => (
@@ -77,7 +81,7 @@ export default class AnalysisEntry extends Component<Props, State> {
               ))}
             </tr>
           )}
-          {!first && (
+          {!first && !bothGuessesRight && (
             <tr>
               <th scope="row">Valid for 'hard mode'?</th>
               {plays.map((play) => (

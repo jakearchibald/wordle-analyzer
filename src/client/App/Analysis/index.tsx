@@ -1,9 +1,10 @@
-import { h, Component, RenderableProps } from 'preact';
+import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
-import { aiPlay, analyzeGuess } from './analyzer';
+import { aiPlay, analyzeGuess, getGuessesColors } from './analyzer';
 import {
   AIPlay,
+  CellColors,
   Clue,
   GuessAnalysis,
   RemainingAnswers,
@@ -11,6 +12,7 @@ import {
 import AnalysisEntry, {
   GuessAnalysisWithRemainingAnswers,
 } from './AnalysisEntry';
+import Guess from '../Guess';
 
 interface AiPlayWithRemainingAnswers extends AIPlay {
   beforeRemainingAnswers?: RemainingAnswers;
@@ -26,12 +28,14 @@ interface State {
   analysis: (GuessAnalysisWithRemainingAnswers | number)[];
   /** Number is 0-1 representing progress */
   aiPlays: (AiPlayWithRemainingAnswers | number)[];
+  guessCellColors: CellColors[] | undefined;
 }
 
 export default class Analysis extends Component<Props, State> {
   state: Readonly<State> = {
     analysis: [],
     aiPlays: [],
+    guessCellColors: undefined,
   };
 
   constructor(props: Props) {
@@ -52,6 +56,14 @@ export default class Analysis extends Component<Props, State> {
     this.setState({
       analysis: [],
       aiPlays: [],
+      guessCellColors: undefined,
+    });
+
+    this.setState({
+      guessCellColors: await getGuessesColors(
+        this.props.answer,
+        this.props.guesses,
+      ),
     });
 
     {
@@ -119,21 +131,42 @@ export default class Analysis extends Component<Props, State> {
     }
   }
 
-  render({}: RenderableProps<Props>, { analysis, aiPlays }: State) {
+  render(
+    { guesses, answer }: RenderableProps<Props>,
+    { analysis, aiPlays, guessCellColors }: State,
+  ) {
     return (
       <div class={styles.analysis}>
+        {guessCellColors && (
+          <div class={styles.guesses}>
+            {guesses.map((guess, i) => (
+              <Guess value={guess} cellClues={guessCellColors[i]} />
+            ))}
+          </div>
+        )}
         {analysis.map((guessAnalysis, i) => (
           <div>
-            <h2>Guess {i + 1}</h2>
+            <h2 class={styles.guessHeading}>Guess {i + 1}</h2>
             {typeof guessAnalysis === 'number' ? (
               <progress value={guessAnalysis} />
             ) : (
-              <AnalysisEntry guessAnalysis={guessAnalysis} first={i === 0} />
+              <AnalysisEntry
+                guessAnalysis={guessAnalysis}
+                first={i === 0}
+                answer={answer}
+              />
             )}
           </div>
         ))}
         {aiPlays.map((aiPlay, i) => (
-          <div>{typeof aiPlay !== 'number' && aiPlay.play.guess}</div>
+          <div>
+            {typeof aiPlay !== 'number' && (
+              <>
+                {aiPlay.play.guess} -{' '}
+                {aiPlay.play.unusedClues.length === 0 && 'possible answer'}
+              </>
+            )}
+          </div>
         ))}
       </div>
     );
