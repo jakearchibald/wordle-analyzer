@@ -175,9 +175,8 @@ export default class Analysis extends Component<Props, State> {
             <div class={styles.preCommentary}>
               <p>
                 The AI mostly tries to eliminate as many answers as possible
-                with each guess, although as there are fewer options left,
-                although if there's a possible answer that's almost as good,
-                it'll play that.
+                with each guess, although if there's a possible answer that's
+                almost as good, it'll play that.
               </p>
             </div>
 
