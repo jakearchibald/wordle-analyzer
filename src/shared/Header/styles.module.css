@@ -1,15 +1,25 @@
 .header {
   display: grid;
   border-bottom: 1px solid var(--theme-grey-1);
+  padding: 0 var(--content-padding);
 
   text-transform: uppercase;
-}
 
-.header h1 {
-  font-weight: 700;
-  font-size: 36px;
-  letter-spacing: 0.2rem;
-  margin: 0.4em 0;
-  text-align: center;
-  line-height: 1;
+  & h1 {
+    font-weight: 700;
+    font-size: 36px;
+    letter-spacing: 0.2rem;
+    margin: 0.4em 0;
+    text-align: center;
+    line-height: 1;
+  }
+
+  & a {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
