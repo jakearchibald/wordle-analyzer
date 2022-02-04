@@ -13,3 +13,8 @@
   opacity: 0;
   pointer-events: none;
 }
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}

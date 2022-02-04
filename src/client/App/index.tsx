@@ -1,5 +1,5 @@
 import { h, Fragment, Component, RenderableProps } from 'preact';
-import Guesses from './Guesses';
+import EditableGuesses from './EditableGuesses';
 import MainInstruction from 'shared/MainInstruction';
 import * as styles from './styles.module.css';
 import Analysis from './Analysis';
@@ -40,7 +40,7 @@ export default class App extends Component<Props, State> {
         {toAnalyze ? (
           <Analysis answer={toAnalyze.answer} guesses={toAnalyze.guesses} />
         ) : (
-          <Guesses
+          <EditableGuesses
             values={guessInputs}
             onInput={this.#onGuessesInput}
             onSubmit={this.#onGuessesSubmit}

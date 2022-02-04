@@ -7,7 +7,9 @@ interface Props {
   value: string;
   label: string;
   onInput: (value: string) => void;
-  autoFocus: boolean;
+  onEnter: (source: HTMLInputElement) => void;
+  autoFocus?: boolean;
+  disabled?: boolean;
 }
 
 interface State {
@@ -44,6 +46,13 @@ export default class EditableGuess extends Component<Props, State> {
     this.setState({ inputHasFocus: false });
   };
 
+  #onInputKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.props.onEnter(this.#input.current!);
+    }
+  };
+
   #onCellMouseDown = (index: number) => {
     this.#input.current!.focus();
     this.#input.current!.setSelectionRange(index, index + 1);
@@ -62,11 +71,15 @@ export default class EditableGuess extends Component<Props, State> {
   };
 
   render(
-    { label, value, autoFocus }: RenderableProps<Props>,
+    { label, value, autoFocus, disabled }: RenderableProps<Props>,
     { selection, inputHasFocus }: State,
   ) {
     return (
-      <div class={styles.editableGuess}>
+      <div
+        class={[styles.editableGuess, disabled && styles.disabled]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <div aria-hidden="true">
           <Guess
             value={value}
@@ -75,10 +88,12 @@ export default class EditableGuess extends Component<Props, State> {
           />
         </div>
         <input
+          disabled={disabled}
           aria-label={label}
           autoFocus={autoFocus}
           onFocus={this.#onInputFocus}
           onBlur={this.#onInputBlur}
+          onKeyDown={this.#onInputKeyDown}
           ref={this.#input}
           type="text"
           maxLength={5}
