@@ -12,7 +12,7 @@
  */
 
 // Based on https://minimalanalytics.com/
-const trackingId = 'G-9TDJW4GR6P';
+const trackingId = 'UA-13180254-3';
 const options = {
   anonymizeIp: true,
   colorDepth: true,
