@@ -17,6 +17,8 @@ interface State {
   selection?: [number, number];
 }
 
+const fieldMaxLength = 5;
+
 export default class EditableGuess extends Component<Props, State> {
   state: State = {
     inputHasFocus: false,
@@ -34,7 +36,11 @@ export default class EditableGuess extends Component<Props, State> {
   #input = createRef<HTMLInputElement>();
 
   #onInputChange = (event: Event) => {
-    this.props.onInput((event.currentTarget as HTMLInputElement).value);
+    // Although the field enforces a max, Android Chrome (at least) doesn't seem
+    // to respect it.
+    this.props.onInput(
+      (event.currentTarget as HTMLInputElement).value.slice(0, fieldMaxLength),
+    );
     this.#selectionChange();
   };
 
@@ -96,7 +102,7 @@ export default class EditableGuess extends Component<Props, State> {
           onKeyDown={this.#onInputKeyDown}
           ref={this.#input}
           type="text"
-          maxLength={5}
+          maxLength={fieldMaxLength}
           value={value}
           onInput={this.#onInputChange}
           class={styles.input}
