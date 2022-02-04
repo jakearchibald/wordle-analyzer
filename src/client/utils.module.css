@@ -14,10 +14,21 @@
   background: var(--theme-grey-1);
   border: 1px solid var(--theme-grey-2);
   cursor: pointer;
-  padding: 0.5rem 1.3rem;
+  padding: 0.7rem 1.3rem;
+  line-height: 1;
+}
+
+.buttons {
+  display: grid;
+  justify-content: center;
 }
 
 .button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.container {
+  max-width: 665px;
+  margin: 0 auto;
 }

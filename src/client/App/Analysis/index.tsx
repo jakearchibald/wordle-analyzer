@@ -1,5 +1,6 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
+import * as utilStyles from '../../utils.module.css';
 import 'add-css:./styles.module.css';
 import { aiPlay, analyzeGuess, getGuessesColors } from './analyzer';
 import {
@@ -129,7 +130,7 @@ export default class Analysis extends Component<Props, State> {
     { analysis, aiPlays, guessCellColors }: State,
   ) {
     return (
-      <div class={styles.analysis}>
+      <div class={utilStyles.container}>
         {guessCellColors && (
           <div class={styles.guesses}>
             {guesses.map((guess, i) => (

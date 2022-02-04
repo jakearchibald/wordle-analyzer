@@ -1,0 +1,4 @@
+.spoiler-warning {
+  padding: 0 var(--content-padding);
+  line-height: var(--paragraph-line-height);
+}

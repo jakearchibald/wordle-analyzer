@@ -84,7 +84,7 @@ export default class EditableGuesses extends Component<Props> {
             />
           ))}
         </div>
-        <div class={styles.buttons}>
+        <div class={utilStyles.buttons}>
           <button type="submit" class={utilStyles.button} disabled={!complete}>
             Analyze
           </button>

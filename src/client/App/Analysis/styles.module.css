@@ -1,12 +1,7 @@
-.analysis {
-  max-width: 665px;
-  margin: 0 auto;
-}
-
 .pre-commentary {
   padding: 0 var(--content-padding);
   text-align: left;
-  line-height: 1.9;
+  line-height: var(--paragraph-line-height);
 }
 
 .guesses {

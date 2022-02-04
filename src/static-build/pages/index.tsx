@@ -17,7 +17,6 @@ import initialCss from 'prerender-css:';
 import { src, imports } from 'client-bundle:client';
 import analyticsUrl from 'client-bundle:client/analytics/index.js';
 import Header from 'shared/Header';
-import MainInstruction from 'shared/MainInstruction';
 // import favicon from 'url:static-build/assets/favicon.ico';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
 import { escapeStyleScriptContent } from 'static-build/utils';
@@ -43,9 +42,7 @@ const Index: FunctionalComponent<Props> = () => (
     </head>
     <body>
       <Header />
-      <div id="app">
-        <MainInstruction active="enter-words" />
-      </div>
+      <div id="app"></div>
       <script
         type="module"
         dangerouslySetInnerHTML={{

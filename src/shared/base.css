@@ -12,6 +12,7 @@
   --theme-table-heading-alt: hsl(214deg, 9%, 88%);
 
   --content-padding: 0.7rem;
+  --paragraph-line-height: 1.9;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,21 +1,24 @@
 import { h, Fragment, Component, RenderableProps } from 'preact';
 import EditableGuesses from './EditableGuesses';
-import MainInstruction from 'shared/MainInstruction';
-import * as styles from './styles.module.css';
+import MainInstruction from './MainInstruction';
 import Analysis from './Analysis';
+import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import 'add-css:../utils.module.css';
 import { encode, decode } from './stupid-simple-cypher';
+import SpoilerWarning from './SpoilerWarning';
 
 interface Props {}
 
 interface State {
+  showSpoilerWarning: boolean;
   guessInputs: string[];
   toAnalyze?: { guesses: string[]; answer: string };
 }
 
 export default class App extends Component<Props, State> {
   state: State = {
+    showSpoilerWarning: false,
     guessInputs: Array.from({ length: 7 }, () => ''),
     /*toAnalyze: {
       guesses: ['smart', 'roate'],
@@ -26,13 +29,6 @@ export default class App extends Component<Props, State> {
   componentDidMount() {
     this.#setStateFromUrl();
     addEventListener('popstate', () => this.#setStateFromUrl());
-  }
-
-  shouldComponentUpdate(nextProps: Props, nextState: State) {
-    return (
-      nextState.guessInputs !== this.state.guessInputs ||
-      nextState.toAnalyze !== this.state.toAnalyze
-    );
   }
 
   #setStateFromUrl() {
@@ -55,6 +51,18 @@ export default class App extends Component<Props, State> {
       return;
     }
 
+    if (sessionStorage.skipNextSpoilerWarning) {
+      sessionStorage.skipNextSpoilerWarning = '';
+      history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
+    }
+
+    if (!history.state?.skipSpoilerWarning) {
+      this.setState({
+        showSpoilerWarning: true,
+      });
+      return;
+    }
+
     const decoded = decode(seed, guesses);
     const guessesArray = Array.from({ length: decoded.length / 5 }, (_, i) =>
       decoded.slice(i * 5, i * 5 + 5),
@@ -65,6 +73,7 @@ export default class App extends Component<Props, State> {
         guesses: guessesArray,
         answer: guessesArray.slice(-1)[0],
       },
+      showSpoilerWarning: false,
     });
   }
 
@@ -80,15 +89,33 @@ export default class App extends Component<Props, State> {
     url.searchParams.set('seed', seed.toString());
     url.searchParams.set('guesses', encoded);
 
-    history.pushState(null, '', url);
+    history.pushState({ skipSpoilerWarning: true }, '', url);
     this.#setStateFromUrl();
   };
 
-  render(_: RenderableProps<Props>, { guessInputs, toAnalyze }: State) {
+  #onSpoilerClear = () => {
+    history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
+    this.#setStateFromUrl();
+  };
+
+  render(
+    _: RenderableProps<Props>,
+    { guessInputs, toAnalyze, showSpoilerWarning }: State,
+  ) {
     return (
       <>
-        <MainInstruction active={toAnalyze ? 'results' : 'enter-words'} />
-        {toAnalyze ? (
+        <MainInstruction
+          active={
+            showSpoilerWarning
+              ? 'spoilerWarning'
+              : toAnalyze
+              ? 'results'
+              : 'enterWords'
+          }
+        />
+        {showSpoilerWarning ? (
+          <SpoilerWarning onClear={this.#onSpoilerClear} />
+        ) : toAnalyze ? (
           <Analysis answer={toAnalyze.answer} guesses={toAnalyze.guesses} />
         ) : (
           <EditableGuesses
