@@ -9,7 +9,7 @@ interface Props {
 const instructions = {
   enterWords: (
     <>
-      <p>Enter the words you guessed, ending with the correct answer.</p>
+      <p>Enter the words you guessed, finishing with the correct answer.</p>
     </>
   ),
   spoilerWarning: (

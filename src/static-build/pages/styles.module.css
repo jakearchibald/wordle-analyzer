@@ -37,8 +37,13 @@ html {
   font-size: 16px;
   color: var(--theme-black);
   line-height: 1.5;
+  height: -webkit-fill-available;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  display: grid;
+  grid-auto-rows: max-content;
 }

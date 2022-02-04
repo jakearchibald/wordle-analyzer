@@ -12,11 +12,11 @@
  */
 import { h, FunctionalComponent } from 'preact';
 
-import 'add-css:shared/base.css';
+import 'add-css:./styles.module.css';
 import initialCss from 'prerender-css:';
 import { src, imports } from 'client-bundle:client';
 import analyticsUrl from 'client-bundle:client/analytics/index.js';
-import Header from 'shared/Header';
+import Header from './Header';
 // import favicon from 'url:static-build/assets/favicon.ico';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
 import { escapeStyleScriptContent } from 'static-build/utils';

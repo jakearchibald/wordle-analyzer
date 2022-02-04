@@ -123,7 +123,7 @@ export default async function ({ watch }) {
         values: { __PRERENDER__: true, __PRODUCTION__: isProduction },
         preventAssignment: true,
       }),
-      runScript(dir + '/static-build/index.js'),
+      runScript(dir + '/index.js'),
     ],
   };
 }
