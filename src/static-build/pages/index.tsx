@@ -20,6 +20,7 @@ import Header from './Header';
 // import favicon from 'url:static-build/assets/favicon.ico';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
 import { escapeStyleScriptContent } from 'static-build/utils';
+import Footer from './Footer';
 
 interface Props {}
 
@@ -43,6 +44,7 @@ const Index: FunctionalComponent<Props> = () => (
     <body>
       <Header />
       <div id="app"></div>
+      <Footer />
       <script
         type="module"
         dangerouslySetInnerHTML={{

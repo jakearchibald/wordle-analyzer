@@ -1,22 +1,26 @@
-.header {
-  display: grid;
-  border-bottom: 1px solid var(--theme-grey-1);
+.footer {
+  margin-top: auto;
+  border-top: 1px solid var(--theme-grey-1);
   padding: 0 var(--content-padding);
+}
 
-  text-transform: uppercase;
+.footer-links {
+  display: flex;
+  flex-flow: row wrap;
+  margin: 0;
+  padding: 1rem 0;
+  justify-content: center;
+  gap: 0.4rem 1.5rem;
+  color: var(--theme-grey-2);
 
-  & h1 {
-    font-weight: 700;
-    font-size: 36px;
-    letter-spacing: 0.2rem;
-    margin: 0.4em 0;
-    text-align: center;
-    line-height: 1;
+  & li {
+    display: block;
+    margin: 0;
   }
 
   & a {
+    color: var(--theme-black);
     text-decoration: none;
-    color: inherit;
 
     &:hover {
       text-decoration: underline;

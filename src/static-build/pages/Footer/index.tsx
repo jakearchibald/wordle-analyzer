@@ -2,14 +2,32 @@ import { h, Component } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 
-export default class Header extends Component {
+export default class Footer extends Component {
   render() {
     return (
-      <header class={styles.header}>
-        <h1>
-          <a href="/">Wordle Analyzer</a>
-        </h1>
-      </header>
+      <footer class={styles.footer}>
+        <ul class={styles.footerLinks}>
+          <li>
+            Thrown together by{' '}
+            <a target="_blank" href="https://twitter.com/jaffathecake">
+              Jake Archibald
+            </a>
+          </li>
+          <li>
+            <a
+              target="_blank"
+              href="https://github.com/jakearchibald/wordle-analyzer/"
+            >
+              View the source
+            </a>
+          </li>
+          <li>
+            <a target="_blank" href="https://www.powerlanguage.co.uk/wordle/">
+              Play Wordle
+            </a>
+          </li>
+        </ul>
+      </footer>
     );
   }
 }

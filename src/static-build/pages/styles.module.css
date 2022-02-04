@@ -45,5 +45,5 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
   display: grid;
-  grid-auto-rows: max-content;
+  grid-template-rows: max-content 1fr max-content;
 }
