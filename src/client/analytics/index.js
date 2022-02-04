@@ -83,12 +83,6 @@ const trackEvent = (category, action, label, value) =>
   track('event', category, action, label, value);
 const trackException = (description, fatal) =>
   track('exception', null, null, null, null, description, fatal);
-const originalPushState = history.pushState;
-history.pushState = function (state) {
-  history.onpushstate({ state });
-  setTimeout(track, options.delay || 10);
-  return originalPushState.apply(history, arguments);
-};
 track();
 self.ma = {
   trackEvent,
