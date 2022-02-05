@@ -14,6 +14,7 @@ import Guess from '../Guess';
 import PreCommentary from './PreCommentary';
 import AnalysisEntry from './AnalysisEntry';
 import Progress from './Progress';
+import Share from './Share';
 
 interface Props {
   guesses: string[];
@@ -132,11 +133,17 @@ export default class Analysis extends Component<Props, State> {
     return (
       <div class={utilStyles.container}>
         {guessCellColors && (
-          <div class={styles.guesses}>
-            {guesses.map((guess, i) => (
-              <Guess value={guess} cellClues={guessCellColors[i]} />
-            ))}
-          </div>
+          <>
+            <div class={styles.guesses}>
+              {guesses.map((guess, i) => (
+                <Guess value={guess} cellClues={guessCellColors[i]} />
+              ))}
+            </div>
+            <Share
+              cellColors={guessCellColors}
+              foundAnswer={guesses[guesses.length - 1] === answer}
+            />
+          </>
         )}
         {analysis.map((guessAnalysis, i, allGuessAnalysis) => (
           <div>

@@ -34,6 +34,20 @@
   background: var(--theme-absent);
 }
 
+.button-with-icon {
+  composes: button;
+  display: inline-grid;
+  grid-template-columns: 1fr max-content;
+  align-items: center;
+  gap: 0.7rem;
+
+  & svg {
+    fill: var(--theme-filled-tile-text);
+    width: 24px;
+    height: 24px;
+  }
+}
+
 .container {
   max-width: 665px;
   margin: 0 auto;

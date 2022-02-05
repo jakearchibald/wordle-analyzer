@@ -47,3 +47,12 @@ body {
   display: grid;
   grid-template-rows: max-content 1fr max-content;
 }
+
+a {
+  color: var(--theme-correct);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
