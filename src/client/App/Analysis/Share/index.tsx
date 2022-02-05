@@ -3,6 +3,7 @@ import * as utilStyles from '../../../utils.module.css';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import { CellColors } from 'shared-types/index';
+import { alert } from '../../Alerts';
 
 const blocks = {
   a: '⬜',
@@ -37,12 +38,24 @@ interface State {}
 
 export default class Share extends Component<Props, State> {
   #onButtonClick = () => {
-    if ('share' in navigator) {
-      navigator.share({
-        url: getShareUrl(),
-        text: createShareText(this.props.cellColors, this.props.foundAnswer),
-      });
+    // Avoid the share API if the user agent isn't 'mobile'.
+    // On Safari macOS at least, the experience is pretty bad.
+    if ('share' in navigator && navigator.userAgent.includes('Mobile')) {
+      navigator
+        .share({
+          url: getShareUrl(),
+          text: createShareText(this.props.cellColors, this.props.foundAnswer),
+        })
+        .catch(() => {});
+      return;
     }
+
+    navigator.clipboard.writeText(
+      createShareText(this.props.cellColors, this.props.foundAnswer) +
+        '\n\n' +
+        getShareUrl(),
+    );
+    alert('Copied to clipboard');
   };
 
   render({}: RenderableProps<Props>) {

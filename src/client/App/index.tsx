@@ -7,6 +7,7 @@ import 'add-css:./styles.module.css';
 import 'add-css:../utils.module.css';
 import { encode, decode } from './stupid-simple-cypher';
 import SpoilerWarning from './SpoilerWarning';
+import Alerts from './Alerts';
 
 interface Props {}
 
@@ -129,6 +130,7 @@ export default class App extends Component<Props, State> {
             onSubmit={this.#onGuessesSubmit}
           />
         )}
+        <Alerts />
       </>
     );
   }
