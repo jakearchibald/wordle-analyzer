@@ -5,12 +5,17 @@
   margin: 1.8rem 0;
   padding: 0;
   justify-content: center;
+
+  & > li {
+    margin: 0;
+    padding: 0;
+    display: block;
+  }
 }
 
 .remaining-word {
   margin: 0;
   padding: 0;
-  display: block;
   color: var(--theme-black);
   font-weight: bold;
   gap: 1px;

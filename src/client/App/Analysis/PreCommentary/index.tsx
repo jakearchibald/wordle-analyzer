@@ -1,6 +1,7 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
+import * as utilStyles from '../../../utils.module.css';
 import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
 
 interface Props {
@@ -42,14 +43,19 @@ export default class PreCommentary extends Component<Props, State> {
         {[...remainingAnswers.common, ...remainingAnswers.other].map(
           (word, i) => (
             <li
-              class={styles.remainingWord}
               style={{ opacity: i < remainingAnswers.common.length ? 1 : 0.5 }}
             >
-              {[...word].map((letter) => (
-                <span class={styles.remainingLetter}>
-                  {letter.toUpperCase()}
-                </span>
-              ))}
+              <a
+                class={[utilStyles.hiddenLink, styles.remainingWord].join(' ')}
+                target="_blank"
+                href={`https://en.wiktionary.org/wiki/${word}`}
+              >
+                {[...word].map((letter) => (
+                  <span class={styles.remainingLetter}>
+                    {letter.toUpperCase()}
+                  </span>
+                ))}
+              </a>
             </li>
           ),
         )}
