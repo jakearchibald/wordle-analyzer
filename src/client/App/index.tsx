@@ -44,7 +44,12 @@ export default class App extends Component<Props, State> {
     const seed = Number(urlParams.get('seed'));
     const guesses = urlParams.get('guesses')!;
 
-    if (Number.isNaN(seed) || !/^[a-z]+$/.test(guesses) || guesses.length % 5) {
+    if (
+      Number.isNaN(seed) ||
+      !/^[a-z]+$/.test(guesses) ||
+      guesses.length % 5 ||
+      guesses.length / 5 > 7
+    ) {
       this.setState({
         toAnalyze: undefined,
       });
