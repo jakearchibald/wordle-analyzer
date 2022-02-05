@@ -33,7 +33,6 @@
   cursor: default;
   background: var(--theme-absent);
 }
-}
 
 .container {
   max-width: 665px;
