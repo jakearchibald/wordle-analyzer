@@ -1,7 +1,7 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
-import * as utilStyles from '../../../utils.module.css';
 import 'add-css:./styles.module.css';
+import * as utilStyles from '../../../utils.module.css';
 
 interface Props {
   value: number;

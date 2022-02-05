@@ -7,26 +7,32 @@
   opacity: 0;
 }
 
+.buttons {
+  display: grid;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
 .button {
   all: unset;
   color: inherit;
   display: inline-block;
-  background: var(--theme-grey-1);
-  border: 1px solid var(--theme-grey-2);
+  background: var(--theme-correct);
+  color: var(--theme-filled-tile-text);
+  border-radius: 4px;
   cursor: pointer;
-  padding: 0.7rem 1.3rem;
+  padding: 0.8rem 1.6rem;
   line-height: 1;
-}
-
-.buttons {
-  display: grid;
-  justify-content: center;
-  margin: 1rem 0;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 1.1rem;
 }
 
 .button:disabled {
   opacity: 0.5;
   cursor: default;
+  background: var(--theme-absent);
+}
 }
 
 .container {

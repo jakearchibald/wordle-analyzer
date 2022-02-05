@@ -16,9 +16,9 @@ export default class SpoilerWarning extends Component<Props> {
     return (
       <div class={[utilStyles.container, styles.spoilerWarning].join(' ')}>
         <p>
-          This is an analysis of someone's Wordle play, which may include
-          spoilers for today's Wordle. So, err, you might not want to see this
-          until you've completed today's Wordle.
+          This is an analysis of someone's Wordle play, which{' '}
+          <strong>may include spoilers</strong> for today's Wordle. So, err, you
+          might not want to see this until you've completed today's Wordle.
         </p>
 
         <div class={utilStyles.buttons}>
@@ -27,7 +27,7 @@ export default class SpoilerWarning extends Component<Props> {
             class={utilStyles.button}
             onClick={this.#onButtonClick}
           >
-            I understand, show me the analysis!
+            Show me the analysis
           </button>
         </div>
       </div>
