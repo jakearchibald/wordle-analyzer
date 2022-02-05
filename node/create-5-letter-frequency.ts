@@ -1,42 +1,24 @@
-// This script takes https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_full.txt
+// This script takes https://github.com/rspeer/wordfreq/blob/master/wordfreq/data/large_en.msgpack.gz
 // and creates a list of only 5-letter words
 import { createRequire } from 'module';
+import { writeFile } from 'fs/promises';
 import fs from 'fs';
-import { Transform } from 'stream';
+import { createGunzip } from 'zlib';
 import { URL } from 'url';
-import { addNewline, lines } from './stream-utils.js';
+import { decodeAsync } from '@msgpack/msgpack';
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
 const wordSet = new Set(allWords);
 
-const readStream = fs.createReadStream(
-  new URL('./en_full.txt', import.meta.url),
-  {
-    encoding: 'utf8',
-  },
-);
+const sourceData = (await decodeAsync(
+  fs
+    .createReadStream(new URL('./large_en.msgpack.gz', import.meta.url))
+    .pipe(createGunzip()),
+)) as any[];
 
-export function only5LetterWords() {
-  return new Transform({
-    transform(line: string, encoding, callback) {
-      const [word, frequency] = line.trim().split(' ');
-      if (/^[a-z]{5}$/.test(word) && wordSet.has(word)) {
-        this.push(`${word} ${frequency}`);
-      }
-      callback();
-    },
-    objectMode: true,
-  });
-}
+const words = (sourceData.slice(1).flat() as string[]).filter((word) => {
+  return /^[a-z]{5}$/.test(word) && wordSet.has(word);
+});
 
-const writeStream = fs.createWriteStream(
-  new URL('./en_5letter.txt', import.meta.url),
-  { encoding: 'utf8' },
-);
-
-readStream
-  .pipe(lines())
-  .pipe(only5LetterWords())
-  .pipe(addNewline())
-  .pipe(writeStream);
+await writeFile(new URL('./en_5letter.txt', import.meta.url), words.join('\n'));

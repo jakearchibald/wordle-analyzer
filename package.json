@@ -9,11 +9,13 @@
     "analyze-play": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/analyze-play.ts",
     "ai-play": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/ai-play.ts",
     "create-5-letter-frequency": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/create-5-letter-frequency.ts",
+    "create-elimination-csv": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/create-elimination-csv.ts",
     "generate-word-data": "TS_NODE_PROJECT=\"node-tsconfig.json\" node --loader ts-node/esm node/generate-word-data.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@msgpack/msgpack": "^2.7.1",
     "ts-node": "^10.4.0"
   },
   "devDependencies": {
