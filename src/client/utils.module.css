@@ -38,3 +38,8 @@
   max-width: 665px;
   margin: 0 auto;
 }
+
+.hidden-link {
+  text-decoration: none;
+  color: inherit;
+}

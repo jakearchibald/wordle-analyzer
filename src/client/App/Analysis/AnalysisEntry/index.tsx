@@ -1,6 +1,7 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
+import * as utilStyles from '../../../utils.module.css';
 import * as guessStyles from '../../Guess/styles.module.css';
 import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
 import Guess from 'client/App/Guess';
@@ -37,7 +38,13 @@ export default class AnalysisEntry extends Component<Props, State> {
             <th scope="row">Guess</th>
             {plays.map((play) => (
               <td class={guessStyles.small}>
-                <Guess value={play.guess} cellClues={play.colors} />
+                <a
+                  class={utilStyles.hiddenLink}
+                  target="_blank"
+                  href={`https://en.wiktionary.org/wiki/${play.guess}`}
+                >
+                  <Guess value={play.guess} cellClues={play.colors} />
+                </a>
               </td>
             ))}
           </tr>
