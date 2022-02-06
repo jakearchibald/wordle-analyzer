@@ -13,6 +13,7 @@ import { swUpdatePending, activatePendingSw } from 'client/utils';
 interface Props {}
 
 interface State {
+  ready: boolean;
   showSpoilerWarning: boolean;
   guessInputs: string[];
   toAnalyze?: { guesses: string[]; answer: string };
@@ -20,6 +21,7 @@ interface State {
 
 export default class App extends Component<Props, State> {
   state: State = {
+    ready: false,
     showSpoilerWarning: false,
     guessInputs: Array.from({ length: 7 }, () => ''),
     /*toAnalyze: {
@@ -47,6 +49,7 @@ export default class App extends Component<Props, State> {
     if (!urlParams.has('guesses')) {
       this.setState({
         toAnalyze: undefined,
+        ready: true,
       });
       return;
     }
@@ -62,6 +65,7 @@ export default class App extends Component<Props, State> {
     ) {
       this.setState({
         toAnalyze: undefined,
+        ready: true,
       });
       return;
     }
@@ -74,6 +78,7 @@ export default class App extends Component<Props, State> {
     if (!history.state?.skipSpoilerWarning) {
       this.setState({
         showSpoilerWarning: true,
+        ready: true,
       });
       return;
     }
@@ -89,6 +94,7 @@ export default class App extends Component<Props, State> {
         answer: guessesArray.slice(-1)[0],
       },
       showSpoilerWarning: false,
+      ready: true,
     });
   }
 
@@ -115,8 +121,9 @@ export default class App extends Component<Props, State> {
 
   render(
     _: RenderableProps<Props>,
-    { guessInputs, toAnalyze, showSpoilerWarning }: State,
+    { guessInputs, toAnalyze, showSpoilerWarning, ready }: State,
   ) {
+    if (!ready) return <></>;
     return (
       <>
         <MainInstruction
