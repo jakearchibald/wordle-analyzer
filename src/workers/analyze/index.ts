@@ -166,6 +166,8 @@ function possibleAnswer(
 }
 
 function validHardModeGuess(guess: string, clues: Clue[]): boolean {
+
+function getHardModeViolations(guess: string, clues: Clue[]): string[] {
   // Hard mode in wordle means:
   // Green letters must be played in their correct position
   // Yellow letters must be used in the remaining squares
@@ -199,14 +201,23 @@ function validHardModeGuess(guess: string, clues: Clue[]): boolean {
     requiredLettersRemaining = requiredLettersRemaining.replace(letter, '');
   }
 
-  if (requiredLettersRemaining.length !== 0) return false;
+  const results = new Set<string>();
 
-  // Now positional matches:
-  for (const [i, positionalMatch] of positionalMatches.entries()) {
-    if (positionalMatch && positionalMatch !== guess[i]) return false;
+  for (const letter of requiredLettersRemaining) {
+    const positionalIndex = positionalMatches.indexOf(letter);
+    if (positionalIndex !== -1) {
+      results.add(
+        `${
+          numberWithOrdinal[positionalIndex]
+        } letter must be "${letter.toUpperCase()}"`,
+      );
+      positionalMatches[positionalIndex] = '';
+    } else {
+      results.add(`Too few "${letter.toUpperCase()}"s`);
+    }
   }
 
-  return true;
+  return [...results];
 }
 
 const numberWithOrdinal = ['1st', '2nd', '3rd', '4th', '5th'];
@@ -488,7 +499,7 @@ function getPlayAnalysis(
       clue.positionalMatches,
       clue.positionalNotMatches,
     ).split('') as CellColors,
-    validForHardMode: validHardModeGuess(guess, previousClues),
+    hardModeViolations: getHardModeViolations(guess, previousClues),
     unusedClues: getUnusedClues(guess, previousClues),
     remainingAnswers: newRemainingAnswers,
     averageRemaining:

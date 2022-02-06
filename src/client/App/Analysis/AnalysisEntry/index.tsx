@@ -69,7 +69,16 @@ export default class AnalysisEntry extends Component<Props, State> {
             <tr>
               <th scope="row">Valid for 'hard mode'?</th>
               {plays.map((play) => (
-                <td>{boolToYesNo(play.validForHardMode)}</td>
+                <td>
+                  <div>{boolToYesNo(play.hardModeViolations.length === 0)}</div>
+                  {play.hardModeViolations.length !== 0 && (
+                    <ul class={styles.unusedClueList}>
+                      {play.hardModeViolations.map((violation) => (
+                        <li>{violation}</li>
+                      ))}
+                    </ul>
+                  )}
+                </td>
               ))}
             </tr>
           )}

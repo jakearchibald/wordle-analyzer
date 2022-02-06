@@ -11,7 +11,7 @@ export interface PlayAnalysis {
   guess: string;
   clue: Clue;
   colors: CellColors;
-  validForHardMode: boolean;
+  hardModeViolations: string[];
   unusedClues: string[];
   remainingAnswers: RemainingAnswers;
   averageRemaining: { common: number; all: number } | undefined;
