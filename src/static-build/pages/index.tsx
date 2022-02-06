@@ -17,9 +17,10 @@ import initialCss from 'prerender-css:';
 import { src, imports } from 'client-bundle:client';
 import analyticsUrl from 'client-bundle:client/analytics/index.js';
 import Header from './Header';
-// import favicon from 'url:static-build/assets/favicon.ico';
+import faviconURL from 'url:static-build/assets/favicon.png';
+import socialIconURL from 'url:static-build/assets/social-icon.png';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
-import { escapeStyleScriptContent } from 'static-build/utils';
+import { escapeStyleScriptContent, siteOrigin } from 'static-build/utils';
 import Footer from './Footer';
 
 interface Props {}
@@ -29,6 +30,22 @@ const Index: FunctionalComponent<Props> = () => (
     <head>
       <title>Wordle Analyzer</title>
       <meta name="theme-color" content="#6aaa64" />
+      <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
+      <link rel="icon" type="image/png" href={faviconURL} />
+      <meta name="twitter:card" content="summary" />
+      <meta
+        property="twitter:image"
+        content={`${siteOrigin}${socialIconURL}`}
+      />
+      <meta property="og:image" content={`${siteOrigin}${socialIconURL}`} />
+      <meta name="twitter:site" content="@jaffathecake" />
+      <meta property="og:url" content={`${siteOrigin}/`} />
+      <meta property="og:title" content="Wordle Analyzer" />
+      <meta
+        property="og:description"
+        content="Discover if your Wordle guesses were luck, or genius"
+      />
+      <link rel="manifest" href="/manifest.json" />
       {
         <style
           dangerouslySetInnerHTML={{
@@ -39,7 +56,6 @@ const Index: FunctionalComponent<Props> = () => (
       {imports.map((preload) => (
         <link rel="modulepreload" href={preload} />
       ))}
-      <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
       <script src={analyticsUrl} async />
     </head>
     <body>

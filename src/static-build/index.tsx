@@ -14,10 +14,12 @@ import { h } from 'preact';
 
 import { renderPage, writeFiles } from './utils';
 import IndexPage from './pages/index';
-//import { lookup as lookupMime } from 'mime-types';
+import * as socialIconURL from 'img-url:static-build/assets/social-icon.png';
+import * as maskableIconURL from 'img-url:static-build/assets/maskable-icon.png';
+import { lookup as lookupMime } from 'mime-types';
 
-//const manifestSize = ({ width, height }: { width: number; height: number }) =>
-//  `${width}x${height}`;
+const manifestSize = ({ width, height }: { width: number; height: number }) =>
+  `${width}x${height}`;
 
 interface Output {
   [outputPath: string]: string;
@@ -31,41 +33,22 @@ const toOutput: Output = {
     display: 'standalone',
     orientation: 'any',
     background_color: '#fff',
-    theme_color: '#ff3385',
-    /*icons: [
+    theme_color: '#6aaa64',
+    icons: [
       {
-        src: iconLarge.default,
-        type: lookupMime(iconLarge.default),
-        sizes: manifestSize(iconLarge),
-      },
-      {
-        src: iconLargeMaskable.default,
-        type: lookupMime(iconLargeMaskable.default),
-        sizes: manifestSize(iconLargeMaskable),
+        src: maskableIconURL.default,
+        type: lookupMime(maskableIconURL.default),
+        sizes: manifestSize(maskableIconURL),
         purpose: 'maskable',
       },
-    ],*/
-    description:
-      'Compress and compare images with different codecs, right in your browser.',
+      {
+        src: socialIconURL.default,
+        type: lookupMime(socialIconURL.default),
+        sizes: manifestSize(socialIconURL),
+      },
+    ],
+    description: 'Discover if your Wordle guesses were luck, or genius.',
     lang: 'en',
-    categories: ['utilities'],
-    /*screenshots: [
-      {
-        src: screenshot1.default,
-        type: lookupMime(screenshot1.default),
-        sizes: manifestSize(screenshot1),
-      },
-      {
-        src: screenshot2.default,
-        type: lookupMime(screenshot2.default),
-        sizes: manifestSize(screenshot2),
-      },
-      {
-        src: screenshot3.default,
-        type: lookupMime(screenshot3.default),
-        sizes: manifestSize(screenshot3),
-      },
-    ],*/
   }),
 };
 
