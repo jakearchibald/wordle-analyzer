@@ -24,6 +24,8 @@ function createShareText(cellColors: CellColors[], foundAnswer: boolean) {
     ...cellColors.map((colors) =>
       colors.map((color) => blocks[color]).join(''),
     ),
+    '',
+    getShareUrl(),
   ];
 
   return lines.join('\n');
@@ -43,7 +45,6 @@ export default class Share extends Component<Props, State> {
     if ('share' in navigator && navigator.userAgent.includes('Mobile')) {
       navigator
         .share({
-          url: getShareUrl(),
           text: createShareText(this.props.cellColors, this.props.foundAnswer),
         })
         .catch(() => {});
@@ -51,9 +52,7 @@ export default class Share extends Component<Props, State> {
     }
 
     navigator.clipboard.writeText(
-      createShareText(this.props.cellColors, this.props.foundAnswer) +
-        '\n\n' +
-        getShareUrl(),
+      createShareText(this.props.cellColors, this.props.foundAnswer),
     );
     alert('Copied to clipboard');
   };
