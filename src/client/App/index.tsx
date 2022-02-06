@@ -10,10 +10,55 @@ import SpoilerWarning from './SpoilerWarning';
 import Alerts from './Alerts';
 import { swUpdatePending, activatePendingSw } from 'client/utils';
 
+function getStateUpdateFromURL(): Partial<State> {
+  const urlParams = new URLSearchParams(location.search);
+
+  if (!urlParams.has('guesses')) {
+    return {
+      toAnalyze: undefined,
+    };
+  }
+
+  const seed = Number(urlParams.get('seed'));
+  const guesses = urlParams.get('guesses')!;
+
+  if (
+    Number.isNaN(seed) ||
+    !/^[a-z]+$/.test(guesses) ||
+    guesses.length % 5 ||
+    guesses.length / 5 > 7
+  ) {
+    return { toAnalyze: undefined };
+  }
+
+  if (sessionStorage.skipNextSpoilerWarning) {
+    sessionStorage.skipNextSpoilerWarning = '';
+    history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
+  }
+
+  if (!history.state?.skipSpoilerWarning) {
+    return {
+      showSpoilerWarning: true,
+    };
+  }
+
+  const decoded = decode(seed, guesses);
+  const guessesArray = Array.from({ length: decoded.length / 5 }, (_, i) =>
+    decoded.slice(i * 5, i * 5 + 5),
+  );
+
+  return {
+    toAnalyze: {
+      guesses: guessesArray,
+      answer: guessesArray.slice(-1)[0],
+    },
+    showSpoilerWarning: false,
+  };
+}
+
 interface Props {}
 
 interface State {
-  ready: boolean;
   showSpoilerWarning: boolean;
   guessInputs: string[];
   toAnalyze?: { guesses: string[]; answer: string };
@@ -21,13 +66,9 @@ interface State {
 
 export default class App extends Component<Props, State> {
   state: State = {
-    ready: false,
     showSpoilerWarning: false,
     guessInputs: Array.from({ length: 7 }, () => ''),
-    /*toAnalyze: {
-      guesses: ['smart', 'roate'],
-      answer: 'roate',
-    },*/
+    ...getStateUpdateFromURL(),
   };
 
   componentDidMount() {
@@ -44,58 +85,7 @@ export default class App extends Component<Props, State> {
       return;
     }
 
-    const urlParams = new URLSearchParams(location.search);
-
-    if (!urlParams.has('guesses')) {
-      this.setState({
-        toAnalyze: undefined,
-        ready: true,
-      });
-      return;
-    }
-
-    const seed = Number(urlParams.get('seed'));
-    const guesses = urlParams.get('guesses')!;
-
-    if (
-      Number.isNaN(seed) ||
-      !/^[a-z]+$/.test(guesses) ||
-      guesses.length % 5 ||
-      guesses.length / 5 > 7
-    ) {
-      this.setState({
-        toAnalyze: undefined,
-        ready: true,
-      });
-      return;
-    }
-
-    if (sessionStorage.skipNextSpoilerWarning) {
-      sessionStorage.skipNextSpoilerWarning = '';
-      history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
-    }
-
-    if (!history.state?.skipSpoilerWarning) {
-      this.setState({
-        showSpoilerWarning: true,
-        ready: true,
-      });
-      return;
-    }
-
-    const decoded = decode(seed, guesses);
-    const guessesArray = Array.from({ length: decoded.length / 5 }, (_, i) =>
-      decoded.slice(i * 5, i * 5 + 5),
-    );
-
-    this.setState({
-      toAnalyze: {
-        guesses: guessesArray,
-        answer: guessesArray.slice(-1)[0],
-      },
-      showSpoilerWarning: false,
-      ready: true,
-    });
+    this.setState(getStateUpdateFromURL());
   }
 
   #onGuessesInput = (guesses: string[]) => {
@@ -121,9 +111,8 @@ export default class App extends Component<Props, State> {
 
   render(
     _: RenderableProps<Props>,
-    { guessInputs, toAnalyze, showSpoilerWarning, ready }: State,
+    { guessInputs, toAnalyze, showSpoilerWarning }: State,
   ) {
-    if (!ready) return <></>;
     return (
       <>
         <MainInstruction
