@@ -72,7 +72,6 @@ export default class App extends Component<Props, State> {
   };
 
   componentDidMount() {
-    this.#setStateFromUrl();
     addEventListener('popstate', () => this.#setStateFromUrl());
   }
 
