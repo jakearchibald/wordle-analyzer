@@ -217,9 +217,7 @@ function getClueViolations(guess: string, clues: Clue[]): ClueViolations {
         violatedPositionalNotMatches.add(
           `${
             numberWithOrdinal[i]
-          } letter must not be be "${clue.positionalNotMatches[
-            i
-          ].toUpperCase()}"`,
+          } letter must not be "${clue.positionalNotMatches[i].toUpperCase()}"`,
         );
       }
     }
