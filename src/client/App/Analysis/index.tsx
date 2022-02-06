@@ -2,7 +2,12 @@ import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import * as utilStyles from '../../utils.module.css';
 import 'add-css:./styles.module.css';
-import { aiPlay, analyzeGuess, getGuessesColors } from './analyzer';
+import {
+  aiPlay,
+  analyzeGuess,
+  getGuessesColors,
+  getInvalidWords,
+} from './analyzer';
 import {
   AIPlay,
   CellColors,
@@ -27,6 +32,7 @@ interface State {
   /** Number is 0-1 representing progress */
   aiPlays: (AIPlay | number)[];
   guessCellColors: CellColors[] | undefined;
+  analysisError: string | undefined;
 }
 
 export default class Analysis extends Component<Props, State> {
@@ -34,6 +40,7 @@ export default class Analysis extends Component<Props, State> {
     analysis: [],
     aiPlays: [],
     guessCellColors: undefined,
+    analysisError: undefined,
   };
 
   constructor(props: Props) {
@@ -63,6 +70,18 @@ export default class Analysis extends Component<Props, State> {
         this.props.guesses,
       ),
     });
+
+    const invalidAnswers = await getInvalidWords(this.props.guesses);
+
+    if (invalidAnswers.length !== 0) {
+      this.setState({
+        analysisError: `Uh oh, one or more of those words isn't in the dictionary: ${invalidAnswers
+          .map((word) => `"${word}"`)
+          .join(', ')}`,
+      });
+
+      return;
+    }
 
     {
       const previousClues: Clue[] = [];
@@ -128,7 +147,7 @@ export default class Analysis extends Component<Props, State> {
 
   render(
     { guesses, answer }: RenderableProps<Props>,
-    { analysis, aiPlays, guessCellColors }: State,
+    { analysis, aiPlays, guessCellColors, analysisError }: State,
   ) {
     return (
       <div class={utilStyles.container}>
@@ -145,6 +164,7 @@ export default class Analysis extends Component<Props, State> {
             />
           </>
         )}
+        {analysisError && <p class={styles.preCommentary}>{analysisError}</p>}
         {analysis.map((guessAnalysis, i, allGuessAnalysis) => (
           <div>
             <h2 class={styles.pillHeading}>Guess {i + 1}</h2>

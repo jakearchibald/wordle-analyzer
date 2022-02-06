@@ -33,6 +33,10 @@ const getCommonWordSet = () =>
   commonWordSet ||
   (commonWordSet = getWordData().then((data) => new Set(data.common)));
 
+let allWordsSet: Promise<Set<string>> | undefined;
+const getAllWordsSet = () =>
+  allWordsSet || (allWordsSet = getAllWords().then((words) => new Set(words)));
+
 const threadPorts: MessagePort[] = [];
 
 /**
@@ -604,6 +608,11 @@ function getPlayColors(answer: string, guesses: string[]): CellColors[] {
   });
 }
 
+async function getInvalidWords(words: string[]): Promise<string[]> {
+  const allWordsSet = await getAllWordsSet();
+  return words.filter((word) => !allWordsSet.has(word));
+}
+
 async function messageListener(event: MessageEvent) {
   if (event.data.action === 'listen-to-port') {
     const port = event.data.port as MessagePort;
@@ -715,6 +724,26 @@ async function messageListener(event: MessageEvent) {
 
     try {
       const result = getPlayColors(answer, guesses);
+      returnPort.postMessage({
+        action: 'done',
+        result,
+      });
+    } catch (err: any) {
+      returnPort.postMessage({
+        action: 'error',
+        message: err.message,
+      });
+    } finally {
+      returnPort.close();
+    }
+    return;
+  }
+  if (event.data.action === 'invalid-words') {
+    const words = event.data.words as string[];
+    const returnPort = event.data.returnPort as MessagePort;
+
+    try {
+      const result = await getInvalidWords(words);
       returnPort.postMessage({
         action: 'done',
         result,

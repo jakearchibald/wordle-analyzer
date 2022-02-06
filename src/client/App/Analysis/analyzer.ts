@@ -164,3 +164,36 @@ export function getGuessesColors(
     port1.start();
   });
 }
+
+export function getInvalidWords(words: string[]): Promise<string[]> {
+  const { port1, port2 } = new MessageChannel();
+
+  mainWorker.postMessage(
+    {
+      action: 'invalid-words',
+      words,
+      returnPort: port2,
+    },
+    [port2],
+  );
+
+  return new Promise<string[]>((resolve, reject) => {
+    function done() {
+      port1.close();
+    }
+
+    port1.addEventListener('message', (event: MessageEvent) => {
+      if (event.data.action === 'done') {
+        done();
+        resolve(event.data.result);
+        return;
+      }
+      if (event.data.action === 'error') {
+        done();
+        reject(Error(event.data.message));
+        return;
+      }
+    });
+    port1.start();
+  });
+}
