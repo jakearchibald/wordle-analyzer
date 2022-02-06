@@ -165,14 +165,28 @@ function possibleAnswer(
   return additionalRequiredLettersCopy.length === 0;
 }
 
-function validHardModeGuess(guess: string, clues: Clue[]): boolean {
+const numberWithOrdinal = ['1st', '2nd', '3rd', '4th', '5th'];
 
-function getHardModeViolations(guess: string, clues: Clue[]): string[] {
-  // Hard mode in wordle means:
-  // Green letters must be played in their correct position
-  // Yellow letters must be used in the remaining squares
+interface ClueViolations {
+  missingPositionalMatches: string[];
+  violatedPositionalNotMatches: string[];
+  missingAdditionalRequiredLetters: string[];
+  violatedMustNotContain: string[];
+}
+
+// Hard mode in wordle means:
+// Green letters must be played in their correct position
+// Yellow letters must be used in the remaining squares
+
+function getClueViolations(guess: string, clues: Clue[]): ClueViolations {
+  const missingPositionalMatches = new Set<string>();
+  const violatedPositionalNotMatches = new Set<string>();
+  const missingAdditionalRequiredLetters = new Set<string>();
+  const violatedMustNotContain = new Set<string>();
+
   let requiredLetters = '';
   const positionalMatches: FiveLetters = ['', '', '', '', ''];
+  const remainingMustNotContain = new Set<string>();
 
   for (const clue of clues) {
     let newRequiredLetters = clue.additionalRequiredLetters.join('');
@@ -192,61 +206,15 @@ function getHardModeViolations(guess: string, clues: Clue[]): string[] {
     }
     // Add the new letters to the end.
     requiredLetters += newRequiredLetters;
-  }
-
-  // Now check the guess:
-  // First, required letters:
-  let requiredLettersRemaining = requiredLetters;
-  for (const letter of guess) {
-    requiredLettersRemaining = requiredLettersRemaining.replace(letter, '');
-  }
-
-  const results = new Set<string>();
-
-  for (const letter of requiredLettersRemaining) {
-    const positionalIndex = positionalMatches.indexOf(letter);
-    if (positionalIndex !== -1) {
-      results.add(
-        `${
-          numberWithOrdinal[positionalIndex]
-        } letter must be "${letter.toUpperCase()}"`,
-      );
-      positionalMatches[positionalIndex] = '';
-    } else {
-      results.add(`Too few "${letter.toUpperCase()}"s`);
+    // Add must-not-contain letters
+    for (const letter of clue.remainingMustNotContain) {
+      remainingMustNotContain.add(letter);
     }
-  }
 
-  return [...results];
-}
-
-const numberWithOrdinal = ['1st', '2nd', '3rd', '4th', '5th'];
-
-function getUnusedClues(guess: string, clues: Clue[]): string[] {
-  const unusedClues = new Set<string>();
-
-  for (const clue of clues) {
-    const additionalRequiredLettersCopy =
-      clue.additionalRequiredLetters.slice();
-
-    for (let i = 0; i < guess.length; i++) {
-      const letter = guess[i];
-
-      if (clue.positionalMatches[i]) {
-        if (clue.positionalMatches[i] !== letter) {
-          unusedClues.add(
-            `${numberWithOrdinal[i]} letter must be "${clue.positionalMatches[
-              i
-            ].toUpperCase()}"`,
-          );
-        } else {
-          continue;
-        }
-      } else if (
-        clue.positionalNotMatches[i] &&
-        letter === clue.positionalNotMatches[i]
-      ) {
-        unusedClues.add(
+    // Process not-matches
+    for (const [i, notMatch] of clue.positionalNotMatches.entries()) {
+      if (notMatch && guess[i] === notMatch) {
+        violatedPositionalNotMatches.add(
           `${
             numberWithOrdinal[i]
           } letter must not be be "${clue.positionalNotMatches[
@@ -254,25 +222,47 @@ function getUnusedClues(guess: string, clues: Clue[]): string[] {
           ].toUpperCase()}"`,
         );
       }
-
-      const index = additionalRequiredLettersCopy.indexOf(letter);
-
-      if (index !== -1) {
-        additionalRequiredLettersCopy.splice(index, 1);
-      } else if (clue.remainingMustNotContain.has(letter)) {
-        // remainingMustNotContain is only checked if the letter is not found in positionalMatches or additionalRequiredLettersCopy.
-        // This allows a letter to appear in positionalMatches and/or additionalRequiredLetters, and remainingMustNotContain.
-        // Eg, if additionalRequiredLetters contains 's' and remainingMustNotContain contains 's', this ensures the answer must contain one 's'.
-        unusedClues.add(`Too many "${letter.toUpperCase()}"s`);
-      }
-    }
-
-    for (const unusedLetter of additionalRequiredLettersCopy) {
-      unusedClues.add(`Too few "${unusedLetter.toUpperCase()}"s`);
     }
   }
 
-  return [...unusedClues];
+  // Check required letters:
+  let requiredLettersRemaining = requiredLetters;
+  for (const letter of guess) {
+    const len = requiredLettersRemaining.length;
+    requiredLettersRemaining = requiredLettersRemaining.replace(letter, '');
+    // remainingMustNotContain is only checked if the letter is not found in positionalMatches or additionalRequiredLetters.
+    // This allows a letter to appear in positionalMatches and/or additionalRequiredLetters, and remainingMustNotContain.
+    // Eg, if additionalRequiredLetters contains 's' and remainingMustNotContain contains 's', this ensures the answer must contain one 's'.
+    if (
+      len === requiredLettersRemaining.length &&
+      remainingMustNotContain.has(letter)
+    ) {
+      violatedMustNotContain.add(`Too many "${letter.toUpperCase()}"s`);
+    }
+  }
+
+  for (const letter of requiredLettersRemaining) {
+    const positionalIndex = positionalMatches.indexOf(letter);
+    if (positionalIndex !== -1) {
+      missingPositionalMatches.add(
+        `${
+          numberWithOrdinal[positionalIndex]
+        } letter must be "${letter.toUpperCase()}"`,
+      );
+      positionalMatches[positionalIndex] = '';
+    } else {
+      missingAdditionalRequiredLetters.add(
+        `Too few "${letter.toUpperCase()}"s`,
+      );
+    }
+  }
+
+  return {
+    missingPositionalMatches: [...missingPositionalMatches],
+    violatedPositionalNotMatches: [...violatedPositionalNotMatches],
+    missingAdditionalRequiredLetters: [...missingAdditionalRequiredLetters],
+    violatedMustNotContain: [...violatedMustNotContain],
+  };
 }
 
 /**
@@ -492,6 +482,8 @@ function getPlayAnalysis(
     (item) => item[0] === guess,
   );
 
+  const clueViolations = getClueViolations(guess, previousClues);
+
   return {
     guess,
     clue,
@@ -499,8 +491,16 @@ function getPlayAnalysis(
       clue.positionalMatches,
       clue.positionalNotMatches,
     ).split('') as CellColors,
-    hardModeViolations: getHardModeViolations(guess, previousClues),
-    unusedClues: getUnusedClues(guess, previousClues),
+    hardModeViolations: [
+      ...clueViolations.missingPositionalMatches,
+      ...clueViolations.missingAdditionalRequiredLetters,
+    ],
+    unusedClues: [
+      ...clueViolations.missingPositionalMatches,
+      ...clueViolations.violatedPositionalNotMatches,
+      ...clueViolations.missingAdditionalRequiredLetters,
+      ...clueViolations.violatedMustNotContain,
+    ],
     remainingAnswers: newRemainingAnswers,
     averageRemaining:
       commonRemainingResult && allRemainingResult
