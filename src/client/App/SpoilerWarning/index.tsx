@@ -17,8 +17,8 @@ export default class SpoilerWarning extends Component<Props> {
       <div class={[utilStyles.container, styles.spoilerWarning].join(' ')}>
         <p>
           This is an analysis of someone's Wordle play, which{' '}
-          <strong>may include spoilers</strong> for today's Wordle. So, err, you
-          might not want to see this until you've completed today's Wordle.
+          <strong>includes all their guesses and the answer</strong>. So, err,
+          you might not want to see this until you've completed today's Wordle.
         </p>
 
         <div class={utilStyles.buttons}>
