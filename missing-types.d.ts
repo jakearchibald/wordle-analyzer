@@ -56,3 +56,4 @@ declare var ga: {
 };
 
 declare const __PRODUCTION__: boolean;
+declare const __MAJOR_VERSION__: number;

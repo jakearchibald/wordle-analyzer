@@ -8,6 +8,7 @@ import 'add-css:../utils.module.css';
 import { encode, decode } from './stupid-simple-cypher';
 import SpoilerWarning from './SpoilerWarning';
 import Alerts from './Alerts';
+import { swUpdatePending, activatePendingSw } from 'client/utils';
 
 interface Props {}
 
@@ -32,7 +33,15 @@ export default class App extends Component<Props, State> {
     addEventListener('popstate', () => this.#setStateFromUrl());
   }
 
-  #setStateFromUrl() {
+  async #setStateFromUrl() {
+    // If there's a pending update, this is an ideal time to let it happen.
+    if (await swUpdatePending()) {
+      // This will also trigger a reload of the page.
+      // (see addServiceWorker() in client/utils.ts)
+      activatePendingSw();
+      return;
+    }
+
     const urlParams = new URLSearchParams(location.search);
 
     if (!urlParams.has('guesses')) {

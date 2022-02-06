@@ -30,6 +30,10 @@ import serviceWorkerPlugin from './lib/sw-plugin';
 import entryDataPlugin from './lib/entry-data-plugin';
 import entryURLPlugin from './lib/entry-url-plugin';
 
+const __MAJOR_VERSION__ = Number(
+  require('./package.json').version.split('.')[0],
+);
+
 function resolveFileUrl({ fileName }) {
   return JSON.stringify(fileNameToURL(fileName));
 }
@@ -93,14 +97,18 @@ export default async function ({ watch }) {
           plugins: [
             { resolveFileUrl },
             serviceWorkerPlugin({
-              output: 'static/serviceworker.js',
+              output: 'static/sw.js',
             }),
             entryURLPlugin(),
             ...commonPlugins(),
             commonjs(),
             resolve(),
             replace({
-              values: { __PRERENDER__: false, __PRODUCTION__: isProduction },
+              values: {
+                __PRERENDER__: false,
+                __PRODUCTION__: isProduction,
+                __MAJOR_VERSION__,
+              },
               preventAssignment: true,
             }),
             entryDataPlugin(),
@@ -120,7 +128,11 @@ export default async function ({ watch }) {
       emitFiles({ include: '**/*', root: path.join(__dirname, 'src', 'copy') }),
       nodeExternalPlugin(),
       replace({
-        values: { __PRERENDER__: true, __PRODUCTION__: isProduction },
+        values: {
+          __PRERENDER__: true,
+          __PRODUCTION__: isProduction,
+          __MAJOR_VERSION__,
+        },
         preventAssignment: true,
       }),
       runScript(dir + '/index.js'),
