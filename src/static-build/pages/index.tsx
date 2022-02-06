@@ -28,6 +28,7 @@ const Index: FunctionalComponent<Props> = () => (
   <html lang="en">
     <head>
       <title>Wordle Analyzer</title>
+      <meta name="theme-color" content="#6aaa64" />
       {
         <style
           dangerouslySetInnerHTML={{
