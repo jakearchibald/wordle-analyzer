@@ -42,7 +42,7 @@ export default class Share extends Component<Props, State> {
   #onButtonClick = () => {
     // Avoid the share API if the user agent isn't 'mobile'.
     // On Safari macOS at least, the experience is pretty bad.
-    if ('share' in navigator && navigator.userAgent.includes('Mobile')) {
+    if ('share' in navigator && /Mobile|Android/.test(navigator.userAgent)) {
       navigator
         .share({
           text: createShareText(this.props.cellColors, this.props.foundAnswer),
