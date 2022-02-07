@@ -84,7 +84,8 @@
   margin: 0 auto;
   padding: 0;
   text-align: left;
-  width: max-content;
+  width: -moz-fit-content;
+  width: fit-content;
 
   & li {
     margin: 0;
