@@ -9,6 +9,7 @@ import { encode, decode } from './stupid-simple-cypher';
 import SpoilerWarning from './SpoilerWarning';
 import Alerts from './Alerts';
 import { swUpdatePending, activatePendingSw } from 'client/utils';
+import Footer from './Footer';
 
 function getStateUpdateFromURL(): Partial<State> {
   const urlParams = new URLSearchParams(location.search);
@@ -134,6 +135,7 @@ export default class App extends Component<Props, State> {
             onSubmit={this.#onGuessesSubmit}
           />
         )}
+        <Footer />
         <Alerts />
       </>
     );
