@@ -115,26 +115,28 @@ export default class App extends Component<Props, State> {
   ) {
     return (
       <>
-        <MainInstruction
-          active={
-            showSpoilerWarning
-              ? 'spoilerWarning'
-              : toAnalyze
-              ? 'results'
-              : 'enterWords'
-          }
-        />
-        {showSpoilerWarning ? (
-          <SpoilerWarning onClear={this.#onSpoilerClear} />
-        ) : toAnalyze ? (
-          <Analysis answer={toAnalyze.answer} guesses={toAnalyze.guesses} />
-        ) : (
-          <EditableGuesses
-            values={guessInputs}
-            onInput={this.#onGuessesInput}
-            onSubmit={this.#onGuessesSubmit}
+        <div>
+          <MainInstruction
+            active={
+              showSpoilerWarning
+                ? 'spoilerWarning'
+                : toAnalyze
+                ? 'results'
+                : 'enterWords'
+            }
           />
-        )}
+          {showSpoilerWarning ? (
+            <SpoilerWarning onClear={this.#onSpoilerClear} />
+          ) : toAnalyze ? (
+            <Analysis answer={toAnalyze.answer} guesses={toAnalyze.guesses} />
+          ) : (
+            <EditableGuesses
+              values={guessInputs}
+              onInput={this.#onGuessesInput}
+              onSubmit={this.#onGuessesSubmit}
+            />
+          )}
+        </div>
         <Footer />
         <Alerts />
       </>
