@@ -110,8 +110,17 @@ export default class AnalysisEntry extends Component<Props, State> {
           </tr>
           <tr>
             <th scope="row">Actual eliminations</th>
-            {plays.map((play) => (
-              <td>
+            {plays.map((play, i) => (
+              <td
+                class={
+                  play.remainingAnswers.common.length +
+                    play.remainingAnswers.other.length <=
+                  plays[(i + 1) % 2].remainingAnswers.common.length +
+                    plays[(i + 1) % 2].remainingAnswers.other.length
+                    ? styles.cellWin
+                    : ''
+                }
+              >
                 {toTwoDecimalPlaces(
                   (1 -
                     (play.remainingAnswers.common.length +

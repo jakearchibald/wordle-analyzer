@@ -72,6 +72,11 @@
       text-align: left;
     }
   }
+
+  & tr td.cell-win {
+    background-color: var(--theme-correct);
+    color: var(--theme-filled-tile-text);
+  }
 }
 
 .no-break {
