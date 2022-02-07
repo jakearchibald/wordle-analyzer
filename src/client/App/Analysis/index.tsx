@@ -150,23 +150,25 @@ export default class Analysis extends Component<Props, State> {
     { analysis, aiPlays, guessCellColors, analysisError }: State,
   ) {
     return (
-      <div class={utilStyles.container}>
-        {guessCellColors && (
-          <>
-            <div class={styles.guesses}>
-              {guesses.map((guess, i) => (
-                <Guess value={guess} cellClues={guessCellColors[i]} />
-              ))}
-            </div>
-            <Share
-              cellColors={guessCellColors}
-              foundAnswer={guesses[guesses.length - 1] === answer}
-            />
-          </>
-        )}
-        {analysisError && <p class={styles.preCommentary}>{analysisError}</p>}
+      <>
+        <div class={utilStyles.container}>
+          {guessCellColors && (
+            <>
+              <div class={styles.guesses}>
+                {guesses.map((guess, i) => (
+                  <Guess value={guess} cellClues={guessCellColors[i]} />
+                ))}
+              </div>
+              <Share
+                cellColors={guessCellColors}
+                foundAnswer={guesses[guesses.length - 1] === answer}
+              />
+            </>
+          )}
+          {analysisError && <p class={styles.preCommentary}>{analysisError}</p>}
+        </div>
         {analysis.map((guessAnalysis, i, allGuessAnalysis) => (
-          <div>
+          <>
             <h2 class={styles.pillHeading}>Guess {i + 1}</h2>
             {typeof guessAnalysis === 'number' ? (
               <div class={styles.progressContainer}>
@@ -174,17 +176,19 @@ export default class Analysis extends Component<Props, State> {
               </div>
             ) : (
               <>
-                <div class={styles.preCommentary}>
-                  <PreCommentary
-                    guessAnalysis={guessAnalysis}
-                    turn={i}
-                    remainingAnswers={
-                      i > 0
-                        ? (allGuessAnalysis[i - 1] as GuessAnalysis).plays.user
-                            .remainingAnswers
-                        : undefined
-                    }
-                  />
+                <div class={utilStyles.container}>
+                  <div class={styles.preCommentary}>
+                    <PreCommentary
+                      guessAnalysis={guessAnalysis}
+                      turn={i}
+                      remainingAnswers={
+                        i > 0
+                          ? (allGuessAnalysis[i - 1] as GuessAnalysis).plays
+                              .user.remainingAnswers
+                          : undefined
+                      }
+                    />
+                  </div>
                 </div>
                 <AnalysisEntry
                   guessAnalysis={guessAnalysis}
@@ -193,10 +197,10 @@ export default class Analysis extends Component<Props, State> {
                 />
               </>
             )}
-          </div>
+          </>
         ))}
         {aiPlays.length !== 0 && (
-          <>
+          <div class={utilStyles.container}>
             <h2 class={styles.pillHeading}>AI playthrough</h2>
 
             <div class={styles.preCommentary}>
@@ -221,9 +225,9 @@ export default class Analysis extends Component<Props, State> {
                 ),
               )}
             </div>
-          </>
+          </div>
         )}
-      </div>
+      </>
     );
   }
 }

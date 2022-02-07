@@ -2,7 +2,7 @@
 }
 
 .analysis-table {
-  max-width: 665px;
+  max-width: 735px;
   margin: 1.9rem auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -43,7 +43,7 @@
   }
 
   @media (min-width: 550px) {
-    grid-template-columns: 200px 1fr 1fr;
+    grid-template-columns: minmax(min-content, max-content) 1fr 1fr;
 
     & tr {
       &:nth-child(1),

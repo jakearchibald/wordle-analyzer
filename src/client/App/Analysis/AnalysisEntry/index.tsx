@@ -122,7 +122,7 @@ export default class AnalysisEntry extends Component<Props, State> {
           </tr>
           {initalRemaining > 2 && (
             <tr>
-              <th scope="row">Average remaining</th>
+              <th scope="row">Average remaining words</th>
               {plays.map((play) => (
                 <td>
                   {play.averageRemaining ? (
@@ -130,10 +130,11 @@ export default class AnalysisEntry extends Component<Props, State> {
                       {toTwoDecimalPlaces(play.averageRemaining.all)}{' '}
                       {play.averageRemaining.all === 1
                         ? wordStr[0]
-                        : wordStr[1]}{' '}
+                        : wordStr[1]}
+                      ,{' '}
                       <span class={styles.noBreak}>
-                        ({toTwoDecimalPlaces(play.averageRemaining.common)}{' '}
-                        common)
+                        {toTwoDecimalPlaces(play.averageRemaining.common)}{' '}
+                        common
                       </span>
                     </>
                   ) : (
@@ -144,7 +145,7 @@ export default class AnalysisEntry extends Component<Props, State> {
             </tr>
           )}
           <tr>
-            <th scope="row">Actual remaining</th>
+            <th scope="row">Actual remaining words</th>
             {plays.map((play, i) => (
               <td class={!bestPlay || bestPlay === play ? styles.cellWin : ''}>
                 {play.guess === answer ? (
@@ -157,9 +158,10 @@ export default class AnalysisEntry extends Component<Props, State> {
                       play.remainingAnswers.other.length ===
                     1
                       ? wordStr[0]
-                      : wordStr[1]}{' '}
+                      : wordStr[1]}
+                    ,{' '}
                     <span class={styles.noBreak}>
-                      ({play.remainingAnswers.common.length} common)
+                      {play.remainingAnswers.common.length} common
                     </span>
                   </>
                 )}
