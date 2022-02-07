@@ -432,7 +432,8 @@ export function getBestPlay(
     // Ran out of common answers.
     if (remaining.length === 0) continue;
     // If we're down to two options, take a punt.
-    if (remaining.length === 2) return remaining[0];
+    // If we're down to one option, play it.
+    if (remaining.length <= 2) return remaining[0];
 
     const bestGuess = bestGuesses[0];
 
