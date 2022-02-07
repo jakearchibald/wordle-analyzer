@@ -22,7 +22,7 @@ const getAllWords = () =>
   (allWords = getWordData().then((data) => [...data.common, ...data.other]));
 
 let initialRemainingAverages: Promise<RemainingResult> | undefined;
-const getInitialRemainingAverages = () =>
+const getInitialRemainingAverages = (): Promise<RemainingResult> =>
   initialRemainingAverages ||
   (initialRemainingAverages = fetch(remainingAveragesUrl).then((res) =>
     res.json(),
