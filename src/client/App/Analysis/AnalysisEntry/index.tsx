@@ -113,28 +113,40 @@ export default class AnalysisEntry extends Component<Props, State> {
             {plays.map((play, i) => (
               <td
                 class={
-                  play.remainingAnswers.common.length +
-                    play.remainingAnswers.other.length <=
-                  plays[(i + 1) % 2].remainingAnswers.common.length +
-                    plays[(i + 1) % 2].remainingAnswers.other.length
+                  // Is this guess 'best'.
+                  // Yes, if it's a correct guess.
+                  play.guess === answer ||
+                  // Otherwise, no if the other player guess it right.
+                  (plays[(i + 1) % 2].guess !== answer &&
+                    // Otherwise, yes if this answer eliminates more or the same as the other player.
+                    play.remainingAnswers.common.length +
+                      play.remainingAnswers.other.length <=
+                      plays[(i + 1) % 2].remainingAnswers.common.length +
+                        plays[(i + 1) % 2].remainingAnswers.other.length)
                     ? styles.cellWin
                     : ''
                 }
               >
-                {toTwoDecimalPlaces(
-                  (1 -
-                    (play.remainingAnswers.common.length +
-                      play.remainingAnswers.other.length) /
-                      totalRemaining) *
-                    100,
+                {play.guess === answer ? (
+                  'Correct!'
+                ) : (
+                  <>
+                    {toTwoDecimalPlaces(
+                      (1 -
+                        (play.remainingAnswers.common.length +
+                          play.remainingAnswers.other.length) /
+                          totalRemaining) *
+                        100,
+                    )}
+                    %{' '}
+                    <span class={styles.noBreak}>
+                      (leaving{' '}
+                      {play.remainingAnswers.common.length +
+                        play.remainingAnswers.other.length}
+                      )
+                    </span>
+                  </>
                 )}
-                %{' '}
-                <span class={styles.noBreak}>
-                  (leaving{' '}
-                  {play.remainingAnswers.common.length +
-                    play.remainingAnswers.other.length}
-                  )
-                </span>
               </td>
             ))}
           </tr>
