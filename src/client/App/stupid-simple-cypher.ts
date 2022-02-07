@@ -1,5 +1,5 @@
-// Please never use this to encode something important.
-// It'll break for longer strings than the ones I use.
+// Please never use this to encode anything important.
+// It's just to visually disguise the guesses in the URL.
 
 function mulberry32(seed: number): () => number {
   return () => {
@@ -55,14 +55,13 @@ export function decode(seed: number, word: string): string {
     shuffledLetters.map((letter, i) => [letter, i]),
   );
   const wordLetters = [...word];
+  const max =
+    Math.ceil(word.length / shuffledLetters.length) * shuffledLetters.length;
 
   return wordLetters
     .map(
       (letter, i) =>
-        letters[
-          (shuffledMap[letter] - i + shuffledLetters.length) %
-            shuffledLetters.length
-        ],
+        letters[(shuffledMap[letter] - i + max) % shuffledLetters.length],
     )
     .join('');
 }
