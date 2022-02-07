@@ -3,7 +3,11 @@ import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import * as utilStyles from '../../../utils.module.css';
 import * as guessStyles from '../../Guess/styles.module.css';
-import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
+import {
+  GuessAnalysis,
+  PlayAnalysis,
+  RemainingAnswers,
+} from 'shared-types/index';
 import Guess from 'client/App/Guess';
 
 interface Props {
@@ -14,17 +18,45 @@ interface Props {
 
 interface State {}
 
+const wordStr = ['word', 'words'];
 const boolToYesNo = (bool: boolean) => (bool ? '✅' : '❌');
 const toTwoDecimalPlaces = (num: number) => Math.round(num * 100) / 100;
 
+// Undefined return means they're equal.
+function getBestPlay(
+  answer: string,
+  plays: readonly [PlayAnalysis, PlayAnalysis],
+): PlayAnalysis | undefined {
+  if (plays.every((p) => p.guess === answer)) return undefined;
+
+  const correctGuessingPlay = plays.find((p) => p.guess === answer);
+  if (correctGuessingPlay) return correctGuessingPlay;
+
+  // The best is the one that eliminates the most common words,
+  // with other words as a tie-breaker.
+  for (const type of ['common', 'other'] as const) {
+    if (
+      plays[0].remainingAnswers[type].length !==
+      plays[1].remainingAnswers[type].length
+    ) {
+      return plays[0].remainingAnswers[type].length <
+        plays[1].remainingAnswers[type].length
+        ? plays[0]
+        : plays[1];
+    }
+  }
+
+  return undefined;
+}
+
 export default class AnalysisEntry extends Component<Props, State> {
   render({ guessAnalysis, first, answer }: RenderableProps<Props>) {
-    const plays = [guessAnalysis.plays.user, guessAnalysis.plays.ai];
-    const totalRemaining =
+    const initalRemaining =
       guessAnalysis.beforeRemainingCounts.common +
       guessAnalysis.beforeRemainingCounts.other;
-
+    const plays = [guessAnalysis.plays.user, guessAnalysis.plays.ai] as const;
     const bothGuessesRight = plays.every((play) => play.guess === answer);
+    const bestPlay = getBestPlay(answer, plays);
 
     return (
       <div class={styles.analysisEntry}>
@@ -88,62 +120,46 @@ export default class AnalysisEntry extends Component<Props, State> {
               <td>{boolToYesNo(play.commonWord)}</td>
             ))}
           </tr>
+          {initalRemaining > 2 && (
+            <tr>
+              <th scope="row">Average remaining</th>
+              {plays.map((play) => (
+                <td>
+                  {play.averageRemaining ? (
+                    <>
+                      {toTwoDecimalPlaces(play.averageRemaining.all)}{' '}
+                      {play.averageRemaining.all === 1
+                        ? wordStr[0]
+                        : wordStr[1]}{' '}
+                      <span class={styles.noBreak}>
+                        ({toTwoDecimalPlaces(play.averageRemaining.common)}{' '}
+                        common)
+                      </span>
+                    </>
+                  ) : (
+                    'Word not found'
+                  )}
+                </td>
+              ))}
+            </tr>
+          )}
           <tr>
-            <th scope="row">Average eliminations</th>
-            {plays.map((play) => (
-              <td>
-                {play.averageRemaining ? (
-                  <>
-                    {toTwoDecimalPlaces(
-                      (1 - play.averageRemaining.all / totalRemaining) * 100,
-                    )}
-                    %{' '}
-                    <span class={styles.noBreak}>
-                      (leaving {toTwoDecimalPlaces(play.averageRemaining.all)})
-                    </span>
-                  </>
-                ) : (
-                  'Word not found'
-                )}
-              </td>
-            ))}
-          </tr>
-          <tr>
-            <th scope="row">Actual eliminations</th>
+            <th scope="row">Actual remaining</th>
             {plays.map((play, i) => (
-              <td
-                class={
-                  // Is this guess 'best'.
-                  // Yes, if it's a correct guess.
-                  play.guess === answer ||
-                  // Otherwise, no if the other player guess it right.
-                  (plays[(i + 1) % 2].guess !== answer &&
-                    // Otherwise, yes if this answer eliminates more or the same as the other player.
-                    play.remainingAnswers.common.length +
-                      play.remainingAnswers.other.length <=
-                      plays[(i + 1) % 2].remainingAnswers.common.length +
-                        plays[(i + 1) % 2].remainingAnswers.other.length)
-                    ? styles.cellWin
-                    : ''
-                }
-              >
+              <td class={!bestPlay || bestPlay === play ? styles.cellWin : ''}>
                 {play.guess === answer ? (
                   'Correct!'
                 ) : (
                   <>
-                    {toTwoDecimalPlaces(
-                      (1 -
-                        (play.remainingAnswers.common.length +
-                          play.remainingAnswers.other.length) /
-                          totalRemaining) *
-                        100,
-                    )}
-                    %{' '}
+                    {play.remainingAnswers.common.length +
+                      play.remainingAnswers.other.length}{' '}
+                    {play.remainingAnswers.common.length +
+                      play.remainingAnswers.other.length ===
+                    1
+                      ? wordStr[0]
+                      : wordStr[1]}{' '}
                     <span class={styles.noBreak}>
-                      (leaving{' '}
-                      {play.remainingAnswers.common.length +
-                        play.remainingAnswers.other.length}
-                      )
+                      ({play.remainingAnswers.common.length} common)
                     </span>
                   </>
                 )}

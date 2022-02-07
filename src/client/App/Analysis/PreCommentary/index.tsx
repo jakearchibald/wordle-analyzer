@@ -29,16 +29,13 @@ export default class PreCommentary extends Component<Props, State> {
             However, not all Wordle answers are common words.
           </p>
           <p>
-            The first play should aim to eliminate as many words as possible.
-            The AI always plays "lares" which eliminates the most possibilities
-            on average. But, the thing about averages… well let's just see what
-            happens:
+            Your first play should aim to eliminate as many words as possible.
           </p>
         </>
       );
     }
 
-    const remainingList = remainingCount < 30 && remainingAnswers && (
+    const remainingList = remainingCount < 40 && remainingAnswers && (
       <ul class={styles.remainingList}>
         {[...remainingAnswers.common, ...remainingAnswers.other].map(
           (word, i) => (
