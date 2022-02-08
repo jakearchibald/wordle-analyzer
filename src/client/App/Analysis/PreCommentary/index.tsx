@@ -2,7 +2,11 @@ import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import * as utilStyles from '../../../utils.module.css';
-import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
+import {
+  AIStrategy,
+  GuessAnalysis,
+  RemainingAnswers,
+} from 'shared-types/index';
 import { formatNumber } from 'client/utils';
 
 const maxItemsToDisplay = 30;
@@ -41,7 +45,8 @@ export default class PreCommentary extends Component<Props, State> {
             However, not all Wordle answers are common words.
           </p>
           <p>
-            Your first play should aim to eliminate as many words as possible.
+            The first play should aim to eliminate as many words as possible,
+            preferably common words.
           </p>
         </>
       );
@@ -102,92 +107,142 @@ export default class PreCommentary extends Component<Props, State> {
         </span>
       );
 
-    const advice =
-      remainingCount === 1
-        ? []
-        : guessAnalysis.beforeRemainingCounts.common === 0
-        ? [
+    const aiStrategy = guessAnalysis.plays.aiStrategy;
+
+    const advice = ((): h.JSX.Element[] => {
+      if (remainingCount === 1) return [];
+
+      if (
+        turn === 5 &&
+        (guessAnalysis.beforeRemainingCounts.common > 2 ||
+          (guessAnalysis.beforeRemainingCounts.common === 0 &&
+            remainingCount > 2))
+      ) {
+        return [
+          <>
+            Uh oh, this isn't looking good! Not much left to do other than cross
+            fingers, say a prayer, wish upon a star, and take a guess.
+          </>,
+        ];
+      }
+
+      if (guessAnalysis.beforeRemainingCounts.common === 0) {
+        if (remainingCount === 2) {
+          return [
             <>
-              The answer is an uncommon word, making this very tricky. There
-              isn't much of a strategy here, aside from coming up with actual
-              words that fit the clues.
-            </>,
-          ]
-        : guessAnalysis.beforeRemainingCounts.common === 1
-        ? [
-            <>
-              Not all Wordle answers are common words, but there's one there for
-              the taking. If "{remainingAnswers!.common[0]}" was the only
-              'common' word I could think of, I'd totally play it.
-            </>,
-          ]
-        : guessAnalysis.beforeRemainingCounts.common === 2
-        ? [
-            <>
-              Not all Wordle answers are common words, but if I managed to think
-              of both of those, I'd flip a coin and play one of them.
-            </>,
-          ]
-        : turn === 5
-        ? [
-            <>
-              I hate it when this happens, but here we are. Last chance.
-              Hit-and-hope!
-            </>,
-          ]
-        : guessAnalysis.beforeRemainingCounts.common < 5
-        ? [
-            <>
-              Ok, this is tough. The trick here is realising that there are
-              still multiple likely answers, rather than playing the first thing
-              that comes to mind.
-            </>,
-            <>
-              Definitely play one of the possible answers, preferably a common
-              word, but as a contingency plan, maybe there's one that has a
-              greater chance of eliminating more of the others?
-            </>,
-          ]
-        : remainingCount < 10
-        ? [
-            <>
-              Ok, this is tough. The trick here is realising that there are
-              still multiple possible answers, rather than playing the first
-              thing that comes to mind.
-            </>,
-            <>
-              Definitely play one of the possible answers, but as a contingency
-              plan, maybe there's one that has a greater chance of eliminating
-              more of the others?
-            </>,
-          ]
-        : remainingCount < 30
-        ? [
-            <>
-              With this many answers still in play, it's probably best to try
-              and eliminate as many as possible, rather than go for a win this
-              turn.
-            </>,
-            <>
-              If there's a possible answer that achieves that, that's probably
-              the best play.
-            </>,
-          ]
-        : turn < 3
-        ? [
-            <>
-              It's still early in the game. Try to eliminate as many answers as
-              possible. This isn't 'hard mode', so avoid playing letters that
-              you already know are (or aren't) in the answer.
-            </>,
-          ]
-        : [
-            <>
-              Don't get nervous. Try to eliminate as many answers as possible.
-              This isn't 'hard mode', so avoid playing letters that you already
-              know are (or aren't) in the answer.
+              With no common words remaining, the biggest challenge is thinking
+              of any word that fits. The best strategy is to pick the
+              least-uncommon of those, but I'd probably just play the first one
+              that came to mind.
             </>,
           ];
+        }
+
+        if (aiStrategy === AIStrategy.EliminateUncommonWithAnswer) {
+          return [
+            <>
+              With no common words remaining, the biggest challenge is thinking
+              of any word that fits. There are answers that eliminate more of
+              the other answers, which could be a good play, but playing the
+              least-uncommon of the possibilities is also a good bet.
+            </>,
+            <>
+              That said, with uncommon words like this, I'd probably just play
+              the first one that came to mind.
+            </>,
+          ];
+        }
+        return [
+          <>
+            With no common words remaining, the biggest challenge is thinking of
+            any word that fits. The remaining possibilities have too much in
+            common, so rather than going for a win, it's probably better to play
+            a non-answer that eliminates many of the possible answers.
+          </>,
+          <>
+            That said, with uncommon words like this, I'd probably just play the
+            first one that came to mind.
+          </>,
+        ];
+      }
+
+      if (guessAnalysis.beforeRemainingCounts.common === 1) {
+        return [
+          <>
+            Not all Wordle answers are common words, but most of them are. If "
+            {remainingAnswers!.common[0]}" was the only 'common' word I could
+            think of, I'd totally play it and hope for the best!
+          </>,
+        ];
+      }
+
+      if (guessAnalysis.beforeRemainingCounts.common === 2) {
+        return [
+          <>
+            Not all Wordle answers are common words, but most of them are. If I
+            managed to think of both of those,{' '}
+            {turn === 5 ? (
+              <>
+                well, there's not much else to do other than pick one, and hope
+                it's the winner.
+              </>
+            ) : (
+              <>I'd flip a coin and play one of them.</>
+            )}
+          </>,
+        ];
+      }
+
+      const turnInfo =
+        turn < 3 ? (
+          <>
+            It's still early in the game, so there are plenty of guesses
+            remaining.
+          </>
+        ) : (
+          <>There aren't many guesses left, but don't panic!</>
+        );
+
+      if (guessAnalysis.beforeRemainingCounts.common < 20) {
+        if (aiStrategy === AIStrategy.EliminateCommonWithAnswer) {
+          return [
+            <>
+              The trick here is realising that there are still multiple likely
+              answers, and doing something smarter than just playing the first
+              thing that comes to mind. {turnInfo}
+            </>,
+            <>
+              The ideal strategy is to eliminate as many of the remaining words
+              as possible. Playing an already-eliminated-word removes the
+              possibility of a win, but perhaps there's a guess that also
+              eliminates many of the others? You've got to be in it to win it!
+            </>,
+          ];
+        }
+        return [
+          <>
+            The trick here is realising that there are still multiple likely
+            answers, and doing something smarter than just playing the first
+            thing that comes to mind. {turnInfo}
+          </>,
+          <>
+            Unfortunately, the remaining words have too much in common, so it's
+            better to play an already-eliminated-word that discounts as many of
+            the remaining ones as possible. It won't be a winning guess, but
+            hopefully it gives enough clues to play a winner for the following
+            guess.
+          </>,
+        ];
+      }
+
+      return [
+        <>
+          With this many words remaining, the best strategy is to play some
+          letters that haven't already been played. Don't worry about picking a
+          winner yet. {turnInfo}
+        </>,
+      ];
+    })();
 
     if (remainingList) {
       return (
