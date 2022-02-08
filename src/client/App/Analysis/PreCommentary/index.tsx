@@ -3,6 +3,15 @@ import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import * as utilStyles from '../../../utils.module.css';
 import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
+import { formatNumber } from 'client/utils';
+
+const maxItemsToDisplay = 30;
+
+const enum RemainingItemsType {
+  None,
+  CommonOnly,
+  All,
+}
 
 interface Props {
   turn: number;
@@ -23,9 +32,12 @@ export default class PreCommentary extends Component<Props, State> {
         <>
           <p>
             Another day, another Wordle! The Wordle dictionary contains{' '}
-            <strong>{remainingCount} words</strong>, and this tool considers{' '}
-            <strong>{guessAnalysis.beforeRemainingCounts.common}</strong> of
-            them to be 'common', or at least more common than the others.
+            <strong>{formatNumber(remainingCount)} words</strong>, and this tool
+            considers{' '}
+            <strong>
+              {formatNumber(guessAnalysis.beforeRemainingCounts.common)}
+            </strong>{' '}
+            of them to be 'common', or at least more common than the others.
             However, not all Wordle answers are common words.
           </p>
           <p>
@@ -35,27 +47,41 @@ export default class PreCommentary extends Component<Props, State> {
       );
     }
 
-    const remainingList = remainingCount < 40 && remainingAnswers && (
+    let remainingItemsToDisplay: string[] | undefined = undefined;
+    let remainingItemsType: RemainingItemsType = RemainingItemsType.None;
+
+    if (remainingAnswers) {
+      if (remainingCount <= maxItemsToDisplay) {
+        remainingItemsType = RemainingItemsType.All;
+        remainingItemsToDisplay = [
+          ...remainingAnswers.common,
+          ...remainingAnswers.other,
+        ];
+      } else if (remainingAnswers.common.length <= maxItemsToDisplay) {
+        remainingItemsType = RemainingItemsType.CommonOnly;
+        remainingItemsToDisplay = remainingAnswers.common;
+      }
+    }
+
+    const remainingList = remainingItemsToDisplay && (
       <ul class={styles.remainingList}>
-        {[...remainingAnswers.common, ...remainingAnswers.other].map(
-          (word, i) => (
-            <li
-              style={{ opacity: i < remainingAnswers.common.length ? 1 : 0.5 }}
+        {remainingItemsToDisplay.map((word, i) => (
+          <li
+            style={{ opacity: i < remainingAnswers!.common.length ? 1 : 0.5 }}
+          >
+            <a
+              class={[utilStyles.hiddenLink, styles.remainingWord].join(' ')}
+              target="_blank"
+              href={`https://en.wiktionary.org/wiki/${word}`}
             >
-              <a
-                class={[utilStyles.hiddenLink, styles.remainingWord].join(' ')}
-                target="_blank"
-                href={`https://en.wiktionary.org/wiki/${word}`}
-              >
-                {[...word].map((letter) => (
-                  <span class={styles.remainingLetter}>
-                    {letter.toUpperCase()}
-                  </span>
-                ))}
-              </a>
-            </li>
-          ),
-        )}
+              {[...word].map((letter) => (
+                <span class={styles.remainingLetter}>
+                  {letter.toUpperCase()}
+                </span>
+              ))}
+            </a>
+          </li>
+        ))}
       </ul>
     );
 
@@ -69,8 +95,8 @@ export default class PreCommentary extends Component<Props, State> {
         <span>
           There are{' '}
           <strong>
-            {remainingCount} words remaining,{' '}
-            {guessAnalysis.beforeRemainingCounts.common} common
+            {formatNumber(remainingCount)} words remaining,{' '}
+            {formatNumber(guessAnalysis.beforeRemainingCounts.common)} common
           </strong>
           .
         </span>
@@ -166,7 +192,12 @@ export default class PreCommentary extends Component<Props, State> {
     if (remainingList) {
       return (
         <>
-          <p>{remainingSpan}</p>
+          <p>
+            {remainingSpan}{' '}
+            {remainingItemsType === RemainingItemsType.CommonOnly
+              ? 'The common ones are:'
+              : 'They are:'}
+          </p>
           {remainingList}
           {advice.map((line) => (
             <p>{line}</p>

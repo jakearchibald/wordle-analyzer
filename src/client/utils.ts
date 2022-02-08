@@ -67,3 +67,6 @@ export async function activatePendingSw(): Promise<void> {
   if (!reg || !reg.waiting) throw Error('No pending service worker');
   reg.waiting.postMessage('skipWaiting');
 }
+
+const numFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+export const formatNumber = (n: number) => numFormat.format(n);

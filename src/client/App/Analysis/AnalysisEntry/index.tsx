@@ -3,12 +3,9 @@ import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import * as utilStyles from '../../../utils.module.css';
 import * as guessStyles from '../../Guess/styles.module.css';
-import {
-  GuessAnalysis,
-  PlayAnalysis,
-  RemainingAnswers,
-} from 'shared-types/index';
+import { GuessAnalysis, PlayAnalysis } from 'shared-types/index';
 import Guess from 'client/App/Guess';
+import { formatNumber } from 'client/utils';
 
 interface Props {
   first: boolean;
@@ -20,7 +17,6 @@ interface State {}
 
 const wordStr = ['word', 'words'];
 const boolToYesNo = (bool: boolean) => (bool ? '✅' : '❌');
-const toTwoDecimalPlaces = (num: number) => Math.round(num * 100) / 100;
 
 // Undefined return means they're equal.
 function getBestPlay(
@@ -127,14 +123,13 @@ export default class AnalysisEntry extends Component<Props, State> {
                 <td>
                   {play.averageRemaining ? (
                     <>
-                      {toTwoDecimalPlaces(play.averageRemaining.all)}{' '}
+                      {formatNumber(play.averageRemaining.all)}{' '}
                       {play.averageRemaining.all === 1
                         ? wordStr[0]
                         : wordStr[1]}
                       ,{' '}
                       <span class={styles.noBreak}>
-                        {toTwoDecimalPlaces(play.averageRemaining.common)}{' '}
-                        common
+                        {formatNumber(play.averageRemaining.common)} common
                       </span>
                     </>
                   ) : (
@@ -152,8 +147,10 @@ export default class AnalysisEntry extends Component<Props, State> {
                   'Correct!'
                 ) : (
                   <>
-                    {play.remainingAnswers.common.length +
-                      play.remainingAnswers.other.length}{' '}
+                    {formatNumber(
+                      play.remainingAnswers.common.length +
+                        play.remainingAnswers.other.length,
+                    )}{' '}
                     {play.remainingAnswers.common.length +
                       play.remainingAnswers.other.length ===
                     1
@@ -161,7 +158,7 @@ export default class AnalysisEntry extends Component<Props, State> {
                       : wordStr[1]}
                     ,{' '}
                     <span class={styles.noBreak}>
-                      {play.remainingAnswers.common.length} common
+                      {formatNumber(play.remainingAnswers.common.length)} common
                     </span>
                   </>
                 )}
