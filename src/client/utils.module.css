@@ -26,12 +26,20 @@
   text-transform: uppercase;
   font-weight: bold;
   font-size: 1.1rem;
-}
 
-.button:disabled {
-  opacity: 0.5;
-  cursor: default;
-  background: var(--theme-absent);
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 5px solid var(--theme-button-focus);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+    background: var(--theme-absent);
+  }
 }
 
 .button-with-icon {

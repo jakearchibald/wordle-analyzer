@@ -10,6 +10,7 @@
   --theme-table-cell: hsl(214deg, 7%, 94%);
   --theme-table-cell-alt: hsl(214deg, 7%, 97%);
   --theme-table-heading-alt: hsl(214deg, 9%, 88%);
+  --theme-button-focus: #218157;
 
   --content-padding: 0.7rem;
   --paragraph-line-height: 1.9;
@@ -28,6 +29,7 @@
     --theme-table-cell: hsl(214deg, 7%, 12%);
     --theme-table-cell-alt: hsl(214deg, 7%, 9%);
     --theme-table-heading-alt: hsl(214deg, 9%, 16%);
+    --theme-button-focus: #23df8e;
   }
 }
 
