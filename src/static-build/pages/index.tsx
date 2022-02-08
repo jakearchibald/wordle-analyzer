@@ -18,7 +18,7 @@ import { src, imports } from 'client-bundle:client';
 import analyticsUrl from 'client-bundle:client/analytics/index.js';
 import Header from './Header';
 import faviconURL from 'url:static-build/assets/favicon.png';
-import socialIconURL from 'url:static-build/assets/social-icon.png';
+import socialImageURL from 'url:static-build/assets/social-large.png';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
 import { escapeStyleScriptContent, siteOrigin } from 'static-build/utils';
 
@@ -31,12 +31,12 @@ const Index: FunctionalComponent<Props> = () => (
       <meta name="theme-color" content="#6aaa64" />
       <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
       <link rel="icon" type="image/png" href={faviconURL} />
-      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:card" content="summary_large_image" />
       <meta
         property="twitter:image"
-        content={`${siteOrigin}${socialIconURL}`}
+        content={`${siteOrigin}${socialImageURL}`}
       />
-      <meta property="og:image" content={`${siteOrigin}${socialIconURL}`} />
+      <meta property="og:image" content={`${siteOrigin}${socialImageURL}`} />
       <meta name="twitter:site" content="@jaffathecake" />
       <meta property="og:url" content={`${siteOrigin}/`} />
       <meta property="og:title" content="Wordle Analyzer" />
