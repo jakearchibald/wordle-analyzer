@@ -9,6 +9,7 @@ import {
   CellColors,
   PlayAnalysis,
   AIPlay,
+  AIStrategy,
 } from 'shared-types/index';
 
 type WordDataType = typeof import('./word-data.json');
@@ -423,26 +424,52 @@ async function getRemainingAveragesMT(
 export function getBestPlay(
   remainingAnswers: RemainingAnswers,
   remainingResult: RemainingResult,
-): string {
+): [string, AIStrategy] {
   // Focus on the common words first.
-  for (const [remaining, bestGuesses] of [
-    [remainingAnswers.common, remainingResult.common] as const,
-    [remainingAnswers.other, remainingResult.all] as const,
+  for (let [isCommon, remaining, bestGuesses] of [
+    [true, remainingAnswers.common, remainingResult.common] as const,
+    [false, remainingAnswers.other, remainingResult.all] as const,
   ]) {
     // Ran out of common answers.
     if (remaining.length === 0) continue;
-    // If we're down to two options, take a punt.
     // If we're down to one option, play it.
-    if (remaining.length <= 2) return remaining[0];
+    if (remaining.length === 1) {
+      return [
+        remaining[0],
+        isCommon ? AIStrategy.PlaySingleCommon : AIStrategy.PlaySingleUncommon,
+      ];
+    }
+
+    // If we're down to two options, then always focus on eliminating from the 'all' list,
+    // preparing for the case where this isn't a common word.
+    if (remaining.length === 2) bestGuesses = remainingResult.all;
 
     const bestGuess = bestGuesses[0];
 
     // Try to find a guess that's still a remaining answer.
     for (const guess of bestGuesses) {
       // If the remaining answers don't eliminate enough, just go with the best guess.
-      if (guess[1] - bestGuess[1] > 0.5) return bestGuess[0];
+      // If there are only two remaining, always wait for one of those to come along.
+      if (guess[1] - bestGuess[1] > 0.5 && remaining.length !== 2) {
+        return [
+          bestGuess[0],
+          isCommon ? AIStrategy.EliminateCommon : AIStrategy.EliminateUncommon,
+        ];
+      }
       // Otherwise, go with a guess that's also a remaining answer.
-      if (remaining.includes(guess[0])) return guess[0];
+      if (remaining.includes(guess[0])) {
+        return [
+          guess[0],
+          isCommon
+            ? remaining.length === 2
+              ? AIStrategy.Play5050Common
+              : AIStrategy.EliminateCommonWithAnswer
+            : // Otherwise, is uncommon:
+            remaining.length === 2
+            ? AIStrategy.Play5050Uncommon
+            : AIStrategy.EliminateUncommonWithAnswer,
+        ];
+      }
     }
   }
 
@@ -536,7 +563,10 @@ async function analyzeGuess(
   }
 
   const commonWords = await getCommonWordSet();
-  const aiGuess = getBestPlay(remainingAnswers, remainingAverages);
+  const [aiGuess, aiStrategy] = getBestPlay(
+    remainingAnswers,
+    remainingAverages,
+  );
   const userPlay = getPlayAnalysis(
     guess,
     answer,
@@ -562,7 +592,7 @@ async function analyzeGuess(
       common: remainingAnswers.common.length,
       other: remainingAnswers.other.length,
     },
-    plays: { user: userPlay, ai: aiPlay },
+    plays: { user: userPlay, ai: aiPlay, aiStrategy },
   };
 }
 
@@ -589,7 +619,7 @@ async function getAiPlay(
   }
 
   const commonWords = await getCommonWordSet();
-  const guess = getBestPlay(remainingAnswers, remainingAverages);
+  const [guess] = getBestPlay(remainingAnswers, remainingAverages);
   const play = getPlayAnalysis(
     guess,
     answer,

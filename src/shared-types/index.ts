@@ -20,7 +20,7 @@ export interface PlayAnalysis {
 
 export interface GuessAnalysis {
   beforeRemainingCounts: { common: number; other: number };
-  plays: { user: PlayAnalysis; ai: PlayAnalysis };
+  plays: { user: PlayAnalysis; ai: PlayAnalysis; aiStrategy: AIStrategy };
 }
 
 export interface AIPlay {
@@ -47,3 +47,14 @@ export type RemainingResult = {
 };
 
 export type RemainingAnswers = { common: string[]; other: string[] };
+
+export const enum AIStrategy {
+  EliminateCommon,
+  EliminateCommonWithAnswer,
+  Play5050Common,
+  PlaySingleCommon,
+  EliminateUncommon,
+  EliminateUncommonWithAnswer,
+  Play5050Uncommon,
+  PlaySingleUncommon,
+}
