@@ -45,6 +45,24 @@ function getBestPlay(
   return undefined;
 }
 
+function getLuck(performanceOfGuess: number): string {
+  if (performanceOfGuess < 0.0005) return `Oh god I'm so sorry`;
+  if (performanceOfGuess < 0.005) return `Unbelievably unlucky`;
+  if (performanceOfGuess < 0.01) return `Extremely unlucky`;
+  if (performanceOfGuess < 0.05) return `Super unlucky`;
+  if (performanceOfGuess < 0.1) return `Very unlucky`;
+  if (performanceOfGuess < 0.3) return `Unlucky`;
+  if (performanceOfGuess < 0.334) return `A little unlucky`;
+  if (performanceOfGuess < 0.7) return `Neutral`;
+  if (performanceOfGuess < 0.666) return `A little lucky`;
+  if (performanceOfGuess < 0.9) return `Lucky`;
+  if (performanceOfGuess < 0.95) return `Very lucky`;
+  if (performanceOfGuess < 0.99) return `Super lucky`;
+  if (performanceOfGuess < 0.995) return `Extremely lucky`;
+  if (performanceOfGuess < 0.9995) return `Unbelievably lucky`;
+  return `WTF HOW??`;
+}
+
 export default class AnalysisEntry extends Component<Props, State> {
   render({ guessAnalysis, first, answer }: RenderableProps<Props>) {
     const initalRemaining =
@@ -139,32 +157,45 @@ export default class AnalysisEntry extends Component<Props, State> {
               ))}
             </tr>
           )}
-          <tr>
-            <th scope="row">Actual remaining words</th>
-            {plays.map((play, i) => (
-              <td class={!bestPlay || bestPlay === play ? styles.cellWin : ''}>
-                {play.guess === answer ? (
-                  'Correct!'
-                ) : (
-                  <>
-                    {formatNumber(
-                      play.remainingAnswers.common.length +
-                        play.remainingAnswers.other.length,
-                    )}{' '}
-                    {play.remainingAnswers.common.length +
-                      play.remainingAnswers.other.length ===
-                    1
-                      ? wordStr[0]
-                      : wordStr[1]}
-                    ,{' '}
-                    <span class={styles.noBreak}>
-                      {formatNumber(play.remainingAnswers.common.length)} common
-                    </span>
-                  </>
-                )}
-              </td>
-            ))}
-          </tr>
+          {initalRemaining > 1 && (
+            <tr>
+              <th scope="row">Actual remaining words</th>
+              {plays.map((play) => (
+                <td
+                  class={!bestPlay || bestPlay === play ? styles.cellWin : ''}
+                >
+                  {play.guess === answer ? (
+                    'Correct!'
+                  ) : (
+                    <>
+                      {formatNumber(
+                        play.remainingAnswers.common.length +
+                          play.remainingAnswers.other.length,
+                      )}{' '}
+                      {play.remainingAnswers.common.length +
+                        play.remainingAnswers.other.length ===
+                      1
+                        ? wordStr[0]
+                        : wordStr[1]}
+                      ,{' '}
+                      <span class={styles.noBreak}>
+                        {formatNumber(play.remainingAnswers.common.length)}{' '}
+                        common
+                      </span>
+                    </>
+                  )}
+                </td>
+              ))}
+            </tr>
+          )}
+          {initalRemaining > 1 && (
+            <tr>
+              <th scope="row">Luck</th>
+              {plays.map((play) => (
+                <td>{getLuck(play.performanceOfGuess)}</td>
+              ))}
+            </tr>
+          )}
         </table>
       </div>
     );

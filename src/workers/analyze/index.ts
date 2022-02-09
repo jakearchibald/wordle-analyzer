@@ -4,12 +4,13 @@ import {
   GuessAnalysis,
   FiveLetters,
   Clue,
-  RemainingResult,
+  RemainingAveragesResult,
   RemainingAnswers,
   CellColors,
   PlayAnalysis,
   AIPlay,
   AIStrategy,
+  RemainingCountsResult,
 } from 'shared-types/index';
 
 type WordDataType = typeof import('./word-data.json');
@@ -22,8 +23,8 @@ const getAllWords = () =>
   allWords ||
   (allWords = getWordData().then((data) => [...data.common, ...data.other]));
 
-let initialRemainingAverages: Promise<RemainingResult> | undefined;
-const getInitialRemainingAverages = (): Promise<RemainingResult> =>
+let initialRemainingAverages: Promise<RemainingAveragesResult> | undefined;
+const getInitialRemainingAverages = (): Promise<RemainingAveragesResult> =>
   initialRemainingAverages ||
   (initialRemainingAverages = fetch(remainingAveragesUrl).then((res) =>
     res.json(),
@@ -265,14 +266,14 @@ function getClueViolations(guess: string, clues: Clue[]): ClueViolations {
 }
 
 /**
- * Figure out the average number of possibilities remaining for a particular guess.
+ * Figure out the number of possibilities remaining for particular guesses.
  */
-function getRemainingAverages(
+function getRemainingCounts(
   remainingAnswers: RemainingAnswers,
   guesses: string[],
   onAnswerDone?: () => void,
-): RemainingResult {
-  const counts = {
+): RemainingCountsResult {
+  const counts: RemainingCountsResult = {
     common: guesses.map((guess) => [guess, []]) as [string, number[]][],
     all: guesses.map((guess) => [guess, []]) as [string, number[]][],
   };
@@ -286,6 +287,12 @@ function getRemainingAverages(
     } = {};
 
     for (const answer of allAnswers) {
+      if (guess === answer) {
+        counts.common[i][1].push(0);
+        counts.all[i][1].push(0);
+        continue;
+      }
+
       const {
         positionalMatches,
         positionalNotMatches,
@@ -329,6 +336,19 @@ function getRemainingAverages(
     if (onAnswerDone) onAnswerDone();
   }
 
+  return counts;
+}
+
+/**
+ * Figure out the average number of possibilities remaining for a particular guess.
+ */
+function getRemainingAverages(
+  remainingAnswers: RemainingAnswers,
+  guesses: string[],
+  onAnswerDone?: () => void,
+): RemainingAveragesResult {
+  const counts = getRemainingCounts(remainingAnswers, guesses, onAnswerDone);
+
   // Convert the list of counts to averages
   return Object.fromEntries(
     Object.entries(counts).map(([key, counts]) => [
@@ -338,14 +358,14 @@ function getRemainingAverages(
         counts.reduce((a, b) => a + b, 0) / counts.length,
       ]),
     ]),
-  ) as RemainingResult;
+  ) as RemainingAveragesResult;
 }
 
 /** Multithreaded version of getRemainingAverages */
 async function getRemainingAveragesMT(
   remainingAnswers: RemainingAnswers,
   onProgress: (done: number, expecting: number) => void,
-): Promise<RemainingResult> {
+): Promise<RemainingAveragesResult> {
   if (threadPorts.length === 0) {
     throw Error('No worker threads available');
   }
@@ -370,7 +390,7 @@ async function getRemainingAveragesMT(
   const resultSets = await Promise.all(
     guessesGroups.map(
       (guessesGroup, i) =>
-        new Promise<RemainingResult>((resolve, reject) => {
+        new Promise<RemainingAveragesResult>((resolve, reject) => {
           const mainPort = threadPorts[i];
           const { port1, port2 } = new MessageChannel();
           mainPort.postMessage(
@@ -418,12 +438,12 @@ async function getRemainingAveragesMT(
         .flat()
         .sort((a, b) => a[1] - b[1]),
     ]),
-  ) as RemainingResult;
+  ) as RemainingAveragesResult;
 }
 
 export function getBestPlay(
   remainingAnswers: RemainingAnswers,
-  remainingResult: RemainingResult,
+  remainingResult: RemainingAveragesResult,
 ): [string, AIStrategy] {
   // Focus on the common words first.
   for (let [isCommon, remaining, bestGuesses] of [
@@ -481,25 +501,28 @@ function getPlayAnalysis(
   answer: string,
   previousClues: Clue[],
   remainingAnswers: RemainingAnswers,
-  remainingAverages: RemainingResult,
+  remainingAverages: RemainingAveragesResult,
   commonWords: Set<string>,
 ): PlayAnalysis {
   const clue = generateClue(answer, guess);
 
-  const newRemainingAnswers = Object.fromEntries(
-    Object.entries(remainingAnswers).map(([key, answers]) => [
-      key,
-      answers.filter((word) =>
-        possibleAnswer(
-          word,
-          clue.positionalMatches,
-          clue.positionalNotMatches,
-          clue.additionalRequiredLetters,
-          clue.remainingMustNotContain,
-        ),
-      ),
-    ]),
-  ) as RemainingAnswers;
+  const newRemainingAnswers =
+    guess === answer
+      ? { common: [], other: [] }
+      : (Object.fromEntries(
+          Object.entries(remainingAnswers).map(([key, answers]) => [
+            key,
+            answers.filter((word) =>
+              possibleAnswer(
+                word,
+                clue.positionalMatches,
+                clue.positionalNotMatches,
+                clue.additionalRequiredLetters,
+                clue.remainingMustNotContain,
+              ),
+            ),
+          ]),
+        ) as RemainingAnswers);
 
   const commonRemainingResult = remainingAverages.common.find(
     (item) => item[0] === guess,
@@ -509,6 +532,28 @@ function getPlayAnalysis(
   );
 
   const clueViolations = getClueViolations(guess, previousClues);
+
+  const possibleRemainingCountsForGuess = getRemainingCounts(remainingAnswers, [
+    guess,
+  ]).all[0][1].sort((a, b) => b - a);
+
+  const numNewRemaining =
+    newRemainingAnswers.common.length + newRemainingAnswers.other.length;
+
+  const indexOfEqualSuccess = possibleRemainingCountsForGuess.findIndex(
+    (remaining) => remaining === numNewRemaining,
+  );
+
+  let frequencyOfResult = 1;
+
+  for (
+    let i = indexOfEqualSuccess + 1;
+    i < possibleRemainingCountsForGuess.length;
+    i++
+  ) {
+    if (possibleRemainingCountsForGuess[i] !== numNewRemaining) break;
+    frequencyOfResult++;
+  }
 
   return {
     guess,
@@ -536,6 +581,9 @@ function getPlayAnalysis(
           }
         : undefined,
     commonWord: commonWords.has(guess),
+    performanceOfGuess:
+      (indexOfEqualSuccess + frequencyOfResult - 0.5 * frequencyOfResult) /
+      possibleRemainingCountsForGuess.length,
   };
 }
 
@@ -546,7 +594,7 @@ async function analyzeGuess(
   remainingAnswers: RemainingAnswers | undefined,
   onProgress: (done: number, expecting: number) => void,
 ): Promise<GuessAnalysis> {
-  let remainingAverages: RemainingResult | undefined;
+  let remainingAverages: RemainingAveragesResult | undefined;
 
   if (!remainingAnswers) {
     [remainingAnswers, remainingAverages] = await Promise.all([
@@ -563,10 +611,12 @@ async function analyzeGuess(
   }
 
   const commonWords = await getCommonWordSet();
+
   const [aiGuess, aiStrategy] = getBestPlay(
     remainingAnswers,
     remainingAverages,
   );
+
   const userPlay = getPlayAnalysis(
     guess,
     answer,
@@ -602,7 +652,7 @@ async function getAiPlay(
   remainingAnswers: RemainingAnswers | undefined,
   onProgress: (done: number, expecting: number) => void,
 ): Promise<AIPlay> {
-  let remainingAverages: RemainingResult | undefined;
+  let remainingAverages: RemainingAveragesResult | undefined;
 
   if (!remainingAnswers) {
     [remainingAnswers, remainingAverages] = await Promise.all([
@@ -620,7 +670,7 @@ async function getAiPlay(
 
   const commonWords = await getCommonWordSet();
   const [guess] = getBestPlay(remainingAnswers, remainingAverages);
-  const play = getPlayAnalysis(
+  const play = await getPlayAnalysis(
     guess,
     answer,
     previousClues,

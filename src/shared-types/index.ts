@@ -13,8 +13,9 @@ export interface PlayAnalysis {
   colors: CellColors;
   hardModeViolations: string[];
   unusedClues: string[];
-  remainingAnswers: RemainingAnswers;
   averageRemaining: { common: number; all: number } | undefined;
+  remainingAnswers: RemainingAnswers;
+  performanceOfGuess: number;
   commonWord: boolean;
 }
 
@@ -39,11 +40,15 @@ export type CellColors = [
   CellColor,
 ];
 
-export type RemainingEntry = [word: string, averageRemaining: number];
-export type RemainingAverages = RemainingEntry[];
-export type RemainingResult = {
+export type RemainingCounts = [word: string, remainingCounts: number[]][];
+export type RemainingAverages = [word: string, averageRemaining: number][];
+export type RemainingAveragesResult = {
   common: RemainingAverages;
   all: RemainingAverages;
+};
+export type RemainingCountsResult = {
+  common: RemainingCounts;
+  all: RemainingCounts;
 };
 
 export type RemainingAnswers = { common: string[]; other: string[] };
