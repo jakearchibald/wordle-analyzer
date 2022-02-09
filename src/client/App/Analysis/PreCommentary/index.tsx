@@ -179,12 +179,16 @@ export default class PreCommentary extends Component<Props, State> {
       if (guessAnalysis.beforeRemainingCounts.common === 2) {
         return [
           <>
-            Not all Wordle answers are common words, but most of them are. If I
-            managed to think of both of those,{' '}
+            {guessAnalysis.beforeRemainingCounts.other !== 0 && (
+              <>
+                Not all Wordle answers are common words, but most of them are.{' '}
+              </>
+            )}
+            If I managed to think of both of those,{' '}
             {turn === 5 ? (
               <>
-                well, there's not much else to do other than pick one, and hope
-                it's the winner.
+                well, with only one guess left there's not much else to do other
+                than pick one, and hope it's the winner.
               </>
             ) : (
               <>I'd flip a coin and play one of them.</>
@@ -228,7 +232,7 @@ export default class PreCommentary extends Component<Props, State> {
           <>
             Unfortunately, the remaining words have too much in common, so it's
             better to play an already-eliminated-word that discounts as many of
-            the remaining ones as possible. It won't be a winning guess, but
+            the remaining answers as possible. It won't be a winning guess, but
             hopefully it gives enough clues to play a winner for the following
             guess.
           </>,
