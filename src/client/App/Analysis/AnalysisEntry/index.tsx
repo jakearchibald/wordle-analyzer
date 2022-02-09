@@ -190,9 +190,15 @@ export default class AnalysisEntry extends Component<Props, State> {
           )}
           {initalRemaining > 1 && (
             <tr>
-              <th scope="row">Luck</th>
+              <th scope="row">Luck rating</th>
+
               {plays.map((play) => (
-                <td>{getLuck(play.performanceOfGuess)}</td>
+                <td>
+                  {getLuck(play.performanceOfGuess)} (
+                  <span class={styles.noBreak}>
+                    {formatNumber(play.performanceOfGuess * 100)}%)
+                  </span>
+                </td>
               ))}
             </tr>
           )}
