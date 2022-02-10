@@ -255,7 +255,7 @@ export default class PreCommentary extends Component<Props, State> {
             {remainingSpan}{' '}
             {remainingItemsType === RemainingItemsType.CommonOnly
               ? 'The common ones are:'
-              : 'They are:'}
+              : remainingCount > 1 && 'They are:'}
           </p>
           {remainingList}
           {advice.map((line) => (
