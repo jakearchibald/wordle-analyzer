@@ -25,7 +25,7 @@ function createShareText(cellColors: CellColors[], foundAnswer: boolean) {
       colors.map((color) => blocks[color]).join(''),
     ),
     '',
-    `Analysis: ${getShareUrl()}`,
+    getShareUrl(),
   ];
 
   return lines.join('\n');
