@@ -11,6 +11,7 @@ import {
   AIPlay,
   AIStrategy,
   RemainingCountsResult,
+  Luck,
 } from 'shared-types/index';
 
 type WordDataType = typeof import('./word-data.json');
@@ -496,6 +497,42 @@ export function getBestPlay(
   throw Error('No remaining answers');
 }
 
+function calculateLuck(
+  guess: string,
+  beforeRemainingAnswers: RemainingAnswers,
+  afterRemainingAnswers: RemainingAnswers,
+): Luck {
+  if (guess === 'lares') debugger;
+  const remainingResult = getRemainingCounts(beforeRemainingAnswers, [guess]);
+  const remainingCounts = remainingResult.all[0][1].sort((a, b) => b - a);
+
+  const numNewRemaining =
+    afterRemainingAnswers.common.length + afterRemainingAnswers.other.length;
+
+  const worseCount = remainingCounts.findIndex(
+    (remaining) => remaining === numNewRemaining,
+  );
+
+  let equalCount = 1;
+
+  for (let i = worseCount + 1; i < remainingCounts.length; i++) {
+    if (remainingCounts[i] !== numNewRemaining) break;
+    equalCount++;
+  }
+
+  const betterCount = remainingCounts.length - worseCount - equalCount;
+
+  return betterCount > worseCount
+    ? {
+        good: false,
+        chance: (equalCount + worseCount) / remainingCounts.length,
+      }
+    : {
+        good: true,
+        chance: (betterCount + equalCount) / remainingCounts.length,
+      };
+}
+
 function getPlayAnalysis(
   guess: string,
   answer: string,
@@ -533,28 +570,6 @@ function getPlayAnalysis(
 
   const clueViolations = getClueViolations(guess, previousClues);
 
-  const possibleRemainingCountsForGuess = getRemainingCounts(remainingAnswers, [
-    guess,
-  ]).all[0][1].sort((a, b) => b - a);
-
-  const numNewRemaining =
-    newRemainingAnswers.common.length + newRemainingAnswers.other.length;
-
-  const indexOfEqualSuccess = possibleRemainingCountsForGuess.findIndex(
-    (remaining) => remaining === numNewRemaining,
-  );
-
-  let frequencyOfResult = 1;
-
-  for (
-    let i = indexOfEqualSuccess + 1;
-    i < possibleRemainingCountsForGuess.length;
-    i++
-  ) {
-    if (possibleRemainingCountsForGuess[i] !== numNewRemaining) break;
-    frequencyOfResult++;
-  }
-
   return {
     guess,
     clue,
@@ -581,9 +596,7 @@ function getPlayAnalysis(
           }
         : undefined,
     commonWord: commonWords.has(guess),
-    performanceOfGuess:
-      (indexOfEqualSuccess + frequencyOfResult - 0.5 * frequencyOfResult) /
-      possibleRemainingCountsForGuess.length,
+    luck: calculateLuck(guess, remainingAnswers, newRemainingAnswers),
   };
 }
 

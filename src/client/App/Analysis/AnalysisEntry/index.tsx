@@ -3,7 +3,7 @@ import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import * as utilStyles from '../../../utils.module.css';
 import * as guessStyles from '../../Guess/styles.module.css';
-import { GuessAnalysis, PlayAnalysis } from 'shared-types/index';
+import { GuessAnalysis, Luck, PlayAnalysis } from 'shared-types/index';
 import Guess from 'client/App/Guess';
 import { formatNumber } from 'client/utils';
 
@@ -45,22 +45,23 @@ function getBestPlay(
   return undefined;
 }
 
-function getLuck(performanceOfGuess: number): string {
-  if (performanceOfGuess < 0.0005) return `Oh god I'm so sorry`;
-  if (performanceOfGuess < 0.005) return `Unbelievably unlucky`;
-  if (performanceOfGuess < 0.01) return `Extremely unlucky`;
-  if (performanceOfGuess < 0.05) return `Super unlucky`;
-  if (performanceOfGuess < 0.1) return `Very unlucky`;
-  if (performanceOfGuess < 0.3) return `Unlucky`;
-  if (performanceOfGuess < 0.334) return `A little unlucky`;
-  if (performanceOfGuess < 0.7) return `Neutral`;
-  if (performanceOfGuess < 0.666) return `A little lucky`;
-  if (performanceOfGuess < 0.9) return `Lucky`;
-  if (performanceOfGuess < 0.95) return `Very lucky`;
-  if (performanceOfGuess < 0.99) return `Super lucky`;
-  if (performanceOfGuess < 0.995) return `Extremely lucky`;
-  if (performanceOfGuess < 0.9995) return `Unbelievably lucky`;
-  return `WTF HOW??`;
+function getLuck({ good, chance }: Luck): string {
+  if (chance > 1 / 2) return 'Neutral';
+
+  if (good) {
+    if (chance > 1 / 5) return `Lucky`;
+    if (chance > 1 / 10) return `Very lucky`;
+    if (chance > 1 / 50) return `Super lucky`;
+    if (chance > 1 / 100) return `Extremely lucky`;
+    if (chance > 1 / 1000) return `Unbelievably lucky`;
+    return `WTF HOW??`;
+  }
+  if (chance > 1 / 5) return `Unlucky`;
+  if (chance > 1 / 10) return `Very unlucky`;
+  if (chance > 1 / 50) return `Super unlucky`;
+  if (chance > 1 / 100) return `Extremely unlucky`;
+  if (chance > 1 / 1000) return `Unbelievably unlucky`;
+  return `Oh god I'm so sorry`;
 }
 
 export default class AnalysisEntry extends Component<Props, State> {
@@ -193,12 +194,7 @@ export default class AnalysisEntry extends Component<Props, State> {
               <th scope="row">Luck rating</th>
 
               {plays.map((play) => (
-                <td>
-                  {getLuck(play.performanceOfGuess)} (
-                  <span class={styles.noBreak}>
-                    {formatNumber(play.performanceOfGuess * 100)}%)
-                  </span>
-                </td>
+                <td>{getLuck(play.luck)}</td>
               ))}
             </tr>
           )}

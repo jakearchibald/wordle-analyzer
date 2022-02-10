@@ -1,4 +1,8 @@
 export type FiveLetters = [string, string, string, string, string];
+export interface Luck {
+  good: boolean;
+  chance: number;
+}
 
 export interface Clue {
   positionalMatches: FiveLetters;
@@ -15,7 +19,7 @@ export interface PlayAnalysis {
   unusedClues: string[];
   averageRemaining: { common: number; all: number } | undefined;
   remainingAnswers: RemainingAnswers;
-  performanceOfGuess: number;
+  luck: Luck;
   commonWord: boolean;
 }
 
