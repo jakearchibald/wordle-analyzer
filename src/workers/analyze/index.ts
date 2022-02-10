@@ -501,20 +501,41 @@ function calculateLuck(
   guess: string,
   beforeRemainingAnswers: RemainingAnswers,
   afterRemainingAnswers: RemainingAnswers,
+  commonWordSet: Set<string>,
 ): Luck {
-  const remainingResult = getRemainingCounts(beforeRemainingAnswers, [guess]);
+  const win =
+    afterRemainingAnswers.common.length === 0 &&
+    afterRemainingAnswers.other.length === 0;
+
+  // Base luck rating on common words if:
+  // If it's a common-word win
+  // Or if there are common words left over after the guess
+  const useCommonLists =
+    (win && commonWordSet.has(guess)) ||
+    afterRemainingAnswers.common.length !== 0;
+
+  const [remainingResult, numNewRemaining] = useCommonLists
+    ? [
+        getRemainingCounts({ ...beforeRemainingAnswers, other: [] }, [guess]),
+        afterRemainingAnswers.common.length,
+      ]
+    : [
+        getRemainingCounts(beforeRemainingAnswers, [guess]),
+        afterRemainingAnswers.common.length +
+          afterRemainingAnswers.other.length,
+      ];
+
   const remainingCounts = remainingResult.all[0][1].sort((a, b) => b - a);
 
-  const numNewRemaining =
-    afterRemainingAnswers.common.length + afterRemainingAnswers.other.length;
-
-  const worseCount = remainingCounts.findIndex(
-    (remaining) => remaining === numNewRemaining,
+  let worseCount = remainingCounts.findIndex(
+    (remaining) => numNewRemaining >= remaining,
   );
 
-  let equalCount = 1;
+  if (worseCount === -1) worseCount = remainingCounts.length;
 
-  for (let i = worseCount + 1; i < remainingCounts.length; i++) {
+  let equalCount = 0;
+
+  for (let i = worseCount; i < remainingCounts.length; i++) {
     if (remainingCounts[i] !== numNewRemaining) break;
     equalCount++;
   }
@@ -595,7 +616,12 @@ function getPlayAnalysis(
           }
         : undefined,
     commonWord: commonWords.has(guess),
-    luck: calculateLuck(guess, remainingAnswers, newRemainingAnswers),
+    luck: calculateLuck(
+      guess,
+      remainingAnswers,
+      newRemainingAnswers,
+      commonWords,
+    ),
   };
 }
 
