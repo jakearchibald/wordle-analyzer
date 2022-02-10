@@ -5,7 +5,7 @@ import * as utilStyles from '../../../../utils.module.css';
 import * as guessStyles from '../../../Guess/styles.module.css';
 import { GuessAnalysis, Luck, PlayAnalysis } from 'shared-types/index';
 import Guess from 'client/App/Guess';
-import { formatNumber } from 'client/utils';
+import { formatNumber } from '../../utils';
 
 interface Props {
   first: boolean;

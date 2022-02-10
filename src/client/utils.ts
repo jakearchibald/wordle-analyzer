@@ -1,29 +1,3 @@
-export function animateTo(
-  element: HTMLElement,
-  to: Keyframe[] | PropertyIndexedKeyframes,
-  options: KeyframeAnimationOptions,
-) {
-  const anim = element.animate(to, { ...options, fill: 'both' });
-  anim.addEventListener('finish', () => {
-    try {
-      anim.commitStyles();
-      anim.cancel();
-    } catch (e) {}
-  });
-  return anim;
-}
-
-export function animateFrom(
-  element: HTMLElement,
-  from: PropertyIndexedKeyframes,
-  options: KeyframeAnimationOptions,
-) {
-  return element.animate(
-    { ...from, offset: 0 },
-    { ...options, fill: 'backwards' },
-  );
-}
-
 import swURL from 'service-worker:workers/sw';
 
 function onControllerChange() {
@@ -67,6 +41,3 @@ export async function activatePendingSw(): Promise<void> {
   if (!reg || !reg.waiting) throw Error('No pending service worker');
   reg.waiting.postMessage('skipWaiting');
 }
-
-const numFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
-export const formatNumber = (n: number) => numFormat.format(n);

@@ -1,7 +1,7 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
-import { animateFrom, animateTo } from 'client/utils';
+import { animateFrom, animateTo } from '../utils';
 
 interface TypedEventTarget<EventMap> {
   dispatchEvent(event: EventMap[keyof EventMap]): boolean;

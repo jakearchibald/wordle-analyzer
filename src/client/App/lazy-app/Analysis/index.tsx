@@ -58,91 +58,114 @@ export default class Analysis extends Component<Props, State> {
     }
   }
 
+  componentWillUnmount() {
+    if (this.#abortController) this.#abortController.abort();
+  }
+
+  #abortController: AbortController | undefined = undefined;
+
   async #analyze() {
-    this.setState({
-      analysis: [],
-      aiPlays: [],
-      guessCellColors: undefined,
-    });
+    if (this.#abortController) this.#abortController.abort();
 
-    this.setState({
-      guessCellColors: await getGuessesColors(
-        this.props.answer,
-        this.props.guesses,
-      ),
-    });
+    this.#abortController = new AbortController();
+    const signal = this.#abortController.signal;
 
-    const invalidAnswers = await getInvalidWords(this.props.guesses);
-
-    if (invalidAnswers.length !== 0) {
+    try {
       this.setState({
-        analysisError: `Uh oh, one or more of those words isn't in the dictionary: ${invalidAnswers
-          .map((word) => `"${word}"`)
-          .join(', ')}`,
+        analysis: [],
+        aiPlays: [],
+        guessCellColors: undefined,
       });
 
-      return;
-    }
-
-    {
-      const previousClues: Clue[] = [];
-      let remainingAnswers: RemainingAnswers | undefined = undefined;
-
-      for (const [i, guess] of this.props.guesses.entries()) {
-        const result: GuessAnalysis = await analyzeGuess(
-          guess,
+      this.setState({
+        guessCellColors: await getGuessesColors(
+          signal,
           this.props.answer,
-          previousClues,
-          {
-            remainingAnswers,
-            onProgress: (done, expecting) => {
-              this.setState((state) => {
-                const analysis = state.analysis.slice();
-                analysis[i] = done / expecting;
-                return { analysis };
-              });
+          this.props.guesses,
+        ),
+      });
+
+      const invalidAnswers = await getInvalidWords(signal, this.props.guesses);
+
+      if (invalidAnswers.length !== 0) {
+        this.setState({
+          analysisError: `Uh oh, one or more of those words isn't in the dictionary: ${invalidAnswers
+            .map((word) => `"${word}"`)
+            .join(', ')}`,
+        });
+
+        return;
+      }
+
+      {
+        const previousClues: Clue[] = [];
+        let remainingAnswers: RemainingAnswers | undefined = undefined;
+
+        for (const [i, guess] of this.props.guesses.entries()) {
+          const result: GuessAnalysis = await analyzeGuess(
+            signal,
+            guess,
+            this.props.answer,
+            previousClues,
+            {
+              remainingAnswers,
+              onProgress: (done, expecting) => {
+                this.setState((state) => {
+                  const analysis = state.analysis.slice();
+                  analysis[i] = done / expecting;
+                  return { analysis };
+                });
+              },
             },
-          },
-        );
+          );
 
-        this.setState((state) => {
-          const analysis = state.analysis.slice();
-          analysis[i] = { ...result };
-          return { analysis };
-        });
+          this.setState((state) => {
+            const analysis = state.analysis.slice();
+            analysis[i] = { ...result };
+            return { analysis };
+          });
 
-        previousClues.push(result.plays.user.clue);
-        remainingAnswers = result.plays.user.remainingAnswers;
+          previousClues.push(result.plays.user.clue);
+          remainingAnswers = result.plays.user.remainingAnswers;
+        }
       }
-    }
 
-    {
-      const previousClues: Clue[] = [];
-      let remainingAnswers: RemainingAnswers | undefined = undefined;
+      {
+        const previousClues: Clue[] = [];
+        let remainingAnswers: RemainingAnswers | undefined = undefined;
 
-      for (let guess = 0; ; guess++) {
-        const result: AIPlay = await aiPlay(this.props.answer, previousClues, {
-          remainingAnswers,
-          onProgress: (done, expecting) => {
-            this.setState((state) => {
-              const aiPlays = state.aiPlays.slice();
-              aiPlays[guess] = done / expecting;
-              return { aiPlays };
-            });
-          },
-        });
+        for (let guess = 0; ; guess++) {
+          const result: AIPlay = await aiPlay(
+            signal,
+            this.props.answer,
+            previousClues,
+            {
+              remainingAnswers,
+              onProgress: (done, expecting) => {
+                this.setState((state) => {
+                  const aiPlays = state.aiPlays.slice();
+                  aiPlays[guess] = done / expecting;
+                  return { aiPlays };
+                });
+              },
+            },
+          );
 
-        this.setState((state) => {
-          const aiPlays = state.aiPlays.slice();
-          aiPlays[guess] = { ...result };
-          return { aiPlays };
-        });
+          this.setState((state) => {
+            const aiPlays = state.aiPlays.slice();
+            aiPlays[guess] = { ...result };
+            return { aiPlays };
+          });
 
-        if (result.play.guess === this.props.answer) break;
+          if (result.play.guess === this.props.answer) break;
 
-        previousClues.push(result.play.clue);
-        remainingAnswers = result.play.remainingAnswers;
+          previousClues.push(result.play.clue);
+          remainingAnswers = result.play.remainingAnswers;
+        }
       }
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      throw err;
     }
   }
 

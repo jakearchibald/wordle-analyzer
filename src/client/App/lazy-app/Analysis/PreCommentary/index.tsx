@@ -7,7 +7,7 @@ import {
   GuessAnalysis,
   RemainingAnswers,
 } from 'shared-types/index';
-import { formatNumber } from 'client/utils';
+import { formatNumber } from '../../utils';
 
 const maxItemsToDisplay = 30;
 
