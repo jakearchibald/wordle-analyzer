@@ -20,6 +20,7 @@ import PreCommentary from './PreCommentary';
 import AnalysisEntry from './AnalysisEntry';
 import Progress from './Progress';
 import Share from './Share';
+import PostCommentary from './PostCommentary';
 
 interface Props {
   guesses: string[];
@@ -189,7 +190,7 @@ export default class Analysis extends Component<Props, State> {
               />
             </>
           )}
-          {analysisError && <p class={styles.preCommentary}>{analysisError}</p>}
+          {analysisError && <p class={styles.commentary}>{analysisError}</p>}
         </div>
         {analysis.map((guessAnalysis, i, allGuessAnalysis) => (
           <>
@@ -201,7 +202,7 @@ export default class Analysis extends Component<Props, State> {
             ) : (
               <>
                 <div class={utilStyles.container}>
-                  <div class={styles.preCommentary}>
+                  <div class={styles.commentary}>
                     <PreCommentary
                       guessAnalysis={guessAnalysis}
                       turn={i}
@@ -219,6 +220,20 @@ export default class Analysis extends Component<Props, State> {
                   first={i === 0}
                   answer={answer}
                 />
+                <div class={utilStyles.container}>
+                  <div class={styles.commentary}>
+                    <PostCommentary
+                      guessAnalysis={guessAnalysis}
+                      turn={i}
+                      beforeRemainingAnswers={
+                        i > 0
+                          ? (allGuessAnalysis[i - 1] as GuessAnalysis).plays
+                              .user.remainingAnswers
+                          : undefined
+                      }
+                    />
+                  </div>
+                </div>
               </>
             )}
           </>
@@ -227,7 +242,7 @@ export default class Analysis extends Component<Props, State> {
           <div class={utilStyles.container}>
             <h2 class={styles.pillHeading}>AI playthrough</h2>
 
-            <div class={styles.preCommentary}>
+            <div class={styles.commentary}>
               <p>
                 The AI mostly tries to eliminate as many answers as possible
                 with each guess, although if there's a possible answer that's
