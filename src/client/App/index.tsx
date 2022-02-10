@@ -1,15 +1,25 @@
-import { h, Fragment, Component, RenderableProps } from 'preact';
+import {
+  h,
+  Fragment,
+  Component,
+  RenderableProps,
+  ComponentConstructor,
+} from 'preact';
 import EditableGuesses from './EditableGuesses';
 import MainInstruction from './MainInstruction';
-import Analysis from './Analysis';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
 import 'add-css:../utils.module.css';
 import { encode, decode } from './stupid-simple-cypher';
 import SpoilerWarning from './SpoilerWarning';
-import Alerts from './Alerts';
 import { swUpdatePending, activatePendingSw } from 'client/utils';
 import Footer from './Footer';
+import deferred from './deferred';
+
+const lazyModule = import('./lazy-app');
+const Analysis = deferred(lazyModule.then((m) => m.Analysis));
+const Alerts = deferred(lazyModule.then((m) => m.Alerts));
+const nullComponent = () => undefined;
 
 function getStateUpdateFromURL(): Partial<State> {
   const urlParams = new URLSearchParams(location.search);
@@ -37,12 +47,6 @@ function getStateUpdateFromURL(): Partial<State> {
     history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
   }
 
-  if (!history.state?.skipSpoilerWarning) {
-    return {
-      showSpoilerWarning: true,
-    };
-  }
-
   const decoded = decode(seed, guesses);
   const guessesArray = Array.from({ length: decoded.length / 5 }, (_, i) =>
     decoded.slice(i * 5, i * 5 + 5),
@@ -53,7 +57,7 @@ function getStateUpdateFromURL(): Partial<State> {
       guesses: guessesArray,
       answer: guessesArray.slice(-1)[0],
     },
-    showSpoilerWarning: false,
+    showSpoilerWarning: !history.state?.skipSpoilerWarning,
   };
 }
 
@@ -109,6 +113,21 @@ export default class App extends Component<Props, State> {
     this.#setStateFromUrl();
   };
 
+  #renderAlerts = (AlertsComponent: Awaited<typeof lazyModule>['Alerts']) => {
+    return <AlertsComponent />;
+  };
+
+  #renderAnalysis = (
+    AnalysisComponent: Awaited<typeof lazyModule>['Analysis'],
+  ) => {
+    return (
+      <AnalysisComponent
+        answer={this.state.toAnalyze!.answer}
+        guesses={this.state.toAnalyze!.guesses}
+      />
+    );
+  };
+
   render(
     _: RenderableProps<Props>,
     { guessInputs, toAnalyze, showSpoilerWarning }: State,
@@ -125,10 +144,18 @@ export default class App extends Component<Props, State> {
                 : 'enterWords'
             }
           />
-          {showSpoilerWarning ? (
-            <SpoilerWarning onClear={this.#onSpoilerClear} />
-          ) : toAnalyze ? (
-            <Analysis answer={toAnalyze.answer} guesses={toAnalyze.guesses} />
+          {toAnalyze ? (
+            <>
+              <div style={{ display: showSpoilerWarning ? 'none' : '' }}>
+                <Analysis
+                  loading={nullComponent}
+                  loaded={this.#renderAnalysis}
+                />
+              </div>
+              {showSpoilerWarning && (
+                <SpoilerWarning onClear={this.#onSpoilerClear} />
+              )}
+            </>
           ) : (
             <EditableGuesses
               values={guessInputs}
@@ -138,7 +165,7 @@ export default class App extends Component<Props, State> {
           )}
         </div>
         <Footer />
-        <Alerts />
+        <Alerts loading={nullComponent} loaded={this.#renderAlerts} />
       </>
     );
   }

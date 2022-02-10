@@ -42,14 +42,6 @@ declare module 'entry-url:*' {
   export default url;
 }
 
-declare module 'client-bundle:*' {
-  const url: string;
-  export default url;
-  export const imports: string[];
-  /** Source for this script and all its dependencies */
-  export const src: string;
-}
-
 declare var ga: {
   (...args: any[]): void;
   q: any[];

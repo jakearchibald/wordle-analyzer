@@ -14,7 +14,7 @@ import { h, FunctionalComponent } from 'preact';
 
 import 'add-css:./styles.module.css';
 import initialCss from 'prerender-css:';
-import { src, imports } from 'client-bundle:client';
+import { allSrc, imports } from 'client-bundle:client';
 import analyticsUrl from 'client-bundle:client/analytics/index.js';
 import Header from './Header';
 import faviconURL from 'url:static-build/assets/favicon.png';
@@ -53,7 +53,7 @@ const Index: FunctionalComponent<Props> = () => (
         />
       }
       {imports.map((preload) => (
-        <link rel="modulepreload" href={preload} />
+        <link rel="preload" href={preload} as="script" />
       ))}
       <script src={analyticsUrl} async />
     </head>
@@ -61,9 +61,8 @@ const Index: FunctionalComponent<Props> = () => (
       <Header />
       <div id="app"></div>
       <script
-        type="module"
         dangerouslySetInnerHTML={{
-          __html: escapeStyleScriptContent(src),
+          __html: escapeStyleScriptContent(allSrc),
         }}
       />
     </body>

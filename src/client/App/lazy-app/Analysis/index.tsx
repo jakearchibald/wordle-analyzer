@@ -1,6 +1,6 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
 import * as styles from './styles.module.css';
-import * as utilStyles from '../../utils.module.css';
+import * as utilStyles from '../../../utils.module.css';
 import 'add-css:./styles.module.css';
 import {
   aiPlay,
@@ -15,7 +15,7 @@ import {
   GuessAnalysis,
   RemainingAnswers,
 } from 'shared-types/index';
-import Guess from '../Guess';
+import Guess from '../../Guess';
 import PreCommentary from './PreCommentary';
 import AnalysisEntry from './AnalysisEntry';
 import Progress from './Progress';
@@ -50,8 +50,9 @@ export default class Analysis extends Component<Props, State> {
 
   componentDidUpdate(previousProps: Props) {
     if (
-      previousProps.guesses !== this.props.guesses ||
-      previousProps.answer !== this.props.answer
+      previousProps.answer !== this.props.answer ||
+      previousProps.guesses.length !== this.props.guesses.length ||
+      previousProps.guesses.some((guess, i) => guess !== this.props.guesses[i])
     ) {
       this.#analyze();
     }

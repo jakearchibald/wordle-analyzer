@@ -12,10 +12,13 @@
  */
 import * as path from 'path';
 import del from 'del';
+import fsp from 'fs/promises';
+
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
 import replace from '@rollup/plugin-replace';
+import OMT from '@surma/rollup-plugin-off-main-thread';
 
 import simpleTS from './lib/simple-ts';
 import { fileNameToURL } from './lib/utils';
@@ -60,6 +63,11 @@ export default async function ({ watch }) {
     watch,
   });
 
+  const omtLoaderPromise = fsp.readFile(
+    path.join(__dirname, 'lib', 'omt.ejs'),
+    'utf-8',
+  );
+
   const commonPlugins = () => [
     tsPluginInstance,
     resolveDirsPlugin([
@@ -96,6 +104,7 @@ export default async function ({ watch }) {
         {
           plugins: [
             { resolveFileUrl },
+            OMT({ loader: await omtLoaderPromise }),
             serviceWorkerPlugin({
               output: 'static/sw.js',
             }),
@@ -118,7 +127,7 @@ export default async function ({ watch }) {
         },
         {
           dir,
-          format: 'esm',
+          format: 'amd',
           chunkFileNames: jsFileName,
           entryFileNames: jsFileName,
         },
