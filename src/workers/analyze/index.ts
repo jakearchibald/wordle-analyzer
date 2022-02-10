@@ -502,7 +502,6 @@ function calculateLuck(
   beforeRemainingAnswers: RemainingAnswers,
   afterRemainingAnswers: RemainingAnswers,
 ): Luck {
-  if (guess === 'lares') debugger;
   const remainingResult = getRemainingCounts(beforeRemainingAnswers, [guess]);
   const remainingCounts = remainingResult.all[0][1].sort((a, b) => b - a);
 
