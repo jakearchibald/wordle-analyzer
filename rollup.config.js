@@ -45,6 +45,8 @@ const dir = '.tmp/build';
 const staticPath = 'static/c/[name]-[hash][extname]';
 const jsPath = staticPath.replace('[extname]', '.js');
 
+console.log(process.env);
+
 function jsFileName(chunkInfo) {
   if (!chunkInfo.facadeModuleId) return jsPath;
   const parsedPath = path.parse(chunkInfo.facadeModuleId);
