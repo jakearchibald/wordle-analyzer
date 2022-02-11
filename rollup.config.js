@@ -41,6 +41,8 @@ function resolveFileUrl({ fileName }) {
   return JSON.stringify(fileNameToURL(fileName));
 }
 
+console.log(process.env);
+
 const dir = '.tmp/build';
 const staticPath = 'static/c/[name]-[hash][extname]';
 const jsPath = staticPath.replace('[extname]', '.js');
