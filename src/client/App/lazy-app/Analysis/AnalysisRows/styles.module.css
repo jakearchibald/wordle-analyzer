@@ -39,8 +39,8 @@
   }
 
   & tr td.cell-win {
-    background-color: var(--theme-correct);
-    color: var(--theme-filled-tile-text);
+    background-color: var(--theme-correct) !important;
+    color: var(--theme-filled-tile-text) !important;
   }
 }
 
