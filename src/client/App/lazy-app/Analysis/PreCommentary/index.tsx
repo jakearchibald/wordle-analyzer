@@ -219,7 +219,7 @@ export default class PreCommentary extends Component<Props, State> {
               The ideal strategy is to eliminate as many of the remaining words
               as possible. Playing an already-eliminated-word removes the
               possibility of a win, but perhaps there's a guess that also
-              eliminates many of the others? You've got to be in it to win it!
+              eliminates many of the others?
             </>,
           ];
         }
@@ -254,7 +254,9 @@ export default class PreCommentary extends Component<Props, State> {
           <p>
             {remainingSpan}{' '}
             {remainingItemsType === RemainingItemsType.CommonOnly
-              ? 'The common ones are:'
+              ? guessAnalysis.beforeRemainingCounts.common === 1
+                ? 'The common one is:'
+                : 'The common ones are:'
               : remainingCount > 1 && 'They are:'}
           </p>
           {remainingList}

@@ -36,7 +36,7 @@ function getCommentaryOnFirstGuess(guess: string) {
   if (guess === 'crane') {
     return (
       <p>
-        Ohh, do you watch{' '}
+        Ohh, I guess someone watched{' '}
         <a target="_blank" href="https://www.youtube.com/watch?v=v68zYyaEmEA">
           3Blue1Brown
         </a>
@@ -63,12 +63,12 @@ function getCommentaryOnFirstGuess(guess: string) {
       <p>
         "raise" is the best starting word if you limit the analysis to Wordle's
         answer set, which kinda feels like cheating. However, it's the word I
-        tend to start with, so I'm not going to judge you too much.
+        tend to start with, so I'm not going to judge too much.
       </p>
     );
   }
   if (guess === 'lares') {
-    return <p>Aha, you've learned a thing or two from the AI I see!</p>;
+    return <p>Aha, someone's learned a thing or two from the AI I see!</p>;
   }
   if (claimedBest.has(guess)) {
     return (
@@ -83,8 +83,8 @@ function getCommentaryOnFirstGuess(guess: string) {
     return (
       <p>
         I once told folks on Twitter that "rathe" was the best starting word.
-        But, err, there was a bug in my code. If you started with "rathe"
-        because I told you to… sorry!
+        But, err, there was a bug in my code. If you've ever started with
+        "rathe" because I told you to… sorry!
       </p>
     );
   }
@@ -95,7 +95,7 @@ function getCommentaryOnFirstGuess(guess: string) {
         <a target="_blank" href="https://twitter.com/susie_dent">
           Susie Dent
         </a>
-        's favorite starting word, so you're in good company.
+        's favorite starting word. That's gotta be worth something.
       </p>
     );
   }
@@ -116,8 +116,8 @@ function getCommentaryOnFirstGuess(guess: string) {
   if (rude.has(guess)) {
     return (
       <p>
-        Ahh, so you like to start with a bit of a naughty word, or are you
-        actually playing{' '}
+        Ahh, someone likes to start with a bit of a naughty word, or is this
+        actually{' '}
         <a href="https://www.lewdlegame.com/" target="_blank">
           Lewdle
         </a>
@@ -127,17 +127,13 @@ function getCommentaryOnFirstGuess(guess: string) {
     );
   }
   if (worstStarters.has(guess)) {
-    return (
-      <p>
-        "{guess}"? Really?? Are you trying to make this difficult for yourself?
-      </p>
-    );
+    return <p>"{guess}"? Really?? This isn't going to go well.</p>;
   }
   if (numUniqueVowelsUsed(guess) === 4) {
     return (
       <p>
         Almost all of the vowels in that one! Knowing which vowels are in play
-        is useful, but you're missing out on some useful consonants there.
+        is useful, but consonants are useful too.
       </p>
     );
   }
