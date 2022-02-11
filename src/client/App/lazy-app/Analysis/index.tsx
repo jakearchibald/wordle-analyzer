@@ -72,11 +72,11 @@ export default class Analysis extends Component<Props, State> {
     const signal = this.#abortController.signal;
 
     try {
-      this.setState({
+      this.setState((state) => ({
         analysis: [],
         aiPlays: [],
         guessCellColors: undefined,
-      });
+      }));
 
       this.setState({
         guessCellColors: await getGuessesColors(
@@ -103,6 +103,12 @@ export default class Analysis extends Component<Props, State> {
         let remainingAnswers: RemainingAnswers | undefined = undefined;
 
         for (const [i, guess] of this.props.guesses.entries()) {
+          this.setState((state) => {
+            const analysis = state.analysis.slice();
+            analysis[i] = 0;
+            return { analysis };
+          });
+
           const result: GuessAnalysis = await analyzeGuess(
             signal,
             guess,
@@ -136,6 +142,12 @@ export default class Analysis extends Component<Props, State> {
         let remainingAnswers: RemainingAnswers | undefined = undefined;
 
         for (let guess = 0; ; guess++) {
+          this.setState((state) => {
+            const aiPlays = state.aiPlays.slice();
+            aiPlays[guess] = 0;
+            return { aiPlays };
+          });
+
           const result: AIPlay = await aiPlay(
             signal,
             this.props.answer,
@@ -175,7 +187,7 @@ export default class Analysis extends Component<Props, State> {
     { analysis, aiPlays, guessCellColors, analysisError }: State,
   ) {
     return (
-      <>
+      <div>
         <div class={utilStyles.container}>
           {guessCellColors && (
             <>
@@ -266,7 +278,7 @@ export default class Analysis extends Component<Props, State> {
             </div>
           </div>
         )}
-      </>
+      </div>
     );
   }
 }
