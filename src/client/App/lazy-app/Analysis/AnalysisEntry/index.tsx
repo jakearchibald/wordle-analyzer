@@ -18,33 +18,6 @@ interface State {}
 const wordStr = ['word', 'words'];
 const boolToYesNo = (bool: boolean) => (bool ? '✅' : '❌');
 
-// Undefined return means they're equal.
-function getBestPlay(
-  answer: string,
-  plays: readonly [PlayAnalysis, PlayAnalysis],
-): PlayAnalysis | undefined {
-  if (plays.every((p) => p.guess === answer)) return undefined;
-
-  const correctGuessingPlay = plays.find((p) => p.guess === answer);
-  if (correctGuessingPlay) return correctGuessingPlay;
-
-  // The best is the one that eliminates the most common words,
-  // with other words as a tie-breaker.
-  for (const type of ['common', 'other'] as const) {
-    if (
-      plays[0].remainingAnswers[type].length !==
-      plays[1].remainingAnswers[type].length
-    ) {
-      return plays[0].remainingAnswers[type].length <
-        plays[1].remainingAnswers[type].length
-        ? plays[0]
-        : plays[1];
-    }
-  }
-
-  return undefined;
-}
-
 function getLuck({ good, chance }: Luck): string {
   if (chance > 1 / 2) return 'Neutral';
 
@@ -71,7 +44,6 @@ export default class AnalysisEntry extends Component<Props, State> {
       guessAnalysis.beforeRemainingCounts.other;
     const plays = [guessAnalysis.plays.user, guessAnalysis.plays.ai] as const;
     const bothGuessesRight = plays.every((play) => play.guess === answer);
-    const bestPlay = getBestPlay(answer, plays);
 
     return (
       <div class={styles.analysisEntry}>
@@ -158,12 +130,17 @@ export default class AnalysisEntry extends Component<Props, State> {
               ))}
             </tr>
           )}
-          {initalRemaining > 1 && (
+          {initalRemaining > 1 && !bothGuessesRight && (
             <tr>
               <th scope="row">Actual remaining words</th>
               {plays.map((play) => (
                 <td
-                  class={!bestPlay || bestPlay === play ? styles.cellWin : ''}
+                  class={
+                    !guessAnalysis.plays.bestPlay ||
+                    guessAnalysis.plays.bestPlay === play
+                      ? styles.cellWin
+                      : ''
+                  }
                 >
                   {play.guess === answer ? (
                     'Correct!'

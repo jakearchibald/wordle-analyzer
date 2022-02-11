@@ -218,8 +218,8 @@ export default class PreCommentary extends Component<Props, State> {
             <>
               The ideal strategy is to eliminate as many of the remaining words
               as possible. Playing an already-eliminated-word removes the
-              possibility of a win, but perhaps there's a guess that also
-              eliminates many of the others?
+              possibility of a win, but perhaps there's a possible win that also
+              eliminates most of the others?
             </>,
           ];
         }
@@ -230,7 +230,7 @@ export default class PreCommentary extends Component<Props, State> {
             thing that comes to mind. {turnInfo}
           </>,
           <>
-            Unfortunately, the remaining words have too much in common, so it's
+            Unfortunately the remaining words have too much in common, so it's
             better to play an already-eliminated-word that discounts as many of
             the remaining answers as possible. It won't be a winning guess, but
             hopefully it gives enough clues to play a winner for the following

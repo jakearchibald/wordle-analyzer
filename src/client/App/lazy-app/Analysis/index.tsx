@@ -237,6 +237,7 @@ export default class Analysis extends Component<Props, State> {
                     <PostCommentary
                       guessAnalysis={guessAnalysis}
                       turn={i}
+                      answer={answer}
                       beforeRemainingAnswers={
                         i > 0
                           ? (allGuessAnalysis[i - 1] as GuessAnalysis).plays

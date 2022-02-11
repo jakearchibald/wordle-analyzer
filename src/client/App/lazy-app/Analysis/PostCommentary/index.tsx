@@ -5,6 +5,7 @@ import * as utilStyles from '../../../../utils.module.css';
 import {
   AIStrategy,
   GuessAnalysis,
+  PlayAnalysis,
   RemainingAnswers,
 } from 'shared-types/index';
 import { formatNumber } from '../../utils';
@@ -132,8 +133,8 @@ function getCommentaryOnFirstGuess(guess: string) {
   if (numUniqueVowelsUsed(guess) === 4) {
     return (
       <p>
-        Almost all of the vowels in that one! Knowing which vowels are in play
-        is useful, but consonants are useful too.
+        Almost all of the vowels in that one! Knowing which vowels are in the
+        answer is useful, but don't forget that consonants are useful too.
       </p>
     );
   }
@@ -143,6 +144,7 @@ interface Props {
   turn: number;
   guessAnalysis: GuessAnalysis;
   beforeRemainingAnswers: RemainingAnswers | undefined;
+  answer: string;
 }
 
 interface State {}
@@ -152,14 +154,42 @@ export default class PostCommentary extends Component<Props, State> {
     turn,
     guessAnalysis,
     beforeRemainingAnswers,
+    answer,
   }: RenderableProps<Props>) {
-    if (turn === 0) {
-      return getCommentaryOnFirstGuess(guessAnalysis.plays.user.guess);
-    }
     // If first guess, commentary on word chosen & what AI always picks
     // If last turn and didn't get the answer, sadness
     // If correct answer, congratulations
 
-    return <></>;
+    if (turn === 0) {
+      return getCommentaryOnFirstGuess(guessAnalysis.plays.user.guess);
+    }
+
+    if (turn === 5) {
+      if (guessAnalysis.plays.user.guess !== answer) {
+        return <p>Bad luck! The correct answer was "{answer}".</p>;
+      }
+      if (
+        beforeRemainingAnswers &&
+        beforeRemainingAnswers.common.length +
+          beforeRemainingAnswers.other.length !==
+          1
+      ) {
+        return <p>Phew! Just in the nick of time!</p>;
+      }
+      return;
+    }
+
+    if (guessAnalysis.plays.user.guess === answer) return;
+
+    const commonAnswersJustEliminated =
+      beforeRemainingAnswers &&
+      beforeRemainingAnswers.common.length !== 0 &&
+      guessAnalysis.plays.user.remainingAnswers.common.length === 0;
+
+    if (commonAnswersJustEliminated) {
+      return (
+        <p>Oh no! That's all the common answers gone. This was a tricky one…</p>
+      );
+    }
   }
 }

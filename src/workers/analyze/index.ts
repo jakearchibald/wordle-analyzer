@@ -625,6 +625,32 @@ function getPlayAnalysis(
   };
 }
 
+function bestPerformingPlay(
+  answer: string,
+  plays: readonly [PlayAnalysis, PlayAnalysis],
+): PlayAnalysis | undefined {
+  if (plays.every((p) => p.guess === answer)) return undefined;
+
+  const correctGuessingPlay = plays.find((p) => p.guess === answer);
+  if (correctGuessingPlay) return correctGuessingPlay;
+
+  // The best is the one that eliminates the most common words,
+  // with other words as a tie-breaker.
+  for (const type of ['common', 'other'] as const) {
+    if (
+      plays[0].remainingAnswers[type].length !==
+      plays[1].remainingAnswers[type].length
+    ) {
+      return plays[0].remainingAnswers[type].length <
+        plays[1].remainingAnswers[type].length
+        ? plays[0]
+        : plays[1];
+    }
+  }
+
+  return undefined;
+}
+
 async function analyzeGuess(
   guess: string,
   answer: string,
@@ -680,7 +706,12 @@ async function analyzeGuess(
       common: remainingAnswers.common.length,
       other: remainingAnswers.other.length,
     },
-    plays: { user: userPlay, ai: aiPlay, aiStrategy },
+    plays: {
+      user: userPlay,
+      ai: aiPlay,
+      aiStrategy,
+      bestPlay: bestPerformingPlay(answer, [userPlay, aiPlay]),
+    },
   };
 }
 

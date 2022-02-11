@@ -25,7 +25,13 @@ export interface PlayAnalysis {
 
 export interface GuessAnalysis {
   beforeRemainingCounts: { common: number; other: number };
-  plays: { user: PlayAnalysis; ai: PlayAnalysis; aiStrategy: AIStrategy };
+  plays: {
+    user: PlayAnalysis;
+    ai: PlayAnalysis;
+    aiStrategy: AIStrategy;
+    /** Undefined if both are equal */
+    bestPlay: PlayAnalysis | undefined;
+  };
 }
 
 export interface AIPlay {
