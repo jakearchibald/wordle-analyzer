@@ -42,8 +42,8 @@
     padding: var(--content-padding);
   }
 
-  @media (min-width: 550px) {
-    grid-template-columns: minmax(min-content, max-content) 1fr 1fr;
+  @media (min-width: 510px) {
+    grid-template-columns: minmax(162px, 231px) repeat(2, minmax(172px, 329px));
 
     & tr {
       &:nth-child(1),
