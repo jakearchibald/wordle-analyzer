@@ -1,4 +1,4 @@
-.player-analysis-table {
+table.player-analysis-table {
   --plays: 2;
   --heading-col-max: 231px;
   --content-col-max: 329px;

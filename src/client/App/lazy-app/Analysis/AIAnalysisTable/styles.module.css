@@ -1,4 +1,4 @@
-.ai-analysis-table {
+table.ai-analysis-table {
   --plays: 1;
 
   @media (min-width: 372px) {

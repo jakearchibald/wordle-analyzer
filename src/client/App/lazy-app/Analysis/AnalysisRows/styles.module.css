@@ -38,40 +38,6 @@
     padding: var(--content-padding);
   }
 
-  @media (min-width: 510px) {
-    grid-template-columns: minmax(162px, 231px) repeat(
-        var(--plays),
-        minmax(172px, 329px)
-      );
-
-    & tr {
-      &:nth-child(1),
-      &:nth-child(2) {
-        & > :first-child {
-          position: static;
-        }
-      }
-
-      &:nth-child(odd) {
-        & th[scope='row'] {
-          background: var(--theme-table-heading-alt);
-        }
-
-        & td {
-          background: var(--theme-table-cell-alt);
-        }
-      }
-    }
-
-    & th:first-child {
-      grid-column: 1 / 2;
-    }
-
-    & th[scope='row'] {
-      text-align: left;
-    }
-  }
-
   & tr td.cell-win {
     background-color: var(--theme-correct);
     color: var(--theme-filled-tile-text);
