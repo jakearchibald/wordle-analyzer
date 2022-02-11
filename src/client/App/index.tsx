@@ -54,7 +54,7 @@ function getStateUpdateFromURL(): Partial<State> {
 
   return {
     toAnalyze: {
-      guesses: guessesArray,
+      guesses: guessesArray.slice(0, 6),
       answer: guessesArray.slice(-1)[0],
     },
     showSpoilerWarning: !history.state?.skipSpoilerWarning,
