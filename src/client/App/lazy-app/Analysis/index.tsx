@@ -19,7 +19,7 @@ import Guess from '../../Guess';
 import PreCommentary from './PreCommentary';
 import AnalysisEntry from './AnalysisEntry';
 import Progress from './Progress';
-import Share from './Share';
+import Actions from './Actions';
 import PostCommentary from './PostCommentary';
 
 interface Props {
@@ -34,14 +34,20 @@ interface State {
   aiPlays: (AIPlay | number)[];
   guessCellColors: CellColors[] | undefined;
   analysisError: string | undefined;
+  analysisComplete: boolean;
 }
+
+const defaultState: State = {
+  analysis: [],
+  aiPlays: [],
+  guessCellColors: undefined,
+  analysisError: undefined,
+  analysisComplete: false,
+};
 
 export default class Analysis extends Component<Props, State> {
   state: Readonly<State> = {
-    analysis: [],
-    aiPlays: [],
-    guessCellColors: undefined,
-    analysisError: undefined,
+    ...defaultState,
   };
 
   constructor(props: Props) {
@@ -73,9 +79,7 @@ export default class Analysis extends Component<Props, State> {
 
     try {
       this.setState((state) => ({
-        analysis: [],
-        aiPlays: [],
-        guessCellColors: undefined,
+        ...defaultState,
       }));
 
       this.setState({
@@ -176,6 +180,10 @@ export default class Analysis extends Component<Props, State> {
           remainingAnswers = result.play.remainingAnswers;
         }
       }
+
+      this.setState((state) => ({
+        analysisComplete: true,
+      }));
     } catch (err: any) {
       if (err.name === 'AbortError') return;
       throw err;
@@ -184,7 +192,13 @@ export default class Analysis extends Component<Props, State> {
 
   render(
     { guesses, answer }: RenderableProps<Props>,
-    { analysis, aiPlays, guessCellColors, analysisError }: State,
+    {
+      analysis,
+      aiPlays,
+      guessCellColors,
+      analysisError,
+      analysisComplete,
+    }: State,
   ) {
     return (
       <div>
@@ -196,14 +210,20 @@ export default class Analysis extends Component<Props, State> {
                   <Guess value={guess} cellClues={guessCellColors[i]} />
                 ))}
               </div>
-              <Share
-                cellColors={guessCellColors}
-                foundAnswer={guesses[guesses.length - 1] === answer}
-              />
             </>
           )}
-          {analysisError && <p class={styles.commentary}>{analysisError}</p>}
         </div>
+        {guessCellColors && (
+          <Actions
+            cellColors={guessCellColors}
+            foundAnswer={guesses[guesses.length - 1] === answer}
+          />
+        )}
+        {analysisError && (
+          <div class={utilStyles.container}>
+            <p class={styles.commentary}>{analysisError}</p>
+          </div>
+        )}
         {analysis.map((guessAnalysis, i, allGuessAnalysis) => (
           <>
             <h2 class={styles.pillHeading}>Guess {i + 1}</h2>
@@ -278,6 +298,12 @@ export default class Analysis extends Component<Props, State> {
               )}
             </div>
           </div>
+        )}
+        {analysisComplete && (
+          <Actions
+            cellColors={guessCellColors!}
+            foundAnswer={guesses[guesses.length - 1] === answer}
+          />
         )}
       </div>
     );

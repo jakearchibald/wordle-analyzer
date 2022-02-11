@@ -8,9 +8,11 @@
 }
 
 .buttons {
-  display: grid;
+  display: flex;
   justify-content: center;
+  flex-flow: row wrap;
   margin: 2rem 0;
+  gap: 0.3em;
 }
 
 .button {
@@ -39,6 +41,10 @@
     opacity: 0.5;
     cursor: default;
     background: var(--theme-absent);
+  }
+
+  &:hover {
+    text-decoration: none;
   }
 }
 
