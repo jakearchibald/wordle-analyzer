@@ -34,9 +34,12 @@ const Index: FunctionalComponent<Props> = () => (
       <meta name="twitter:card" content="summary_large_image" />
       <meta
         property="twitter:image"
-        content={`${siteOrigin}${socialImageURL}`}
+        content={`${siteOrigin}/.netlify/functions/test`}
       />
-      <meta property="og:image" content={`${siteOrigin}${socialImageURL}`} />
+      <meta
+        property="og:image"
+        content={`${siteOrigin}/.netlify/functions/test`}
+      />
       <meta name="twitter:site" content="@jaffathecake" />
       <meta property="og:url" content={`${siteOrigin}/`} />
       <meta property="og:title" content="Wordle Analyzer" />
