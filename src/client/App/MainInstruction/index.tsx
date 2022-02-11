@@ -9,7 +9,16 @@ interface Props {
 const instructions = {
   enterWords: (
     <>
-      <p>Enter the words you guessed, finishing with the correct answer.</p>
+      <p>
+        Enter the words you guessed while playing{' '}
+        <a
+          target="_blank"
+          href="https://www.nytimes.com/games/wordle/index.html"
+        >
+          Wordle
+        </a>
+        , finishing with the correct answer.
+      </p>
     </>
   ),
   spoilerWarning: (

@@ -22,7 +22,10 @@ export default class Footer extends Component {
             </a>
           </li>
           <li>
-            <a target="_blank" href="https://www.powerlanguage.co.uk/wordle/">
+            <a
+              target="_blank"
+              href="https://www.nytimes.com/games/wordle/index.html"
+            >
               Play Wordle
             </a>
           </li>
