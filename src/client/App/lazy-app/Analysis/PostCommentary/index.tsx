@@ -156,12 +156,22 @@ export default class PostCommentary extends Component<Props, State> {
     beforeRemainingAnswers,
     answer,
   }: RenderableProps<Props>) {
-    // If first guess, commentary on word chosen & what AI always picks
-    // If last turn and didn't get the answer, sadness
-    // If correct answer, congratulations
-
     if (turn === 0) {
-      return getCommentaryOnFirstGuess(guessAnalysis.plays.user.guess);
+      return (
+        <>
+          {getCommentaryOnFirstGuess(guessAnalysis.plays.user.guess)}
+          <p>
+            The AI always starts with "lares" which eliminates the most
+            possibilities on average.{' '}
+            {guessAnalysis.plays.bestPlay === guessAnalysis.plays.user && (
+              <>
+                But as was the case here, the average doesn't always turn out to
+                be the best.
+              </>
+            )}
+          </p>
+        </>
+      );
     }
 
     if (turn === 5) {
