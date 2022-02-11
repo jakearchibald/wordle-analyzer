@@ -12,6 +12,15 @@
 .input {
   opacity: 0;
   pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+  font-size: 1.2rem;
+  /*
+  Unfortunately I have to move this offscreen, else iOS Safari renders
+  a selection rectangle around the text if the keyboard is offering a replacement.
+  Yes, it does this even if the input has opacity:0. Sighhhhhh.
+   */
+  position: absolute;
+  left: -2000px;
 }
 
 .disabled {

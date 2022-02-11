@@ -7,6 +7,8 @@ interface Props {
   value: string;
   label: string;
   onInput: (value: string) => void;
+  onInputOverflow: (value: string) => void;
+  onInputInitialBackspace: () => void;
   onEnter: (source: HTMLInputElement) => void;
   autoFocus?: boolean;
   disabled?: boolean;
@@ -36,11 +38,21 @@ export default class EditableGuess extends Component<Props, State> {
   #input = createRef<HTMLInputElement>();
 
   #onInputChange = (event: Event) => {
-    // Although the field enforces a max, Android Chrome (at least) doesn't seem
-    // to respect it.
-    this.props.onInput(
-      (event.currentTarget as HTMLInputElement).value.slice(0, fieldMaxLength),
-    );
+    const input = event.currentTarget as HTMLInputElement;
+    const newValue = input.value;
+
+    // Allow the value to potentially flow from this field to the next one.
+    if (
+      newValue.length > fieldMaxLength &&
+      this.props.value.length === fieldMaxLength &&
+      newValue.startsWith(this.props.value)
+    ) {
+      this.props.onInputOverflow(newValue.slice(fieldMaxLength));
+      input.value = newValue.slice(0, fieldMaxLength);
+    } else {
+      this.props.onInput(newValue.slice(0, fieldMaxLength));
+    }
+
     this.#selectionChange();
   };
 
@@ -53,9 +65,17 @@ export default class EditableGuess extends Component<Props, State> {
   };
 
   #onInputKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      this.props.onEnter(this.#input.current!);
+    switch (event.key) {
+      case 'Enter':
+        event.preventDefault();
+        this.props.onEnter(this.#input.current!);
+        return;
+      case 'Backspace':
+        if (this.state.selection![0] === 0 && this.state.selection![1] === 0) {
+          event.preventDefault();
+          this.props.onInputInitialBackspace();
+        }
+        return;
     }
   };
 
@@ -102,7 +122,6 @@ export default class EditableGuess extends Component<Props, State> {
           onKeyDown={this.#onInputKeyDown}
           ref={this.#input}
           type="text"
-          maxLength={fieldMaxLength}
           value={value}
           onInput={this.#onInputChange}
           class={styles.input}
