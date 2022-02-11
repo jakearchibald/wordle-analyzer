@@ -1,0 +1,39 @@
+.ai-analysis-table {
+  --plays: 1;
+
+  @media (min-width: 372px) {
+    grid-template-columns: minmax(170px, 231px) repeat(
+        var(--plays),
+        minmax(193px, 445px)
+      );
+
+    max-width: 540px;
+
+    & tr {
+      &:nth-child(1),
+      &:nth-child(2) {
+        & > :first-child {
+          position: static;
+        }
+      }
+
+      &:nth-child(odd) {
+        & th[scope='row'] {
+          background: var(--theme-table-heading-alt);
+        }
+
+        & td {
+          background: var(--theme-table-cell-alt);
+        }
+      }
+    }
+
+    & th:first-child {
+      grid-column: 1 / 2;
+    }
+
+    & th[scope='row'] {
+      text-align: left;
+    }
+  }
+}

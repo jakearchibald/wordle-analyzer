@@ -17,10 +17,17 @@ import {
 } from 'shared-types/index';
 import Guess from '../../Guess';
 import PreCommentary from './PreCommentary';
-import AnalysisEntry from './AnalysisEntry';
+import PlayerAnalysisTable from './PlayerAnalysisTable';
 import Progress from './Progress';
 import Actions from './Actions';
 import PostCommentary from './PostCommentary';
+import AIAnalysisTable from './AIAnalysisTable';
+import {
+  filterRemainingItemsForMaxDisplay,
+  formatNumber,
+  RemainingItemsType,
+} from '../utils';
+import RemainingList from './RemainingList';
 
 interface Props {
   guesses: string[];
@@ -247,7 +254,7 @@ export default class Analysis extends Component<Props, State> {
                     />
                   </div>
                 </div>
-                <AnalysisEntry
+                <PlayerAnalysisTable
                   guessAnalysis={guessAnalysis}
                   first={i === 0}
                   answer={answer}
@@ -275,14 +282,6 @@ export default class Analysis extends Component<Props, State> {
           <div class={utilStyles.container}>
             <h2 class={styles.pillHeading}>AI playthrough</h2>
 
-            <div class={styles.commentary}>
-              <p>
-                The AI mostly tries to eliminate as many answers as possible
-                with each guess, although if there's a possible answer that's
-                almost as good, it'll play that.
-              </p>
-            </div>
-
             <div class={styles.guesses}>
               {aiPlays.map((aiPlay, i) =>
                 typeof aiPlay === 'number' ? (
@@ -299,6 +298,55 @@ export default class Analysis extends Component<Props, State> {
             </div>
           </div>
         )}
+        {analysisComplete &&
+          aiPlays.map((aiPlay, i, allAiPlays) => {
+            if (typeof aiPlay === 'number') return;
+
+            const remainingCount =
+              aiPlay.beforeRemainingCounts.common +
+              aiPlay.beforeRemainingCounts.other;
+            const remainingDisplay =
+              i > 0
+                ? filterRemainingItemsForMaxDisplay(
+                    (allAiPlays[i - 1] as AIPlay).play.remainingAnswers,
+                  )
+                : undefined;
+
+            return (
+              <>
+                <div class={utilStyles.container}>
+                  <h2 class={styles.pillHeading}>AI Guess {i + 1}</h2>
+                  <p class={styles.commentary}>
+                    <strong>
+                      {formatNumber(remainingCount)}{' '}
+                      {remainingCount === 1 ? 'word' : 'words'} remaining,{' '}
+                      {formatNumber(aiPlay.beforeRemainingCounts.common)} common
+                    </strong>
+                    .{' '}
+                    {remainingDisplay &&
+                      (remainingDisplay.remainingType ===
+                      RemainingItemsType.CommonOnly
+                        ? aiPlay.beforeRemainingCounts.common === 1
+                          ? 'The common one is:'
+                          : 'The common ones are:'
+                        : remainingCount > 1 && 'They are:')}
+                  </p>
+                  {remainingDisplay && (
+                    <RemainingList
+                      remainingToDisplay={remainingDisplay.remaining}
+                    />
+                  )}
+                  <AIAnalysisTable
+                    answer={answer}
+                    first={i === 0}
+                    beforeRemainingCounts={aiPlay.beforeRemainingCounts}
+                    play={aiPlay.play}
+                    strategy={aiPlay.strategy}
+                  />
+                </div>
+              </>
+            );
+          })}
         {analysisComplete && (
           <Actions
             cellColors={guessCellColors!}

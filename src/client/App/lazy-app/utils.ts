@@ -1,3 +1,5 @@
+import { RemainingAnswers } from 'shared-types/index';
+
 export function animateTo(
   element: HTMLElement,
   to: Keyframe[] | PropertyIndexedKeyframes,
@@ -55,4 +57,35 @@ export function doAbortable<R>(
     signal.removeEventListener('abort', listener);
     return onAbortReturn;
   });
+}
+
+export const enum RemainingItemsType {
+  None,
+  CommonOnly,
+  All,
+}
+
+const maxRemainingToDisplay = 30;
+
+export function filterRemainingItemsForMaxDisplay(
+  remainingAnswers: RemainingAnswers,
+):
+  | { remaining: RemainingAnswers; remainingType: RemainingItemsType }
+  | undefined {
+  const remainingCount =
+    remainingAnswers.common.length + remainingAnswers.other.length;
+  let remaining: RemainingAnswers | undefined = undefined;
+  let remainingType: RemainingItemsType = RemainingItemsType.None;
+
+  if (remainingAnswers) {
+    if (remainingCount <= maxRemainingToDisplay) {
+      remainingType = RemainingItemsType.All;
+      remaining = remainingAnswers;
+    } else if (remainingAnswers.common.length <= maxRemainingToDisplay) {
+      remainingType = RemainingItemsType.CommonOnly;
+      remaining = { ...remainingAnswers, other: [] };
+    }
+  }
+
+  return remaining ? { remaining, remainingType } : undefined;
 }

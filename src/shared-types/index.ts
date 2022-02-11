@@ -37,6 +37,7 @@ export interface GuessAnalysis {
 export interface AIPlay {
   beforeRemainingCounts: { common: number; other: number };
   play: PlayAnalysis;
+  strategy: AIStrategy;
 }
 
 /** (a)bsent (p)resent (c)orrect */

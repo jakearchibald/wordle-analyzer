@@ -445,7 +445,7 @@ async function getRemainingAveragesMT(
 export function getBestPlay(
   remainingAnswers: RemainingAnswers,
   remainingResult: RemainingAveragesResult,
-): [string, AIStrategy] {
+): [guess: string, strategy: AIStrategy] {
   // Focus on the common words first.
   for (let [isCommon, remaining, bestGuesses] of [
     [true, remainingAnswers.common, remainingResult.common] as const,
@@ -738,7 +738,7 @@ async function getAiPlay(
   }
 
   const commonWords = await getCommonWordSet();
-  const [guess] = getBestPlay(remainingAnswers, remainingAverages);
+  const [guess, strategy] = getBestPlay(remainingAnswers, remainingAverages);
   const play = await getPlayAnalysis(
     guess,
     answer,
@@ -754,6 +754,7 @@ async function getAiPlay(
       other: remainingAnswers.other.length,
     },
     play,
+    strategy,
   };
 }
 

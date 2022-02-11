@@ -1,21 +1,16 @@
 import { h, Component, RenderableProps, Fragment } from 'preact';
-import * as styles from './styles.module.css';
-import 'add-css:./styles.module.css';
 import * as utilStyles from '../../../../utils.module.css';
 import {
   AIStrategy,
   GuessAnalysis,
   RemainingAnswers,
 } from 'shared-types/index';
-import { formatNumber } from '../../utils';
-
-const maxItemsToDisplay = 30;
-
-const enum RemainingItemsType {
-  None,
-  CommonOnly,
-  All,
-}
+import {
+  formatNumber,
+  filterRemainingItemsForMaxDisplay,
+  RemainingItemsType,
+} from '../../utils';
+import RemainingList from '../RemainingList';
 
 interface Props {
   turn: number;
@@ -52,43 +47,8 @@ export default class PreCommentary extends Component<Props, State> {
       );
     }
 
-    let remainingItemsToDisplay: string[] | undefined = undefined;
-    let remainingItemsType: RemainingItemsType = RemainingItemsType.None;
-
-    if (remainingAnswers) {
-      if (remainingCount <= maxItemsToDisplay) {
-        remainingItemsType = RemainingItemsType.All;
-        remainingItemsToDisplay = [
-          ...remainingAnswers.common,
-          ...remainingAnswers.other,
-        ];
-      } else if (remainingAnswers.common.length <= maxItemsToDisplay) {
-        remainingItemsType = RemainingItemsType.CommonOnly;
-        remainingItemsToDisplay = remainingAnswers.common;
-      }
-    }
-
-    const remainingList = remainingItemsToDisplay && (
-      <ul class={styles.remainingList}>
-        {remainingItemsToDisplay.map((word, i) => (
-          <li
-            style={{ opacity: i < remainingAnswers!.common.length ? 1 : 0.5 }}
-          >
-            <a
-              class={[utilStyles.hiddenLink, styles.remainingWord].join(' ')}
-              target="_blank"
-              href={`https://en.wiktionary.org/wiki/${word}`}
-            >
-              {[...word].map((letter) => (
-                <span class={styles.remainingLetter}>
-                  {letter.toUpperCase()}
-                </span>
-              ))}
-            </a>
-          </li>
-        ))}
-      </ul>
-    );
+    const remainingDisplay =
+      remainingAnswers && filterRemainingItemsForMaxDisplay(remainingAnswers);
 
     const remainingSpan =
       remainingCount === 1 ? (
@@ -248,18 +208,18 @@ export default class PreCommentary extends Component<Props, State> {
       ];
     })();
 
-    if (remainingList) {
+    if (remainingDisplay) {
       return (
         <>
           <p>
             {remainingSpan}{' '}
-            {remainingItemsType === RemainingItemsType.CommonOnly
+            {remainingDisplay.remainingType === RemainingItemsType.CommonOnly
               ? guessAnalysis.beforeRemainingCounts.common === 1
                 ? 'The common one is:'
                 : 'The common ones are:'
               : remainingCount > 1 && 'They are:'}
           </p>
-          {remainingList}
+          <RemainingList remainingToDisplay={remainingDisplay.remaining} />
           {advice.map((line) => (
             <p>{line}</p>
           ))}

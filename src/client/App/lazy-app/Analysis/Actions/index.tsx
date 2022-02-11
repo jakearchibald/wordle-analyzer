@@ -80,7 +80,9 @@ export default class Actions extends Component<Props, State> {
             </a>
           </div>
           <p>
-            Shared analyses come with a spoiler warning (
+            When you share your analysis, folks who follow the link will be
+            given a spoiler warning before seeing your guesses &amp; the answer
+            (
             <a target="_blank" href={location.href}>
               preview
             </a>
