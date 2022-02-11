@@ -67,7 +67,6 @@ export const siteOrigin = (() => {
   // https://docs.netlify.com/configure-builds/environment-variables/#build-metadata
   if (process.env.CONTEXT === 'production') return productionURL;
   if (process.env.DEPLOY_PRIME_URL) return process.env.DEPLOY_PRIME_URL;
-  if (process.env.CF_PAGES_URL) return process.env.CF_PAGES_URL;
   console.warn(
     `Unable to determine site origin, defaulting to ${productionURL}`,
   );
