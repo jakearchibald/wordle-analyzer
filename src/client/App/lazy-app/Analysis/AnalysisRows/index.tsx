@@ -163,6 +163,12 @@ export default class AnalysisRows extends Component<Props, State> {
             ))}
           </tr>
         )}
+        <tr>
+          <th scope="row">Guess quality</th>
+          {plays.map((play) => (
+            <td>{formatNumber(play.guessQuality * 100)}%</td>
+          ))}
+        </tr>
         {initalRemaining > 1 && !allGuessesRight && (
           <tr>
             <th scope="row">Actual remaining words</th>

@@ -21,6 +21,7 @@ export interface PlayAnalysis {
   remainingAnswers: RemainingAnswers;
   luck: Luck;
   commonWord: boolean;
+  guessQuality: number;
 }
 
 export interface GuessAnalysis {

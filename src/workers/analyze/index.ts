@@ -557,17 +557,17 @@ function getPlayAnalysis(
   guess: string,
   answer: string,
   previousClues: Clue[],
-  remainingAnswers: RemainingAnswers,
+  beforeRemainingAnswers: RemainingAnswers,
   remainingAverages: RemainingAveragesResult,
   commonWords: Set<string>,
 ): PlayAnalysis {
   const clue = generateClue(answer, guess);
 
-  const newRemainingAnswers =
+  const afterRemainingAnswers =
     guess === answer
       ? { common: [], other: [] }
       : (Object.fromEntries(
-          Object.entries(remainingAnswers).map(([key, answers]) => [
+          Object.entries(beforeRemainingAnswers).map(([key, answers]) => [
             key,
             answers.filter((word) =>
               possibleAnswer(
@@ -581,12 +581,37 @@ function getPlayAnalysis(
           ]),
         ) as RemainingAnswers);
 
-  const commonRemainingResult = remainingAverages.common.find(
+  const commonRemainingResultIndex = remainingAverages.common.findIndex(
     (item) => item[0] === guess,
   );
-  const allRemainingResult = remainingAverages.all.find(
+  const allRemainingResultIndex = remainingAverages.all.findIndex(
     (item) => item[0] === guess,
   );
+
+  const commonRemainingResult =
+    remainingAverages.common[commonRemainingResultIndex];
+  const allRemainingResult = remainingAverages.all[allRemainingResultIndex];
+
+  const [guessQualityList, guessQualityIndex] =
+    afterRemainingAnswers.common.length !== 0
+      ? [remainingAverages.common, commonRemainingResultIndex]
+      : [remainingAverages.all, allRemainingResultIndex];
+
+  let guessQualityNextIndex = guessQualityIndex + 1;
+
+  while (true) {
+    if (
+      guessQualityNextIndex === guessQualityList.length ||
+      guessQualityList[guessQualityNextIndex][1] !==
+        guessQualityList[guessQualityIndex][1]
+    ) {
+      break;
+    }
+    guessQualityNextIndex++;
+  }
+
+  const guessQuality =
+    1 - (guessQualityNextIndex - 1) / guessQualityList.length;
 
   const clueViolations = getClueViolations(guess, previousClues);
 
@@ -607,7 +632,7 @@ function getPlayAnalysis(
       ...clueViolations.missingAdditionalRequiredLetters,
       ...clueViolations.violatedMustNotContain,
     ],
-    remainingAnswers: newRemainingAnswers,
+    remainingAnswers: afterRemainingAnswers,
     averageRemaining:
       commonRemainingResult && allRemainingResult
         ? {
@@ -618,10 +643,11 @@ function getPlayAnalysis(
     commonWord: commonWords.has(guess),
     luck: calculateLuck(
       guess,
-      remainingAnswers,
-      newRemainingAnswers,
+      beforeRemainingAnswers,
+      afterRemainingAnswers,
       commonWords,
     ),
+    guessQuality,
   };
 }
 
