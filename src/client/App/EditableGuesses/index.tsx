@@ -1,14 +1,16 @@
-import { h, Component, RenderableProps } from 'preact';
+import { h, Component, RenderableProps, createRef } from 'preact';
 import EditableGuess from './EditableGuess';
 import * as utilStyles from '../../utils.module.css';
 import 'add-css:../../utils.module.css';
 import * as styles from './styles.module.css';
 import 'add-css:./styles.module.css';
+import Checkbox from '../Checkbox';
 
 interface Props {
   values: string[];
-  onInput: (guesses: string[]) => void;
-  onSubmit: (guesses: string[]) => void;
+  hardMode: boolean;
+  onInput: (guesses: string[], hardMode: boolean) => void;
+  onSubmit: (guesses: string[], hardMode: boolean) => void;
 }
 
 function getCompleteValues(values: string[]): number {
@@ -18,20 +20,20 @@ function getCompleteValues(values: string[]): number {
 }
 
 export default class EditableGuesses extends Component<Props> {
-  #onInputs: ((guess: string) => void)[];
-  #onInputOverflows: ((overflow: string) => void)[];
-  #onInputInitialBackspaces: (() => void)[];
+  #onGuessInputs: ((guess: string) => void)[];
+  #onGuessInputOverflows: ((overflow: string) => void)[];
+  #onGuessInitialBackspaces: (() => void)[];
 
   constructor(props: Props) {
     super(props);
 
-    this.#onInputs = props.values.map((_, index) => (guess: string) => {
+    this.#onGuessInputs = props.values.map((_, index) => (guess: string) => {
       const guesses = [...this.props.values];
       guesses[index] = guess;
-      this.props.onInput(guesses);
+      this.props.onInput(guesses, this.props.hardMode);
     });
 
-    this.#onInputOverflows = props.values.map(
+    this.#onGuessInputOverflows = props.values.map(
       (_, index) => (overflow: string) => {
         const guesses = [...this.props.values];
         // Can't overflow on the last input
@@ -46,11 +48,11 @@ export default class EditableGuesses extends Component<Props> {
 
         textInputs[index + 1].focus();
         guesses[index + 1] = overflow.trim();
-        this.props.onInput(guesses);
+        this.props.onInput(guesses, this.props.hardMode);
       },
     );
 
-    this.#onInputInitialBackspaces = props.values.map((_, index) => () => {
+    this.#onGuessInitialBackspaces = props.values.map((_, index) => () => {
       // Can't go back on the first input
       if (index === 0) return;
 
@@ -62,7 +64,7 @@ export default class EditableGuesses extends Component<Props> {
 
       textInputs[index - 1].focus();
       guesses[index - 1] = guesses[index - 1].slice(0, -1);
-      this.props.onInput(guesses);
+      this.props.onInput(guesses, this.props.hardMode);
     });
   }
 
@@ -72,6 +74,7 @@ export default class EditableGuesses extends Component<Props> {
 
     this.props.onSubmit(
       this.props.values.slice(0, complete).map((value) => value.toLowerCase()),
+      this.props.hardMode,
     );
   }
 
@@ -80,7 +83,7 @@ export default class EditableGuesses extends Component<Props> {
     this.#submit();
   };
 
-  #onEnter = (source: HTMLInputElement) => {
+  #onInputEnter = (source: HTMLInputElement) => {
     // Treat enter on an empty input as submit.
     if (source.value === '') {
       this.#submit();
@@ -103,7 +106,14 @@ export default class EditableGuesses extends Component<Props> {
     textInputs[inputIndex + 1].focus();
   };
 
-  render({ values }: RenderableProps<Props>) {
+  #onHardModeChange = (event: Event) => {
+    this.props.onInput(
+      this.props.values,
+      (event.target as HTMLInputElement).checked,
+    );
+  };
+
+  render({ values, hardMode }: RenderableProps<Props>) {
     const complete = getCompleteValues(values);
 
     return (
@@ -111,21 +121,24 @@ export default class EditableGuesses extends Component<Props> {
         <div class={styles.guesses}>
           {values.map((value, index) => (
             <EditableGuess
-              onEnter={this.#onEnter}
+              onEnter={this.#onInputEnter}
               autoFocus={index === 0}
               disabled={index > complete}
-              onInput={this.#onInputs[index]}
-              onInputOverflow={this.#onInputOverflows[index]}
-              onInputInitialBackspace={this.#onInputInitialBackspaces[index]}
+              onInput={this.#onGuessInputs[index]}
+              onInputOverflow={this.#onGuessInputOverflows[index]}
+              onInputInitialBackspace={this.#onGuessInitialBackspaces[index]}
               value={value}
               label={`Guess ${index + 1}`}
             />
           ))}
         </div>
-        <div class={utilStyles.buttons}>
+        <div class={[utilStyles.buttons, styles.buttons].join(' ')}>
           <button type="submit" class={utilStyles.button} disabled={!complete}>
             Analyze
           </button>
+          <Checkbox onChange={this.#onHardModeChange} checked={hardMode}>
+            Hard mode
+          </Checkbox>
         </div>
       </form>
     );
