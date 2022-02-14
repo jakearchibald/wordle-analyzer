@@ -9,12 +9,13 @@ interface Props {
   first: boolean;
   answer: string;
   guessAnalysis: GuessAnalysis;
+  hardMode: boolean;
 }
 
 interface State {}
 
 export default class PlayerAnalysisTable extends Component<Props, State> {
-  render({ guessAnalysis, first, answer }: RenderableProps<Props>) {
+  render({ guessAnalysis, first, answer, hardMode }: RenderableProps<Props>) {
     return (
       <div>
         <table
@@ -33,6 +34,7 @@ export default class PlayerAnalysisTable extends Component<Props, State> {
             first={first}
             plays={[guessAnalysis.plays.user, guessAnalysis.plays.ai]}
             bestPlay={guessAnalysis.plays.bestPlay}
+            hardMode={hardMode}
           />
         </table>
       </div>

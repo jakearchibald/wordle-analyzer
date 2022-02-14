@@ -11,6 +11,7 @@ interface Props {
   beforeRemainingCounts: GuessAnalysis['beforeRemainingCounts'];
   play: PlayAnalysis;
   strategy: AIStrategy;
+  hardMode: boolean;
 }
 
 interface State {}
@@ -22,6 +23,7 @@ export default class AIAnalysisTable extends Component<Props, State> {
     first,
     answer,
     strategy,
+    hardMode,
   }: RenderableProps<Props>) {
     return (
       <div>
@@ -38,6 +40,7 @@ export default class AIAnalysisTable extends Component<Props, State> {
             first={first}
             plays={[play]}
             strategies={[strategy]}
+            hardMode={hardMode}
           />
         </table>
       </div>

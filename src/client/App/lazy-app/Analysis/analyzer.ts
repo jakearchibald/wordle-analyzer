@@ -56,6 +56,7 @@ export function analyzeGuess(
   guess: string,
   answer: string,
   previousClues: Clue[],
+  hardMode: boolean,
   { remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
 ): Promise<GuessAnalysis> {
   return abortableWorkerFunction(signal, () => {
@@ -68,6 +69,7 @@ export function analyzeGuess(
         answer,
         previousClues,
         remainingAnswers,
+        hardMode,
         returnPort: port2,
       },
       [port2],
@@ -108,6 +110,7 @@ export function aiPlay(
   signal: AbortSignal,
   answer: string,
   previousClues: Clue[],
+  hardMode: boolean,
   { remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
 ): Promise<AIPlay> {
   return abortableWorkerFunction(signal, () => {
@@ -119,6 +122,7 @@ export function aiPlay(
         answer,
         previousClues,
         remainingAnswers,
+        hardMode,
         returnPort: port2,
       },
       [port2],

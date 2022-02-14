@@ -168,28 +168,26 @@ function possibleAnswer(
   return additionalRequiredLettersCopy.length === 0;
 }
 
-const numberWithOrdinal = ['1st', '2nd', '3rd', '4th', '5th'];
-
-interface ClueViolations {
-  missingPositionalMatches: string[];
-  violatedPositionalNotMatches: string[];
-  missingAdditionalRequiredLetters: string[];
-  violatedMustNotContain: string[];
+interface FlattenedClue {
+  positionalMatches: FiveLetters;
+  positionalNotMatches: [
+    Set<string>,
+    Set<string>,
+    Set<string>,
+    Set<string>,
+    Set<string>,
+  ];
+  requiredLetters: string;
+  remainingMustNotContain: Set<string>;
 }
 
-// Hard mode in wordle means:
-// Green letters must be played in their correct position
-// Yellow letters must be used in the remaining squares
-
-function getClueViolations(guess: string, clues: Clue[]): ClueViolations {
-  const missingPositionalMatches = new Set<string>();
-  const violatedPositionalNotMatches = new Set<string>();
-  const missingAdditionalRequiredLetters = new Set<string>();
-  const violatedMustNotContain = new Set<string>();
-
+function flattenClues(clues: Clue[]): FlattenedClue {
   let requiredLetters = '';
   const positionalMatches: FiveLetters = ['', '', '', '', ''];
   const remainingMustNotContain = new Set<string>();
+  const positionalNotMatches = positionalMatches.map(
+    () => new Set<string>(),
+  ) as [Set<string>, Set<string>, Set<string>, Set<string>, Set<string>];
 
   for (const clue of clues) {
     let newRequiredLetters = clue.additionalRequiredLetters.join('');
@@ -216,18 +214,72 @@ function getClueViolations(guess: string, clues: Clue[]): ClueViolations {
 
     // Process not-matches
     for (const [i, notMatch] of clue.positionalNotMatches.entries()) {
-      if (notMatch && guess[i] === notMatch) {
-        violatedPositionalNotMatches.add(
-          `${
-            numberWithOrdinal[i]
-          } letter must not be "${clue.positionalNotMatches[i].toUpperCase()}"`,
-        );
-      }
+      positionalNotMatches[i].add(notMatch);
+    }
+  }
+
+  return {
+    requiredLetters,
+    positionalMatches,
+    positionalNotMatches,
+    remainingMustNotContain,
+  };
+}
+
+// Hard mode in wordle means:
+// Green letters must be played in their correct position
+// Yellow letters must be used in the remaining squares
+function validHardModeGuess(
+  guess: string,
+  flattenedClues: FlattenedClue,
+): boolean {
+  let requiredLettersRemaining = flattenedClues.requiredLetters;
+
+  for (const [i, letter] of [...guess].entries()) {
+    if (
+      flattenedClues.positionalMatches[i] &&
+      flattenedClues.positionalMatches[i] !== letter
+    ) {
+      return false;
+    }
+
+    requiredLettersRemaining = requiredLettersRemaining.replace(letter, '');
+  }
+
+  return requiredLettersRemaining.length === 0;
+}
+
+const numberWithOrdinal = ['1st', '2nd', '3rd', '4th', '5th'];
+
+interface ClueViolations {
+  missingPositionalMatches: string[];
+  violatedPositionalNotMatches: string[];
+  missingAdditionalRequiredLetters: string[];
+  violatedMustNotContain: string[];
+}
+
+function getClueViolations(
+  guess: string,
+  flattenedClues: FlattenedClue,
+): ClueViolations {
+  const missingPositionalMatches = new Set<string>();
+  const violatedPositionalNotMatches = new Set<string>();
+  const missingAdditionalRequiredLetters = new Set<string>();
+  const violatedMustNotContain = new Set<string>();
+
+  for (const [i, notMatch] of flattenedClues.positionalNotMatches.entries()) {
+    if (notMatch.has(guess[i])) {
+      violatedPositionalNotMatches.add(
+        `${numberWithOrdinal[i]} letter must not be "${guess[
+          i
+        ].toUpperCase()}"`,
+      );
     }
   }
 
   // Check required letters:
-  let requiredLettersRemaining = requiredLetters;
+  let requiredLettersRemaining = flattenedClues.requiredLetters;
+
   for (const letter of guess) {
     const len = requiredLettersRemaining.length;
     requiredLettersRemaining = requiredLettersRemaining.replace(letter, '');
@@ -236,21 +288,21 @@ function getClueViolations(guess: string, clues: Clue[]): ClueViolations {
     // Eg, if additionalRequiredLetters contains 's' and remainingMustNotContain contains 's', this ensures the answer must contain one 's'.
     if (
       len === requiredLettersRemaining.length &&
-      remainingMustNotContain.has(letter)
+      flattenedClues.remainingMustNotContain.has(letter)
     ) {
       violatedMustNotContain.add(`Too many "${letter.toUpperCase()}"s`);
     }
   }
 
   for (const letter of requiredLettersRemaining) {
-    const positionalIndex = positionalMatches.indexOf(letter);
+    const positionalIndex = flattenedClues.positionalMatches.indexOf(letter);
     if (positionalIndex !== -1) {
       missingPositionalMatches.add(
         `${
           numberWithOrdinal[positionalIndex]
         } letter must be "${letter.toUpperCase()}"`,
       );
-      positionalMatches[positionalIndex] = '';
+      flattenedClues.positionalMatches[positionalIndex] = '';
     } else {
       missingAdditionalRequiredLetters.add(
         `Too few "${letter.toUpperCase()}"s`,
@@ -272,6 +324,7 @@ function getClueViolations(guess: string, clues: Clue[]): ClueViolations {
 function getRemainingCounts(
   remainingAnswers: RemainingAnswers,
   guesses: string[],
+  hardModeClues: FlattenedClue | undefined,
   onAnswerDone?: () => void,
 ): RemainingCountsResult {
   const counts: RemainingCountsResult = {
@@ -281,6 +334,8 @@ function getRemainingCounts(
   const allAnswers = [...remainingAnswers.common, ...remainingAnswers.other];
 
   for (const [i, guess] of guesses.entries()) {
+    if (hardModeClues && !validHardModeGuess(guess, hardModeClues)) continue;
+
     const remainingCache: {
       [key: string]:
         | [commonRemaining: number, allRemaining: number]
@@ -346,9 +401,15 @@ function getRemainingCounts(
 function getRemainingAverages(
   remainingAnswers: RemainingAnswers,
   guesses: string[],
+  hardModeClues: FlattenedClue | undefined,
   onAnswerDone?: () => void,
 ): RemainingAveragesResult {
-  const counts = getRemainingCounts(remainingAnswers, guesses, onAnswerDone);
+  const counts = getRemainingCounts(
+    remainingAnswers,
+    guesses,
+    hardModeClues,
+    onAnswerDone,
+  );
 
   // Convert the list of counts to averages
   return Object.fromEntries(
@@ -365,6 +426,7 @@ function getRemainingAverages(
 /** Multithreaded version of getRemainingAverages */
 async function getRemainingAveragesMT(
   remainingAnswers: RemainingAnswers,
+  hardModeClues: FlattenedClue | undefined,
   onProgress: (done: number, expecting: number) => void,
 ): Promise<RemainingAveragesResult> {
   if (threadPorts.length === 0) {
@@ -399,6 +461,7 @@ async function getRemainingAveragesMT(
               action: 'get-remaining-averages',
               remainingAnswers,
               guesses: guessesGroup,
+              hardModeClues,
               returnPort: port2,
             },
             [port2],
@@ -502,6 +565,7 @@ function calculateLuck(
   beforeRemainingAnswers: RemainingAnswers,
   afterRemainingAnswers: RemainingAnswers,
   commonWordSet: Set<string>,
+  hardModeClues: FlattenedClue | undefined,
 ): Luck {
   const win =
     afterRemainingAnswers.common.length === 0 &&
@@ -516,11 +580,15 @@ function calculateLuck(
 
   const [remainingResult, numNewRemaining] = useCommonLists
     ? [
-        getRemainingCounts({ ...beforeRemainingAnswers, other: [] }, [guess]),
+        getRemainingCounts(
+          { ...beforeRemainingAnswers, other: [] },
+          [guess],
+          hardModeClues,
+        ),
         afterRemainingAnswers.common.length,
       ]
     : [
-        getRemainingCounts(beforeRemainingAnswers, [guess]),
+        getRemainingCounts(beforeRemainingAnswers, [guess], hardModeClues),
         afterRemainingAnswers.common.length +
           afterRemainingAnswers.other.length,
       ];
@@ -556,10 +624,11 @@ function calculateLuck(
 function getPlayAnalysis(
   guess: string,
   answer: string,
-  previousClues: Clue[],
+  flattenedClues: FlattenedClue,
   beforeRemainingAnswers: RemainingAnswers,
   remainingAverages: RemainingAveragesResult,
   commonWords: Set<string>,
+  hardMode: boolean,
 ): PlayAnalysis {
   const clue = generateClue(answer, guess);
 
@@ -613,7 +682,7 @@ function getPlayAnalysis(
   const guessQuality =
     1 - (guessQualityNextIndex - 1) / guessQualityList.length;
 
-  const clueViolations = getClueViolations(guess, previousClues);
+  const clueViolations = getClueViolations(guess, flattenedClues);
 
   return {
     guess,
@@ -646,6 +715,7 @@ function getPlayAnalysis(
       beforeRemainingAnswers,
       afterRemainingAnswers,
       commonWords,
+      hardMode ? flattenedClues : undefined,
     ),
     guessQuality,
   };
@@ -681,10 +751,13 @@ async function analyzeGuess(
   guess: string,
   answer: string,
   previousClues: Clue[],
+  hardMode: boolean,
   remainingAnswers: RemainingAnswers | undefined,
   onProgress: (done: number, expecting: number) => void,
 ): Promise<GuessAnalysis> {
   let remainingAverages: RemainingAveragesResult | undefined;
+
+  const flattenedClues = flattenClues(previousClues);
 
   if (!remainingAnswers) {
     [remainingAnswers, remainingAverages] = await Promise.all([
@@ -696,6 +769,7 @@ async function analyzeGuess(
   if (!remainingAverages) {
     remainingAverages = await getRemainingAveragesMT(
       remainingAnswers,
+      hardMode ? flattenedClues : undefined,
       onProgress,
     );
   }
@@ -710,10 +784,11 @@ async function analyzeGuess(
   const userPlay = getPlayAnalysis(
     guess,
     answer,
-    previousClues,
+    flattenedClues,
     remainingAnswers,
     remainingAverages,
     commonWords,
+    hardMode,
   );
   const aiPlay =
     aiGuess === guess
@@ -721,10 +796,11 @@ async function analyzeGuess(
       : getPlayAnalysis(
           aiGuess,
           answer,
-          previousClues,
+          flattenedClues,
           remainingAnswers,
           remainingAverages,
           commonWords,
+          hardMode,
         );
 
   return {
@@ -745,8 +821,11 @@ async function getAiPlay(
   answer: string,
   previousClues: Clue[],
   remainingAnswers: RemainingAnswers | undefined,
+  hardMode: boolean,
   onProgress: (done: number, expecting: number) => void,
 ): Promise<AIPlay> {
+  const flattenedClues = flattenClues(previousClues);
+
   let remainingAverages: RemainingAveragesResult | undefined;
 
   if (!remainingAnswers) {
@@ -759,6 +838,7 @@ async function getAiPlay(
   if (!remainingAverages) {
     remainingAverages = await getRemainingAveragesMT(
       remainingAnswers,
+      hardMode ? flattenedClues : undefined,
       onProgress,
     );
   }
@@ -768,10 +848,11 @@ async function getAiPlay(
   const play = await getPlayAnalysis(
     guess,
     answer,
-    previousClues,
+    flattenedClues,
     remainingAnswers,
     remainingAverages,
     commonWords,
+    hardMode,
   );
 
   return {
@@ -815,12 +896,18 @@ async function messageListener(event: MessageEvent) {
   if (event.data.action === 'get-remaining-averages') {
     const remainingAnswers = event.data.remainingAnswers;
     const guesses = event.data.guesses;
+    const hardModeClues = event.data.hardModeClues;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
-      const result = getRemainingAverages(remainingAnswers, guesses, () => {
-        returnPort.postMessage('progress');
-      });
+      const result = getRemainingAverages(
+        remainingAnswers,
+        guesses,
+        hardModeClues,
+        () => {
+          returnPort.postMessage('progress');
+        },
+      );
       returnPort.postMessage({
         action: 'done',
         result,
@@ -840,6 +927,7 @@ async function messageListener(event: MessageEvent) {
     const answer = event.data.answer;
     const previousClues = event.data.previousClues;
     const remainingAnswers = event.data.remainingAnswers;
+    const hardMode = event.data.hardMode as boolean;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
@@ -847,6 +935,7 @@ async function messageListener(event: MessageEvent) {
         guess,
         answer,
         previousClues,
+        hardMode,
         remainingAnswers,
         (done, expecting) => {
           returnPort.postMessage({
@@ -874,6 +963,7 @@ async function messageListener(event: MessageEvent) {
     const answer = event.data.answer;
     const previousClues = event.data.previousClues;
     const remainingAnswers = event.data.remainingAnswers;
+    const hardMode = event.data.hardMode as boolean;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
@@ -881,6 +971,7 @@ async function messageListener(event: MessageEvent) {
         answer,
         previousClues,
         remainingAnswers,
+        hardMode,
         (done, expecting) => {
           returnPort.postMessage({
             action: 'progress',

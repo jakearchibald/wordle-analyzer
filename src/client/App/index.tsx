@@ -76,7 +76,7 @@ export default class App extends Component<Props, State> {
   state: State = {
     showSpoilerWarning: false,
     guessInputs: Array.from({ length: 7 }, () => ''),
-    hardModeInput: !!localStorage.hardMode,
+    hardModeInput: localStorage.hardMode === '1',
     ...getStateUpdateFromURL(),
   };
 
@@ -130,6 +130,7 @@ export default class App extends Component<Props, State> {
   ) => {
     return (
       <AnalysisComponent
+        hardMode={this.state.toAnalyze!.hardMode}
         answer={this.state.toAnalyze!.answer}
         guesses={this.state.toAnalyze!.guesses}
       />
