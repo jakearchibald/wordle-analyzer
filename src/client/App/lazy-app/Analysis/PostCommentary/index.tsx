@@ -34,6 +34,20 @@ function numUniqueVowelsUsed(guess: string) {
 }
 
 function getCommentaryOnFirstGuess(guess: string) {
+  if (guess === 'salet') {
+    return (
+      <p>
+        Ohh, I guess someone watched{' '}
+        <a target="_blank" href="https://www.youtube.com/watch?v=fRed0Xmc2Wg">
+          3Blue1Brown
+        </a>
+        ? "Salet" is their recommended starting word. It isn't the same as the
+        AI's preferred choice here, and I'm not sure how much of that is down to
+        a difference in statistical methods, and how much is down to a different
+        source of common words.
+      </p>
+    );
+  }
   if (guess === 'crane') {
     return (
       <p>
@@ -41,10 +55,11 @@ function getCommentaryOnFirstGuess(guess: string) {
         <a target="_blank" href="https://www.youtube.com/watch?v=v68zYyaEmEA">
           3Blue1Brown
         </a>
-        ? "Crane" is their recommended starting word. It isn't the same as the
-        AI's preferred choice here, and I'm not sure how much of that is down to
-        a difference in statistical methods, and how much is down to a different
-        source of common words.
+        ? Well, bad news,{' '}
+        <a target="_blank" href="https://www.youtube.com/watch?v=fRed0Xmc2Wg">
+          they had a bug in their code
+        </a>
+        .
       </p>
     );
   }
