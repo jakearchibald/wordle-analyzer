@@ -103,46 +103,6 @@ export default class AnalysisRows extends Component<Props, State> {
             ))}
           </tr>
         )}
-        {!first && !allGuessesRight && (
-          <tr>
-            <th scope="row">Possible answer?</th>
-            {plays.map((play) => (
-              <td>
-                <div>{boolToYesNo(play.unusedClues.length === 0)}</div>
-                {play.unusedClues.length !== 0 && (
-                  <ul class={styles.unusedClueList}>
-                    {play.unusedClues.map((clue) => (
-                      <li>{clue}</li>
-                    ))}
-                  </ul>
-                )}
-              </td>
-            ))}
-          </tr>
-        )}
-        {!first && !allGuessesRight && (
-          <tr>
-            <th scope="row">Valid for 'hard mode'?</th>
-            {plays.map((play) => (
-              <td>
-                <div>{boolToYesNo(play.hardModeViolations.length === 0)}</div>
-                {play.hardModeViolations.length !== 0 && (
-                  <ul class={styles.unusedClueList}>
-                    {play.hardModeViolations.map((violation) => (
-                      <li>{violation}</li>
-                    ))}
-                  </ul>
-                )}
-              </td>
-            ))}
-          </tr>
-        )}
-        <tr>
-          <th scope="row">Common word?</th>
-          {plays.map((play) => (
-            <td>{boolToYesNo(play.commonWord)}</td>
-          ))}
-        </tr>
         {initalRemaining > 2 && (
           <tr>
             <th scope="row">Average remaining words</th>
@@ -212,6 +172,46 @@ export default class AnalysisRows extends Component<Props, State> {
             ))}
           </tr>
         )}
+        {!first && !allGuessesRight && (
+          <tr>
+            <th scope="row">Possible answer?</th>
+            {plays.map((play) => (
+              <td>
+                <div>{boolToYesNo(play.unusedClues.length === 0)}</div>
+                {play.unusedClues.length !== 0 && (
+                  <ul class={styles.unusedClueList}>
+                    {play.unusedClues.map((clue) => (
+                      <li>{clue}</li>
+                    ))}
+                  </ul>
+                )}
+              </td>
+            ))}
+          </tr>
+        )}
+        {!first && !allGuessesRight && (
+          <tr>
+            <th scope="row">Valid for 'hard mode'?</th>
+            {plays.map((play) => (
+              <td>
+                <div>{boolToYesNo(play.hardModeViolations.length === 0)}</div>
+                {play.hardModeViolations.length !== 0 && (
+                  <ul class={styles.unusedClueList}>
+                    {play.hardModeViolations.map((violation) => (
+                      <li>{violation}</li>
+                    ))}
+                  </ul>
+                )}
+              </td>
+            ))}
+          </tr>
+        )}
+        <tr>
+          <th scope="row">Common word?</th>
+          {plays.map((play) => (
+            <td>{boolToYesNo(play.commonWord)}</td>
+          ))}
+        </tr>
       </>
     );
   }
