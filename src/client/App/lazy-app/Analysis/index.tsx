@@ -214,7 +214,13 @@ export default class Analysis extends Component<Props, State> {
             <>
               <div class={styles.guesses}>
                 {guesses.map((guess, i) => (
-                  <Guess value={guess} cellClues={guessCellColors[i]} />
+                  <a
+                    class={utilStyles.hiddenLink}
+                    target="_blank"
+                    href={`https://en.wiktionary.org/wiki/${guess}`}
+                  >
+                    <Guess value={guess} cellClues={guessCellColors[i]} />
+                  </a>
                 ))}
               </div>
             </>
@@ -289,10 +295,16 @@ export default class Analysis extends Component<Props, State> {
                     <Progress value={aiPlay} />
                   </div>
                 ) : (
-                  <Guess
-                    value={aiPlay.play.guess}
-                    cellClues={aiPlay.play.colors}
-                  />
+                  <a
+                    class={utilStyles.hiddenLink}
+                    target="_blank"
+                    href={`https://en.wiktionary.org/wiki/${aiPlay.play.guess}`}
+                  >
+                    <Guess
+                      value={aiPlay.play.guess}
+                      cellClues={aiPlay.play.colors}
+                    />
+                  </a>
                 ),
               )}
             </div>
