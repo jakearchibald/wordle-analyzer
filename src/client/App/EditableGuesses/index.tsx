@@ -1,4 +1,4 @@
-import { h, Component, RenderableProps, createRef } from 'preact';
+import { h, Component, RenderableProps } from 'preact';
 import EditableGuess from './EditableGuess';
 import * as utilStyles from '../../utils.module.css';
 import 'add-css:../../utils.module.css';
