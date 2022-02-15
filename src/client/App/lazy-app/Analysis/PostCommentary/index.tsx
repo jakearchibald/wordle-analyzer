@@ -1,14 +1,11 @@
-import { h, Component, RenderableProps, Fragment } from 'preact';
-import * as styles from './styles.module.css';
-import 'add-css:./styles.module.css';
-import * as utilStyles from '../../../../utils.module.css';
 import {
-  AIStrategy,
-  GuessAnalysis,
-  PlayAnalysis,
-  RemainingAnswers,
-} from 'shared-types/index';
-import { formatNumber } from '../../utils';
+  h,
+  Component,
+  RenderableProps,
+  Fragment,
+  ComponentChild,
+} from 'preact';
+import { GuessAnalysis, RemainingAnswers } from 'shared-types/index';
 
 // prettier-ignore
 const rude = new Set([
@@ -156,6 +153,7 @@ function getCommentaryOnFirstGuess(guess: string) {
 }
 
 interface Props {
+  hardMode: boolean;
   turn: number;
   guessAnalysis: GuessAnalysis;
   beforeRemainingAnswers: RemainingAnswers | undefined;
@@ -170,6 +168,7 @@ export default class PostCommentary extends Component<Props, State> {
     guessAnalysis,
     beforeRemainingAnswers,
     answer,
+    hardMode,
   }: RenderableProps<Props>) {
     if (turn === 0) {
       return (
@@ -206,15 +205,25 @@ export default class PostCommentary extends Component<Props, State> {
 
     if (guessAnalysis.plays.user.guess === answer) return;
 
+    const commentary: ComponentChild[] = [];
+
+    if (hardMode && guessAnalysis.plays.user.hardModeViolations.length > 0) {
+      commentary.push(
+        <p>Wait, I thought this was supposed to be "hard mode"?</p>,
+      );
+    }
+
     const commonAnswersJustEliminated =
       beforeRemainingAnswers &&
       beforeRemainingAnswers.common.length !== 0 &&
       guessAnalysis.plays.user.remainingAnswers.common.length === 0;
 
     if (commonAnswersJustEliminated) {
-      return (
-        <p>Oh no! That's all the common answers gone. This was a tricky one…</p>
+      commentary.push(
+        <p>Oh no! That's all the common answers gone. This is a tricky one…</p>,
       );
     }
+
+    return commentary;
   }
 }

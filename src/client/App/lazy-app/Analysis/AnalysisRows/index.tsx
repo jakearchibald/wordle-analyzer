@@ -19,6 +19,7 @@ interface Props {
   bestPlay?: PlayAnalysis | undefined;
   beforeRemainingCounts: GuessAnalysis['beforeRemainingCounts'];
   strategies?: AIStrategy[];
+  hardMode: boolean;
 }
 
 interface State {}
@@ -74,6 +75,7 @@ export default class AnalysisRows extends Component<Props, State> {
     plays,
     bestPlay,
     strategies,
+    hardMode,
   }: RenderableProps<Props>) {
     const initalRemaining =
       beforeRemainingCounts.common + beforeRemainingCounts.other;
@@ -117,7 +119,7 @@ export default class AnalysisRows extends Component<Props, State> {
                     </span>
                   </>
                 ) : (
-                  'Word not found'
+                  '???'
                 )}
               </td>
             ))}
@@ -126,7 +128,11 @@ export default class AnalysisRows extends Component<Props, State> {
         <tr>
           <th scope="row">Guess quality</th>
           {plays.map((play) => (
-            <td>{formatNumber(play.guessQuality * 100)}%</td>
+            <td>
+              {play.guessQuality === undefined
+                ? '???'
+                : formatNumber(play.guessQuality * 100) + '%'}
+            </td>
           ))}
         </tr>
         {initalRemaining > 1 && !allGuessesRight && (
@@ -168,7 +174,7 @@ export default class AnalysisRows extends Component<Props, State> {
             <th scope="row">Luck rating</th>
 
             {plays.map((play) => (
-              <td>{getLuck(play.luck)}</td>
+              <td>{play.luck ? getLuck(play.luck) : '???'}</td>
             ))}
           </tr>
         )}
@@ -189,23 +195,27 @@ export default class AnalysisRows extends Component<Props, State> {
             ))}
           </tr>
         )}
-        {!first && !allGuessesRight && (
-          <tr>
-            <th scope="row">Valid for 'hard mode'?</th>
-            {plays.map((play) => (
-              <td>
-                <div>{boolToYesNo(play.hardModeViolations.length === 0)}</div>
-                {play.hardModeViolations.length !== 0 && (
-                  <ul class={styles.unusedClueList}>
-                    {play.hardModeViolations.map((violation) => (
-                      <li>{violation}</li>
-                    ))}
-                  </ul>
-                )}
-              </td>
-            ))}
-          </tr>
-        )}
+        {!first &&
+          !allGuessesRight &&
+          // Don't bother showing this row if it's hard mode, unless there's been a violation
+          (!hardMode ||
+            plays.some((play) => play.hardModeViolations.length !== 0)) && (
+            <tr>
+              <th scope="row">Valid for 'hard mode'?</th>
+              {plays.map((play) => (
+                <td>
+                  <div>{boolToYesNo(play.hardModeViolations.length === 0)}</div>
+                  {play.hardModeViolations.length !== 0 && (
+                    <ul class={styles.unusedClueList}>
+                      {play.hardModeViolations.map((violation) => (
+                        <li>{violation}</li>
+                      ))}
+                    </ul>
+                  )}
+                </td>
+              ))}
+            </tr>
+          )}
         <tr>
           <th scope="row">Common word?</th>
           {plays.map((play) => (

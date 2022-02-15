@@ -32,6 +32,7 @@ import RemainingList from './RemainingList';
 interface Props {
   guesses: string[];
   answer: string;
+  hardMode: boolean;
 }
 
 interface State {
@@ -126,6 +127,7 @@ export default class Analysis extends Component<Props, State> {
             this.props.answer,
             previousClues,
             {
+              hardMode: this.props.hardMode,
               remainingAnswers,
               onProgress: (done, expecting) => {
                 this.setState((state) => {
@@ -164,6 +166,7 @@ export default class Analysis extends Component<Props, State> {
             this.props.answer,
             previousClues,
             {
+              hardMode: this.props.hardMode,
               remainingAnswers,
               onProgress: (done, expecting) => {
                 this.setState((state) => {
@@ -198,7 +201,7 @@ export default class Analysis extends Component<Props, State> {
   }
 
   render(
-    { guesses, answer }: RenderableProps<Props>,
+    { guesses, answer, hardMode }: RenderableProps<Props>,
     {
       analysis,
       aiPlays,
@@ -249,6 +252,7 @@ export default class Analysis extends Component<Props, State> {
                 <div class={utilStyles.container}>
                   <div class={styles.commentary}>
                     <PreCommentary
+                      hardMode={hardMode}
                       guessAnalysis={guessAnalysis}
                       turn={i}
                       remainingAnswers={
@@ -264,10 +268,12 @@ export default class Analysis extends Component<Props, State> {
                   guessAnalysis={guessAnalysis}
                   first={i === 0}
                   answer={answer}
+                  hardMode={hardMode}
                 />
                 <div class={utilStyles.container}>
                   <div class={styles.commentary}>
                     <PostCommentary
+                      hardMode={hardMode}
                       guessAnalysis={guessAnalysis}
                       turn={i}
                       answer={answer}
@@ -354,6 +360,7 @@ export default class Analysis extends Component<Props, State> {
                     beforeRemainingCounts={aiPlay.beforeRemainingCounts}
                     play={aiPlay.play}
                     strategy={aiPlay.strategy}
+                    hardMode={hardMode}
                   />
                 </div>
               </>

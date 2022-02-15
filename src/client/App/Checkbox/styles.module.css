@@ -1,0 +1,33 @@
+.checkbox {
+  cursor: pointer;
+  display: inline-grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  gap: 0.2em;
+
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.checkbox-input {
+  position: absolute;
+  left: -10000px;
+  opacity: 0;
+  pointer-events: none;
+
+  &:checked + .checkbox-icon .checkbox-tick {
+    display: inline;
+  }
+}
+
+.checkbox-icon {
+  --size: 24px;
+  width: var(--size);
+  height: var(--size);
+  fill: var(--theme-black);
+}
+
+.checkbox-tick {
+  display: none;
+}

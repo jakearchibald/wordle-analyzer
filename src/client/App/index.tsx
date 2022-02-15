@@ -32,6 +32,7 @@ function getStateUpdateFromURL(): Partial<State> {
 
   const seed = Number(urlParams.get('seed'));
   const guesses = urlParams.get('guesses')!;
+  const hardMode = urlParams.get('hm') === '1';
 
   if (
     Number.isNaN(seed) ||
@@ -56,6 +57,7 @@ function getStateUpdateFromURL(): Partial<State> {
     toAnalyze: {
       guesses: guessesArray.slice(0, 6),
       answer: guessesArray.slice(-1)[0],
+      hardMode,
     },
     showSpoilerWarning: !history.state?.skipSpoilerWarning,
   };
@@ -66,13 +68,15 @@ interface Props {}
 interface State {
   showSpoilerWarning: boolean;
   guessInputs: string[];
-  toAnalyze?: { guesses: string[]; answer: string };
+  hardModeInput: boolean;
+  toAnalyze?: { guesses: string[]; answer: string; hardMode: boolean };
 }
 
 export default class App extends Component<Props, State> {
   state: State = {
     showSpoilerWarning: false,
     guessInputs: Array.from({ length: 7 }, () => ''),
+    hardModeInput: localStorage.hardMode === '1',
     ...getStateUpdateFromURL(),
   };
 
@@ -92,17 +96,21 @@ export default class App extends Component<Props, State> {
     this.setState(getStateUpdateFromURL());
   }
 
-  #onGuessesInput = (guesses: string[]) => {
-    this.setState({ guessInputs: guesses });
+  #onGuessesInput = (guesses: string[], hardMode: boolean) => {
+    this.setState({ guessInputs: guesses, hardModeInput: hardMode });
   };
 
-  #onGuessesSubmit = (guesses: string[]) => {
-    const seed = Math.floor(Math.random() * 1000);
+  #onGuessesSubmit = (guesses: string[], hardMode: boolean) => {
+    const seed = Math.floor(Math.random() * 100);
     const joinedAnswers = guesses.join('');
     const encoded = encode(seed, joinedAnswers);
     const url = new URL('./', location.href);
     url.searchParams.set('seed', seed.toString());
     url.searchParams.set('guesses', encoded);
+    url.searchParams.set('hm', hardMode ? '1' : '0');
+
+    // Remember hardMode setting
+    localStorage.hardMode = hardMode ? '1' : '0';
 
     history.pushState({ skipSpoilerWarning: true }, '', url);
     this.#setStateFromUrl();
@@ -122,6 +130,7 @@ export default class App extends Component<Props, State> {
   ) => {
     return (
       <AnalysisComponent
+        hardMode={this.state.toAnalyze!.hardMode}
         answer={this.state.toAnalyze!.answer}
         guesses={this.state.toAnalyze!.guesses}
       />
@@ -130,7 +139,7 @@ export default class App extends Component<Props, State> {
 
   render(
     _: RenderableProps<Props>,
-    { guessInputs, toAnalyze, showSpoilerWarning }: State,
+    { guessInputs, toAnalyze, showSpoilerWarning, hardModeInput }: State,
   ) {
     return (
       <>
@@ -161,6 +170,7 @@ export default class App extends Component<Props, State> {
               values={guessInputs}
               onInput={this.#onGuessesInput}
               onSubmit={this.#onGuessesSubmit}
+              hardMode={hardModeInput}
             />
           )}
         </div>

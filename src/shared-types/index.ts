@@ -19,9 +19,9 @@ export interface PlayAnalysis {
   unusedClues: string[];
   averageRemaining: { common: number; all: number } | undefined;
   remainingAnswers: RemainingAnswers;
-  luck: Luck;
+  luck: Luck | undefined;
   commonWord: boolean;
-  guessQuality: number;
+  guessQuality: number | undefined;
 }
 
 export interface GuessAnalysis {
