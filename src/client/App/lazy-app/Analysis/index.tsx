@@ -252,6 +252,7 @@ export default class Analysis extends Component<Props, State> {
                 <div class={utilStyles.container}>
                   <div class={styles.commentary}>
                     <PreCommentary
+                      hardMode={hardMode}
                       guessAnalysis={guessAnalysis}
                       turn={i}
                       remainingAnswers={
@@ -272,6 +273,7 @@ export default class Analysis extends Component<Props, State> {
                 <div class={utilStyles.container}>
                   <div class={styles.commentary}>
                     <PostCommentary
+                      hardMode={hardMode}
                       guessAnalysis={guessAnalysis}
                       turn={i}
                       answer={answer}

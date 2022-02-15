@@ -16,12 +16,18 @@ interface Props {
   turn: number;
   guessAnalysis: GuessAnalysis;
   remainingAnswers: RemainingAnswers | undefined;
+  hardMode: boolean;
 }
 
 interface State {}
 
 export default class PreCommentary extends Component<Props, State> {
-  render({ turn, guessAnalysis, remainingAnswers }: RenderableProps<Props>) {
+  render({
+    turn,
+    guessAnalysis,
+    remainingAnswers,
+    hardMode,
+  }: RenderableProps<Props>) {
     const remainingCount =
       guessAnalysis.beforeRemainingCounts.common +
       guessAnalysis.beforeRemainingCounts.other;
@@ -98,7 +104,7 @@ export default class PreCommentary extends Component<Props, State> {
           ];
         }
 
-        if (aiStrategy === AIStrategy.EliminateUncommonWithAnswer) {
+        if (aiStrategy === AIStrategy.EliminateUncommonWithAnswer || hardMode) {
           return [
             <>
               With no common words remaining, the biggest challenge is thinking
@@ -168,6 +174,20 @@ export default class PreCommentary extends Component<Props, State> {
         );
 
       if (guessAnalysis.beforeRemainingCounts.common < 20) {
+        if (hardMode) {
+          return [
+            <>
+              The trick here is realising that there are still multiple likely
+              answers, and doing something smarter than just playing the first
+              thing that comes to mind. {turnInfo}
+            </>,
+            <>
+              Hard mode restricts what you can do. If there's a possible win
+              that eliminates most of the others, go for that, otherwise play
+              the most-common of the remaining answers.
+            </>,
+          ];
+        }
         if (aiStrategy === AIStrategy.EliminateCommonWithAnswer) {
           return [
             <>
@@ -202,8 +222,9 @@ export default class PreCommentary extends Component<Props, State> {
       return [
         <>
           With this many words remaining, the best strategy is to play some
-          letters that haven't already been played. Don't worry about picking a
-          winner yet. {turnInfo}
+          common letters that haven't already been played.{' '}
+          {!hardMode && <>Don't worry about picking a winner yet. </>}
+          {turnInfo}
         </>,
       ];
     })();
