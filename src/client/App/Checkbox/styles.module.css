@@ -5,6 +5,7 @@
   align-items: center;
   gap: 0.2em;
 
+  -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
 }
