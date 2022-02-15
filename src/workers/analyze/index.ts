@@ -98,10 +98,10 @@ function generateClue(answer: string, guess: string): Clue {
   };
 }
 
-export function generateBlockColors(
-  positionalMatches: FiveLetters,
-  positionalNotMatches: FiveLetters,
-): string {
+function generateBlockColors({
+  positionalMatches,
+  positionalNotMatches,
+}: Clue): string {
   let result = '';
 
   for (let i = 0; i < positionalMatches.length; i++) {
@@ -123,7 +123,7 @@ export function generateBlockColors(
 /**
  * Does an answer comply with a set of conditions?
  *
- * @param answer The answer to check
+ * @param guess The answer to check
  * @param positionalMatches Array like ['', 'b', 'b', '', ''] representing known letters + position. Empty string means unknown.
  * @param positionalNotMatches Array like ['c', 'a', '', '', 's'] representing letters + position that are known to be incorrect. Empty string means unknown.
  * @param additionalRequiredLetters Array of letters that are known to be in one of the spaces that isn't covered by positionalMatches.
@@ -131,16 +131,18 @@ export function generateBlockColors(
  * @returns
  */
 function possibleAnswer(
-  answer: string,
-  positionalMatches: FiveLetters,
-  positionalNotMatches: FiveLetters,
-  additionalRequiredLetters: string[],
-  remainingMustNotContain: Set<string>,
+  guess: string,
+  {
+    additionalRequiredLetters,
+    positionalMatches,
+    positionalNotMatches,
+    remainingMustNotContain,
+  }: Clue,
 ): boolean {
   const additionalRequiredLettersCopy = additionalRequiredLetters.slice();
 
-  for (let i = 0; i < answer.length; i++) {
-    const letter = answer[i];
+  for (let i = 0; i < guess.length; i++) {
+    const letter = guess[i];
 
     if (positionalMatches[i]) {
       if (positionalMatches[i] !== letter) return false;
@@ -318,14 +320,18 @@ function getClueViolations(
   };
 }
 
+interface RemainingCountOptions {
+  hardModeRequirements?: FlattenedClue;
+  onAnswerDone?: () => void;
+}
+
 /**
  * Figure out the number of possibilities remaining for particular guesses.
  */
 function getRemainingCounts(
   remainingAnswers: RemainingAnswers,
   guesses: string[],
-  hardModeClues: FlattenedClue | undefined,
-  onAnswerDone?: () => void,
+  { hardModeRequirements, onAnswerDone }: RemainingCountOptions = {},
 ): RemainingCountsResult {
   const counts: RemainingCountsResult = {
     common: guesses.map((guess) => [guess, []]) as [string, number[]][],
@@ -334,7 +340,12 @@ function getRemainingCounts(
   const allAnswers = [...remainingAnswers.common, ...remainingAnswers.other];
 
   for (const [i, guess] of guesses.entries()) {
-    if (hardModeClues && !validHardModeGuess(guess, hardModeClues)) continue;
+    if (
+      hardModeRequirements &&
+      !validHardModeGuess(guess, hardModeRequirements)
+    ) {
+      continue;
+    }
 
     const remainingCache: {
       [key: string]:
@@ -349,14 +360,8 @@ function getRemainingCounts(
         continue;
       }
 
-      const {
-        positionalMatches,
-        positionalNotMatches,
-        additionalRequiredLetters,
-        remainingMustNotContain,
-      } = generateClue(answer, guess);
-
-      const key = generateBlockColors(positionalMatches, positionalNotMatches);
+      const clue = generateClue(answer, guess);
+      const key = generateBlockColors(clue);
 
       if (remainingCache[key]) {
         counts.common[i][1].push(remainingCache[key]![0]);
@@ -368,15 +373,7 @@ function getRemainingCounts(
       let validCommonAnswers = 0;
 
       for (const [answerIndex, answer] of allAnswers.entries()) {
-        if (
-          possibleAnswer(
-            answer,
-            positionalMatches,
-            positionalNotMatches,
-            additionalRequiredLetters,
-            remainingMustNotContain,
-          )
-        ) {
+        if (possibleAnswer(answer, clue)) {
           validAnswers++;
           if (answerIndex < remainingAnswers.common.length) {
             validCommonAnswers++;
@@ -401,15 +398,9 @@ function getRemainingCounts(
 function getRemainingAverages(
   remainingAnswers: RemainingAnswers,
   guesses: string[],
-  hardModeClues: FlattenedClue | undefined,
-  onAnswerDone?: () => void,
+  options: RemainingCountOptions = {},
 ): RemainingAveragesResult {
-  const counts = getRemainingCounts(
-    remainingAnswers,
-    guesses,
-    hardModeClues,
-    onAnswerDone,
-  );
+  const counts = getRemainingCounts(remainingAnswers, guesses, options);
 
   // Convert the list of counts to averages
   return Object.fromEntries(
@@ -423,11 +414,15 @@ function getRemainingAverages(
   ) as RemainingAveragesResult;
 }
 
+interface GetRemainingAveragesOptions {
+  hardModeRequirements?: FlattenedClue;
+  onProgress?: (done: number, expecting: number) => void;
+}
+
 /** Multithreaded version of getRemainingAverages */
 async function getRemainingAveragesMT(
   remainingAnswers: RemainingAnswers,
-  hardModeClues: FlattenedClue | undefined,
-  onProgress: (done: number, expecting: number) => void,
+  { hardModeRequirements, onProgress }: GetRemainingAveragesOptions = {},
 ): Promise<RemainingAveragesResult> {
   if (threadPorts.length === 0) {
     throw Error('No worker threads available');
@@ -461,7 +456,7 @@ async function getRemainingAveragesMT(
               action: 'get-remaining-averages',
               remainingAnswers,
               guesses: guessesGroup,
-              hardModeClues,
+              hardModeRequirements,
               returnPort: port2,
             },
             [port2],
@@ -472,7 +467,7 @@ async function getRemainingAveragesMT(
             ({ data: message }: MessageEvent) => {
               if (message === 'progress') {
                 done++;
-                onProgress(done, expecting);
+                onProgress?.(done, expecting);
                 return;
               }
               if (message.action === 'error') {
@@ -508,7 +503,7 @@ async function getRemainingAveragesMT(
 export function getBestPlay(
   remainingAnswers: RemainingAnswers,
   remainingResult: RemainingAveragesResult,
-): [guess: string, strategy: AIStrategy] {
+): { guess: string; strategy: AIStrategy } {
   // Focus on the common words first.
   for (let [isCommon, remaining, bestGuesses] of [
     [true, remainingAnswers.common, remainingResult.common] as const,
@@ -518,10 +513,12 @@ export function getBestPlay(
     if (remaining.length === 0) continue;
     // If we're down to one option, play it.
     if (remaining.length === 1) {
-      return [
-        remaining[0],
-        isCommon ? AIStrategy.PlaySingleCommon : AIStrategy.PlaySingleUncommon,
-      ];
+      return {
+        guess: remaining[0],
+        strategy: isCommon
+          ? AIStrategy.PlaySingleCommon
+          : AIStrategy.PlaySingleUncommon,
+      };
     }
 
     // If we're down to two options, then always focus on eliminating from the 'all' list,
@@ -535,16 +532,18 @@ export function getBestPlay(
       // If the remaining answers don't eliminate enough, just go with the best guess.
       // If there are only two remaining, always wait for one of those to come along.
       if (guess[1] - bestGuess[1] > 0.5 && remaining.length !== 2) {
-        return [
-          bestGuess[0],
-          isCommon ? AIStrategy.EliminateCommon : AIStrategy.EliminateUncommon,
-        ];
+        return {
+          guess: bestGuess[0],
+          strategy: isCommon
+            ? AIStrategy.EliminateCommon
+            : AIStrategy.EliminateUncommon,
+        };
       }
       // Otherwise, go with a guess that's also a remaining answer.
       if (remaining.includes(guess[0])) {
-        return [
-          guess[0],
-          isCommon
+        return {
+          guess: guess[0],
+          strategy: isCommon
             ? remaining.length === 2
               ? AIStrategy.Play5050Common
               : AIStrategy.EliminateCommonWithAnswer
@@ -552,7 +551,7 @@ export function getBestPlay(
             remaining.length === 2
             ? AIStrategy.Play5050Uncommon
             : AIStrategy.EliminateUncommonWithAnswer,
-        ];
+        };
       }
     }
   }
@@ -565,7 +564,7 @@ function calculateLuck(
   beforeRemainingAnswers: RemainingAnswers,
   afterRemainingAnswers: RemainingAnswers,
   commonWordSet: Set<string>,
-  hardModeClues: FlattenedClue | undefined,
+  { hardModeRequirements }: { hardModeRequirements?: FlattenedClue } = {},
 ): Luck {
   const win =
     afterRemainingAnswers.common.length === 0 &&
@@ -580,15 +579,15 @@ function calculateLuck(
 
   const [remainingResult, numNewRemaining] = useCommonLists
     ? [
-        getRemainingCounts(
-          { ...beforeRemainingAnswers, other: [] },
-          [guess],
-          hardModeClues,
-        ),
+        getRemainingCounts({ ...beforeRemainingAnswers, other: [] }, [guess], {
+          hardModeRequirements,
+        }),
         afterRemainingAnswers.common.length,
       ]
     : [
-        getRemainingCounts(beforeRemainingAnswers, [guess], hardModeClues),
+        getRemainingCounts(beforeRemainingAnswers, [guess], {
+          hardModeRequirements,
+        }),
         afterRemainingAnswers.common.length +
           afterRemainingAnswers.other.length,
       ];
@@ -628,7 +627,7 @@ function getPlayAnalysis(
   beforeRemainingAnswers: RemainingAnswers,
   remainingAverages: RemainingAveragesResult,
   commonWords: Set<string>,
-  hardMode: boolean,
+  { hardMode = false }: { hardMode?: boolean } = {},
 ): PlayAnalysis {
   const clue = generateClue(answer, guess);
 
@@ -638,15 +637,7 @@ function getPlayAnalysis(
       : (Object.fromEntries(
           Object.entries(beforeRemainingAnswers).map(([key, answers]) => [
             key,
-            answers.filter((word) =>
-              possibleAnswer(
-                word,
-                clue.positionalMatches,
-                clue.positionalNotMatches,
-                clue.additionalRequiredLetters,
-                clue.remainingMustNotContain,
-              ),
-            ),
+            answers.filter((word) => possibleAnswer(word, clue)),
           ]),
         ) as RemainingAnswers);
 
@@ -687,10 +678,7 @@ function getPlayAnalysis(
   return {
     guess,
     clue,
-    colors: generateBlockColors(
-      clue.positionalMatches,
-      clue.positionalNotMatches,
-    ).split('') as CellColors,
+    colors: generateBlockColors(clue).split('') as CellColors,
     hardModeViolations: [
       ...clueViolations.missingPositionalMatches,
       ...clueViolations.missingAdditionalRequiredLetters,
@@ -715,7 +703,7 @@ function getPlayAnalysis(
       beforeRemainingAnswers,
       afterRemainingAnswers,
       commonWords,
-      hardMode ? flattenedClues : undefined,
+      { hardModeRequirements: hardMode ? flattenedClues : undefined },
     ),
     guessQuality,
   };
@@ -747,13 +735,17 @@ function bestPerformingPlay(
   return undefined;
 }
 
+interface AnalyzeGuessOptions {
+  hardMode?: boolean;
+  remainingAnswers?: RemainingAnswers;
+  onProgress?: (done: number, expecting: number) => void;
+}
+
 async function analyzeGuess(
   guess: string,
   answer: string,
   previousClues: Clue[],
-  hardMode: boolean,
-  remainingAnswers: RemainingAnswers | undefined,
-  onProgress: (done: number, expecting: number) => void,
+  { hardMode = false, remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
 ): Promise<GuessAnalysis> {
   let remainingAverages: RemainingAveragesResult | undefined;
 
@@ -767,19 +759,14 @@ async function analyzeGuess(
   }
 
   if (!remainingAverages) {
-    remainingAverages = await getRemainingAveragesMT(
-      remainingAnswers,
-      hardMode ? flattenedClues : undefined,
+    remainingAverages = await getRemainingAveragesMT(remainingAnswers, {
+      hardModeRequirements: hardMode ? flattenedClues : undefined,
       onProgress,
-    );
+    });
   }
 
   const commonWords = await getCommonWordSet();
-
-  const [aiGuess, aiStrategy] = getBestPlay(
-    remainingAnswers,
-    remainingAverages,
-  );
+  const aiBestPlay = getBestPlay(remainingAnswers, remainingAverages);
 
   const userPlay = getPlayAnalysis(
     guess,
@@ -788,19 +775,19 @@ async function analyzeGuess(
     remainingAnswers,
     remainingAverages,
     commonWords,
-    hardMode,
+    { hardMode },
   );
   const aiPlay =
-    aiGuess === guess
+    aiBestPlay.guess === guess
       ? userPlay
       : getPlayAnalysis(
-          aiGuess,
+          aiBestPlay.guess,
           answer,
           flattenedClues,
           remainingAnswers,
           remainingAverages,
           commonWords,
-          hardMode,
+          { hardMode },
         );
 
   return {
@@ -811,7 +798,7 @@ async function analyzeGuess(
     plays: {
       user: userPlay,
       ai: aiPlay,
-      aiStrategy,
+      aiStrategy: aiBestPlay.strategy,
       bestPlay: bestPerformingPlay(answer, [userPlay, aiPlay]),
     },
   };
@@ -820,9 +807,7 @@ async function analyzeGuess(
 async function getAiPlay(
   answer: string,
   previousClues: Clue[],
-  remainingAnswers: RemainingAnswers | undefined,
-  hardMode: boolean,
-  onProgress: (done: number, expecting: number) => void,
+  { hardMode = false, remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
 ): Promise<AIPlay> {
   const flattenedClues = flattenClues(previousClues);
 
@@ -836,23 +821,22 @@ async function getAiPlay(
   }
 
   if (!remainingAverages) {
-    remainingAverages = await getRemainingAveragesMT(
-      remainingAnswers,
-      hardMode ? flattenedClues : undefined,
+    remainingAverages = await getRemainingAveragesMT(remainingAnswers, {
+      hardModeRequirements: hardMode ? flattenedClues : undefined,
       onProgress,
-    );
+    });
   }
 
   const commonWords = await getCommonWordSet();
-  const [guess, strategy] = getBestPlay(remainingAnswers, remainingAverages);
+  const bestPlay = getBestPlay(remainingAnswers, remainingAverages);
   const play = await getPlayAnalysis(
-    guess,
+    bestPlay.guess,
     answer,
     flattenedClues,
     remainingAnswers,
     remainingAverages,
     commonWords,
-    hardMode,
+    { hardMode },
   );
 
   return {
@@ -861,17 +845,14 @@ async function getAiPlay(
       other: remainingAnswers.other.length,
     },
     play,
-    strategy,
+    strategy: bestPlay.strategy,
   };
 }
 
 function getPlayColors(answer: string, guesses: string[]): CellColors[] {
   return guesses.map((guess) => {
     const clue = generateClue(answer, guess);
-    return generateBlockColors(
-      clue.positionalMatches,
-      clue.positionalNotMatches,
-    ).split('') as CellColors;
+    return generateBlockColors(clue).split('') as CellColors;
   });
 }
 
@@ -894,20 +875,19 @@ async function messageListener(event: MessageEvent) {
     return;
   }
   if (event.data.action === 'get-remaining-averages') {
-    const remainingAnswers = event.data.remainingAnswers;
-    const guesses = event.data.guesses;
-    const hardModeClues = event.data.hardModeClues;
+    const remainingAnswers = event.data.remainingAnswers as RemainingAnswers;
+    const guesses = event.data.guesses as string[];
+    const hardModeRequirements = event.data
+      .hardModeRequirements as FlattenedClue;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
-      const result = getRemainingAverages(
-        remainingAnswers,
-        guesses,
-        hardModeClues,
-        () => {
+      const result = getRemainingAverages(remainingAnswers, guesses, {
+        hardModeRequirements,
+        onAnswerDone: () => {
           returnPort.postMessage('progress');
         },
-      );
+      });
       returnPort.postMessage({
         action: 'done',
         result,
@@ -923,28 +903,25 @@ async function messageListener(event: MessageEvent) {
     return;
   }
   if (event.data.action === 'analyze-guess') {
-    const guess = event.data.guess;
-    const answer = event.data.answer;
-    const previousClues = event.data.previousClues;
-    const remainingAnswers = event.data.remainingAnswers;
+    const guess = event.data.guess as string;
+    const answer = event.data.answer as string;
+    const previousClues = event.data.previousClues as Clue[];
+    const remainingAnswers = event.data.remainingAnswers as RemainingAnswers;
     const hardMode = event.data.hardMode as boolean;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
-      const result = await analyzeGuess(
-        guess,
-        answer,
-        previousClues,
+      const result = await analyzeGuess(guess, answer, previousClues, {
         hardMode,
         remainingAnswers,
-        (done, expecting) => {
+        onProgress: (done, expecting) => {
           returnPort.postMessage({
             action: 'progress',
             done,
             expecting,
           });
         },
-      );
+      });
       returnPort.postMessage({
         action: 'done',
         result,
@@ -960,26 +937,24 @@ async function messageListener(event: MessageEvent) {
     return;
   }
   if (event.data.action === 'ai-play') {
-    const answer = event.data.answer;
-    const previousClues = event.data.previousClues;
-    const remainingAnswers = event.data.remainingAnswers;
+    const answer = event.data.answer as string;
+    const previousClues = event.data.previousClues as Clue[];
+    const remainingAnswers = event.data.remainingAnswers as RemainingAnswers;
     const hardMode = event.data.hardMode as boolean;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
-      const result = await getAiPlay(
-        answer,
-        previousClues,
-        remainingAnswers,
+      const result = await getAiPlay(answer, previousClues, {
         hardMode,
-        (done, expecting) => {
+        remainingAnswers,
+        onProgress: (done, expecting) => {
           returnPort.postMessage({
             action: 'progress',
             done,
             expecting,
           });
         },
-      );
+      });
       returnPort.postMessage({
         action: 'done',
         result,
@@ -995,8 +970,8 @@ async function messageListener(event: MessageEvent) {
     return;
   }
   if (event.data.action === 'guesses-colors') {
-    const answer = event.data.answer;
-    const guesses = event.data.guesses;
+    const answer = event.data.answer as string;
+    const guesses = event.data.guesses as string[];
     const returnPort = event.data.returnPort as MessagePort;
 
     try {

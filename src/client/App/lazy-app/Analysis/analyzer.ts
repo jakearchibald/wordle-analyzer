@@ -48,6 +48,7 @@ function abortableWorkerFunction<R>(
 
 interface AnalyzeGuessOptions {
   remainingAnswers?: RemainingAnswers;
+  hardMode?: boolean;
   onProgress?: (done: number, expecting: number) => void;
 }
 
@@ -56,8 +57,7 @@ export function analyzeGuess(
   guess: string,
   answer: string,
   previousClues: Clue[],
-  hardMode: boolean,
-  { remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
+  { remainingAnswers, onProgress, hardMode = false }: AnalyzeGuessOptions = {},
 ): Promise<GuessAnalysis> {
   return abortableWorkerFunction(signal, () => {
     const { port1, port2 } = new MessageChannel();
@@ -110,8 +110,7 @@ export function aiPlay(
   signal: AbortSignal,
   answer: string,
   previousClues: Clue[],
-  hardMode: boolean,
-  { remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
+  { remainingAnswers, onProgress, hardMode = false }: AnalyzeGuessOptions = {},
 ): Promise<AIPlay> {
   return abortableWorkerFunction(signal, () => {
     const { port1, port2 } = new MessageChannel();

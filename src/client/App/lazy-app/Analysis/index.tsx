@@ -126,8 +126,8 @@ export default class Analysis extends Component<Props, State> {
             guess,
             this.props.answer,
             previousClues,
-            this.props.hardMode,
             {
+              hardMode: this.props.hardMode,
               remainingAnswers,
               onProgress: (done, expecting) => {
                 this.setState((state) => {
@@ -165,8 +165,8 @@ export default class Analysis extends Component<Props, State> {
             signal,
             this.props.answer,
             previousClues,
-            this.props.hardMode,
             {
+              hardMode: this.props.hardMode,
               remainingAnswers,
               onProgress: (done, expecting) => {
                 this.setState((state) => {
