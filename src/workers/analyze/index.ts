@@ -321,7 +321,6 @@ function getClueViolations(
 }
 
 interface RemainingCountOptions {
-  hardModeRequirements?: FlattenedClue;
   onAnswerDone?: () => void;
 }
 
@@ -331,7 +330,7 @@ interface RemainingCountOptions {
 function getRemainingCounts(
   remainingAnswers: RemainingAnswers,
   guesses: string[],
-  { hardModeRequirements, onAnswerDone }: RemainingCountOptions = {},
+  { onAnswerDone }: RemainingCountOptions = {},
 ): RemainingCountsResult {
   const counts: RemainingCountsResult = {
     common: guesses.map((guess) => [guess, []]) as [string, number[]][],
@@ -340,14 +339,6 @@ function getRemainingCounts(
   const allAnswers = [...remainingAnswers.common, ...remainingAnswers.other];
 
   for (const [i, guess] of guesses.entries()) {
-    if (
-      hardModeRequirements &&
-      !validHardModeGuess(guess, hardModeRequirements)
-    ) {
-      if (onAnswerDone) onAnswerDone();
-      continue;
-    }
-
     const remainingCache: {
       [key: string]:
         | [commonRemaining: number, allRemaining: number]
@@ -437,13 +428,16 @@ async function getRemainingAveragesMT(
   }
 
   const guesses = await getAllWords();
+  const validGuesses = hardModeRequirements
+    ? guesses.filter((guess) => validHardModeGuess(guess, hardModeRequirements))
+    : guesses;
 
   let done = 0;
-  const expecting = guesses.length;
+  const expecting = validGuesses.length;
 
-  const groupSize = Math.ceil(guesses.length / threadPorts.length);
+  const groupSize = Math.ceil(validGuesses.length / threadPorts.length);
   const guessesGroups = Array.from({ length: threadPorts.length }, (_, i) =>
-    guesses.slice(i * groupSize, (i + 1) * groupSize),
+    validGuesses.slice(i * groupSize, (i + 1) * groupSize),
   );
 
   const resultSets = await Promise.all(
@@ -457,7 +451,6 @@ async function getRemainingAveragesMT(
               action: 'get-remaining-averages',
               remainingAnswers,
               guesses: guessesGroup,
-              hardModeRequirements,
               returnPort: port2,
             },
             [port2],
@@ -565,7 +558,6 @@ function calculateLuck(
   beforeRemainingAnswers: RemainingAnswers,
   afterRemainingAnswers: RemainingAnswers,
   commonWordSet: Set<string>,
-  { hardModeRequirements }: { hardModeRequirements?: FlattenedClue } = {},
 ): Luck {
   const win =
     afterRemainingAnswers.common.length === 0 &&
@@ -580,15 +572,11 @@ function calculateLuck(
 
   const [remainingResult, numNewRemaining] = useCommonLists
     ? [
-        getRemainingCounts({ ...beforeRemainingAnswers, other: [] }, [guess], {
-          hardModeRequirements,
-        }),
+        getRemainingCounts({ ...beforeRemainingAnswers, other: [] }, [guess]),
         afterRemainingAnswers.common.length,
       ]
     : [
-        getRemainingCounts(beforeRemainingAnswers, [guess], {
-          hardModeRequirements,
-        }),
+        getRemainingCounts(beforeRemainingAnswers, [guess]),
         afterRemainingAnswers.common.length +
           afterRemainingAnswers.other.length,
       ];
@@ -649,41 +637,47 @@ function getPlayAnalysis(
     (item) => item[0] === guess,
   );
 
+  const clueViolations = getClueViolations(guess, flattenedClues);
+  const hardModeViolations = [
+    ...clueViolations.missingPositionalMatches,
+    ...clueViolations.missingAdditionalRequiredLetters,
+  ];
+  const cheat = hardMode && hardModeViolations.length > 0;
+
   const commonRemainingResult =
     remainingAverages.common[commonRemainingResultIndex];
   const allRemainingResult = remainingAverages.all[allRemainingResultIndex];
 
-  const [guessQualityList, guessQualityIndex] =
-    afterRemainingAnswers.common.length !== 0
-      ? [remainingAverages.common, commonRemainingResultIndex]
-      : [remainingAverages.all, allRemainingResultIndex];
+  let guessQuality: number | undefined = undefined;
 
-  let guessQualityNextIndex = guessQualityIndex + 1;
+  // If it's a hard-mode violation, we don't have the correct data to calculate guessQuality
+  if (!cheat) {
+    const [guessQualityList, guessQualityIndex] =
+      afterRemainingAnswers.common.length !== 0
+        ? [remainingAverages.common, commonRemainingResultIndex]
+        : [remainingAverages.all, allRemainingResultIndex];
 
-  while (true) {
-    if (
-      guessQualityNextIndex === guessQualityList.length ||
-      guessQualityList[guessQualityNextIndex][1] !==
-        guessQualityList[guessQualityIndex][1]
-    ) {
-      break;
+    let guessQualityNextIndex = guessQualityIndex + 1;
+
+    while (true) {
+      if (
+        guessQualityNextIndex === guessQualityList.length ||
+        guessQualityList[guessQualityNextIndex][1] !==
+          guessQualityList[guessQualityIndex][1]
+      ) {
+        break;
+      }
+      guessQualityNextIndex++;
     }
-    guessQualityNextIndex++;
+
+    guessQuality = 1 - (guessQualityNextIndex - 1) / guessQualityList.length;
   }
-
-  const guessQuality =
-    1 - (guessQualityNextIndex - 1) / guessQualityList.length;
-
-  const clueViolations = getClueViolations(guess, flattenedClues);
 
   return {
     guess,
     clue,
     colors: generateBlockColors(clue).split('') as CellColors,
-    hardModeViolations: [
-      ...clueViolations.missingPositionalMatches,
-      ...clueViolations.missingAdditionalRequiredLetters,
-    ],
+    hardModeViolations,
     unusedClues: [
       ...clueViolations.missingPositionalMatches,
       ...clueViolations.violatedPositionalNotMatches,
@@ -699,13 +693,14 @@ function getPlayAnalysis(
           }
         : undefined,
     commonWord: commonWords.has(guess),
-    luck: calculateLuck(
-      guess,
-      beforeRemainingAnswers,
-      afterRemainingAnswers,
-      commonWords,
-      { hardModeRequirements: hardMode ? flattenedClues : undefined },
-    ),
+    luck: cheat
+      ? undefined
+      : calculateLuck(
+          guess,
+          beforeRemainingAnswers,
+          afterRemainingAnswers,
+          commonWords,
+        ),
     guessQuality,
   };
 }
@@ -878,13 +873,10 @@ async function messageListener(event: MessageEvent) {
   if (event.data.action === 'get-remaining-averages') {
     const remainingAnswers = event.data.remainingAnswers as RemainingAnswers;
     const guesses = event.data.guesses as string[];
-    const hardModeRequirements = event.data
-      .hardModeRequirements as FlattenedClue;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
       const result = getRemainingAverages(remainingAnswers, guesses, {
-        hardModeRequirements,
         onAnswerDone: () => {
           returnPort.postMessage('progress');
         },

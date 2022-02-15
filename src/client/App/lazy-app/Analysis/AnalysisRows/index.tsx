@@ -119,7 +119,7 @@ export default class AnalysisRows extends Component<Props, State> {
                     </span>
                   </>
                 ) : (
-                  'Word not found'
+                  '???'
                 )}
               </td>
             ))}
@@ -128,7 +128,11 @@ export default class AnalysisRows extends Component<Props, State> {
         <tr>
           <th scope="row">Guess quality</th>
           {plays.map((play) => (
-            <td>{formatNumber(play.guessQuality * 100)}%</td>
+            <td>
+              {play.guessQuality === undefined
+                ? '???'
+                : formatNumber(play.guessQuality * 100) + '%'}
+            </td>
           ))}
         </tr>
         {initalRemaining > 1 && !allGuessesRight && (
@@ -170,7 +174,7 @@ export default class AnalysisRows extends Component<Props, State> {
             <th scope="row">Luck rating</th>
 
             {plays.map((play) => (
-              <td>{getLuck(play.luck)}</td>
+              <td>{play.luck ? getLuck(play.luck) : '???'}</td>
             ))}
           </tr>
         )}
