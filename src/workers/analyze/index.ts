@@ -344,6 +344,7 @@ function getRemainingCounts(
       hardModeRequirements &&
       !validHardModeGuess(guess, hardModeRequirements)
     ) {
+      if (onAnswerDone) onAnswerDone();
       continue;
     }
 
