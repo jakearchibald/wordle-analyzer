@@ -6,7 +6,7 @@ const expectedCaches = [versionedCache];
 
 self.addEventListener('install', (event) => {
   // No point updating the old origin.
-  if (location.origin === 'https://wordle-analyzer.netlify.app/') return;
+  if (location.origin === 'https://wordle-analyzer.netlify.app') return;
 
   event.waitUntil(
     (async function () {
@@ -50,7 +50,7 @@ self.addEventListener('fetch', (event) => {
 
   // Redirect from the old origin.
   if (
-    url.origin === 'https://wordle-analyzer.netlify.app/' &&
+    url.origin === 'https://wordle-analyzer.netlify.app' &&
     event.request.mode === 'navigate'
   ) {
     url.host = 'wordle-analyzer.com';
