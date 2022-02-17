@@ -54,6 +54,9 @@ self.addEventListener('fetch', (event) => {
     event.request.mode === 'navigate'
   ) {
     url.host = 'wordle-analyzer.com';
+    if (url.searchParams.has('guesses')) {
+      url.searchParams.set('skip-spoiler-warning', '1');
+    }
     event.respondWith(Response.redirect(url, 301));
     return;
   }

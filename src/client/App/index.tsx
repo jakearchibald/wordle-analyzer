@@ -43,9 +43,20 @@ function getStateUpdateFromURL(): Partial<State> {
     return { toAnalyze: undefined };
   }
 
-  if (sessionStorage.skipNextSpoilerWarning) {
+  if (
+    sessionStorage.skipNextSpoilerWarning ||
+    urlParams.get('skip-spoiler-warning') === '1'
+  ) {
     sessionStorage.skipNextSpoilerWarning = '';
-    history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
+
+    const newURL = new URL(location.href);
+    newURL.searchParams.delete('skip-spoiler-warning');
+
+    history.replaceState(
+      { ...history.state, skipSpoilerWarning: true },
+      '',
+      newURL.href,
+    );
   }
 
   const decoded = decode(seed, guesses);
