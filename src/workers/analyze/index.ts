@@ -609,6 +609,35 @@ function calculateLuck(
       };
 }
 
+function calculateGuessQuality(
+  afterRemainingAnswers: RemainingAnswers,
+  guessAverages: RemainingAveragesResult,
+  commonIndex: number,
+  allIndex: number,
+): number {
+  const [guessQualityList, guessQualityIndex] =
+    afterRemainingAnswers.common.length !== 0
+      ? [guessAverages.common, commonIndex]
+      : [guessAverages.all, allIndex];
+
+  let uniqueRemaining = 0;
+  let lastRemaining = -1;
+  let guessUniqueIndex = -1;
+  const guessAverageRemaining = guessQualityList[guessQualityIndex][1];
+
+  for (const [_, averageRemaining] of guessQualityList) {
+    if (lastRemaining !== averageRemaining) {
+      if (guessAverageRemaining === averageRemaining) {
+        guessUniqueIndex = uniqueRemaining;
+      }
+      uniqueRemaining++;
+      lastRemaining = averageRemaining;
+    }
+  }
+
+  return 1 - guessUniqueIndex / uniqueRemaining;
+}
+
 function getPlayAnalysis(
   guess: string,
   answer: string,
@@ -648,31 +677,6 @@ function getPlayAnalysis(
     remainingAverages.common[commonRemainingResultIndex];
   const allRemainingResult = remainingAverages.all[allRemainingResultIndex];
 
-  let guessQuality: number | undefined = undefined;
-
-  // If it's a hard-mode violation, we don't have the correct data to calculate guessQuality
-  if (!cheat) {
-    const [guessQualityList, guessQualityIndex] =
-      afterRemainingAnswers.common.length !== 0
-        ? [remainingAverages.common, commonRemainingResultIndex]
-        : [remainingAverages.all, allRemainingResultIndex];
-
-    let guessQualityNextIndex = guessQualityIndex + 1;
-
-    while (true) {
-      if (
-        guessQualityNextIndex === guessQualityList.length ||
-        guessQualityList[guessQualityNextIndex][1] !==
-          guessQualityList[guessQualityIndex][1]
-      ) {
-        break;
-      }
-      guessQualityNextIndex++;
-    }
-
-    guessQuality = 1 - (guessQualityNextIndex - 1) / guessQualityList.length;
-  }
-
   return {
     guess,
     clue,
@@ -701,7 +705,14 @@ function getPlayAnalysis(
           afterRemainingAnswers,
           commonWords,
         ),
-    guessQuality,
+    guessQuality: cheat
+      ? undefined
+      : calculateGuessQuality(
+          afterRemainingAnswers,
+          remainingAverages,
+          commonRemainingResultIndex,
+          allRemainingResultIndex,
+        ),
   };
 }
 
