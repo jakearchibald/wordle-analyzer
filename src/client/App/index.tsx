@@ -86,7 +86,8 @@ interface State {
 export default class App extends Component<Props, State> {
   state: State = {
     showSpoilerWarning: false,
-    guessInputs: Array.from({ length: 7 }, () => ''),
+    guessInputs:
+      history.state?.guessInputs || Array.from({ length: 7 }, () => ''),
     hardModeInput: localStorage.hardMode === '1',
     ...getStateUpdateFromURL(),
   };
@@ -122,6 +123,12 @@ export default class App extends Component<Props, State> {
 
     // Remember hardMode setting
     localStorage.hardMode = hardMode ? '1' : '0';
+
+    // Remember input state
+    history.replaceState(
+      { ...history.state, guessInputs: this.state.guessInputs },
+      '',
+    );
 
     history.pushState({ skipSpoilerWarning: true }, '', url);
     this.#setStateFromUrl();
