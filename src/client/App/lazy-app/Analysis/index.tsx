@@ -98,7 +98,8 @@ export default class Analysis extends Component<Props, State> {
         ),
       });
 
-      const invalidAnswers = await getInvalidWords(signal, this.props.guesses);
+      const words = [...new Set([...this.props.guesses, this.props.answer])];
+      const invalidAnswers = await getInvalidWords(signal, words);
 
       if (invalidAnswers.length !== 0) {
         this.setState({
@@ -229,6 +230,11 @@ export default class Analysis extends Component<Props, State> {
             </>
           )}
         </div>
+        {guessCellColors && guesses[guesses.length - 1] !== answer && (
+          <div class={utilStyles.container}>
+            <p class={styles.commentary}>The correct answer was "{answer}".</p>
+          </div>
+        )}
         {guessCellColors && (
           <Actions
             cellColors={guessCellColors}
