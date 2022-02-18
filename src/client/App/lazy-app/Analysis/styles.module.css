@@ -8,7 +8,9 @@
   display: grid;
   grid-auto-flow: row;
   gap: 0.3rem;
-  margin: 1rem 0;
+  margin: 1rem auto;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 
 .pill-heading {
