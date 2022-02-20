@@ -179,7 +179,7 @@ interface FlattenedClue {
     Set<string>,
     Set<string>,
   ];
-  requiredLetters: string;
+  additionalRequiredLetters: string;
   remainingMustNotContain: Set<string>;
 }
 
@@ -216,12 +216,21 @@ function flattenClues(clues: Clue[]): FlattenedClue {
 
     // Process not-matches
     for (const [i, notMatch] of clue.positionalNotMatches.entries()) {
-      positionalNotMatches[i].add(notMatch);
+      if (notMatch !== '') positionalNotMatches[i].add(notMatch);
+    }
+  }
+
+  let additionalRequiredLetters = requiredLetters;
+
+  // Additional required letters don't include positional matches
+  for (const entry of positionalMatches) {
+    if (entry) {
+      additionalRequiredLetters = additionalRequiredLetters.replace(entry, '');
     }
   }
 
   return {
-    requiredLetters,
+    additionalRequiredLetters,
     positionalMatches,
     positionalNotMatches,
     remainingMustNotContain,
@@ -235,13 +244,11 @@ function validHardModeGuess(
   guess: string,
   flattenedClues: FlattenedClue,
 ): boolean {
-  let requiredLettersRemaining = flattenedClues.requiredLetters;
+  let requiredLettersRemaining = flattenedClues.additionalRequiredLetters;
 
   for (const [i, letter] of [...guess].entries()) {
-    if (
-      flattenedClues.positionalMatches[i] &&
-      flattenedClues.positionalMatches[i] !== letter
-    ) {
+    if (flattenedClues.positionalMatches[i] !== '') {
+      if (flattenedClues.positionalMatches[i] === letter) continue;
       return false;
     }
 
@@ -280,36 +287,37 @@ function getClueViolations(
   }
 
   // Check required letters:
-  let requiredLettersRemaining = flattenedClues.requiredLetters;
+  let additionalRequiredLetters = flattenedClues.additionalRequiredLetters;
 
-  for (const letter of guess) {
-    const len = requiredLettersRemaining.length;
-    requiredLettersRemaining = requiredLettersRemaining.replace(letter, '');
+  for (const [i, letter] of [...guess].entries()) {
+    if (flattenedClues.positionalMatches[i] !== '') {
+      // If it's a match, we don't check additionalRequiredLetters
+      if (flattenedClues.positionalMatches[i] === letter) continue;
+
+      missingPositionalMatches.add(
+        `${
+          numberWithOrdinal[i]
+        } letter must be "${flattenedClues.positionalMatches[
+          i
+        ].toUpperCase()}"`,
+      );
+    }
+
+    const beforeLength = additionalRequiredLetters.length;
+    additionalRequiredLetters = additionalRequiredLetters.replace(letter, '');
     // remainingMustNotContain is only checked if the letter is not found in positionalMatches or additionalRequiredLetters.
     // This allows a letter to appear in positionalMatches and/or additionalRequiredLetters, and remainingMustNotContain.
     // Eg, if additionalRequiredLetters contains 's' and remainingMustNotContain contains 's', this ensures the answer must contain one 's'.
     if (
-      len === requiredLettersRemaining.length &&
+      beforeLength === additionalRequiredLetters.length &&
       flattenedClues.remainingMustNotContain.has(letter)
     ) {
       violatedMustNotContain.add(`Too many "${letter.toUpperCase()}"s`);
     }
   }
 
-  for (const letter of requiredLettersRemaining) {
-    const positionalIndex = flattenedClues.positionalMatches.indexOf(letter);
-    if (positionalIndex !== -1) {
-      missingPositionalMatches.add(
-        `${
-          numberWithOrdinal[positionalIndex]
-        } letter must be "${letter.toUpperCase()}"`,
-      );
-      flattenedClues.positionalMatches[positionalIndex] = '';
-    } else {
-      missingAdditionalRequiredLetters.add(
-        `Too few "${letter.toUpperCase()}"s`,
-      );
-    }
+  for (const letter of additionalRequiredLetters) {
+    missingAdditionalRequiredLetters.add(`Too few "${letter.toUpperCase()}"s`);
   }
 
   return {
