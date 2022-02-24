@@ -124,7 +124,7 @@ function getCommentaryOnFirstGuess(guess: string) {
     return <p>Whey! "arsed" is my favorite naughty word to start with.</p>;
   }
   if (guess === 'smart') {
-    return <p>Huh, that's the word my girlfriend always starts with.</p>;
+    return <p>Huh, that's the word my partner always starts with.</p>;
   }
   if (rude.has(guess)) {
     return (
