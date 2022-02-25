@@ -4,3 +4,4 @@ node_modules
 *.css.d.ts
 .tmp
 build
+built-netlify-functions
