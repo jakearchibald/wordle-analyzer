@@ -6,6 +6,8 @@ import htmlText from 'built-asset-text:index.html';
 const socialRe = /\/c\/social-large-[^\.]+.png/g;
 
 export const handler: Handler = async (event, context) => {
+  console.log(process.env.LD_LIBRARY_PATH);
+
   let body = htmlText;
 
   if (event.queryStringParameters?.guesses) {
