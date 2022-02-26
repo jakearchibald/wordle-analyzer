@@ -12,6 +12,7 @@
  */
 import { h, FunctionalComponent, Fragment } from 'preact';
 
+import { allSrc } from 'client-bundle:client/social-design';
 import cssSource from 'css:./styles.module.css';
 import * as styles from './styles.module.css';
 import { escapeStyleScriptContent } from 'static-build/utils';
@@ -21,6 +22,7 @@ interface Props {}
 const SocialDesign: FunctionalComponent<Props> = () => (
   <html lang="en">
     <head>
+      <meta charSet="utf-8" />
       <title>Wordle Analyzer</title>
       <style
         dangerouslySetInnerHTML={{
@@ -29,29 +31,37 @@ const SocialDesign: FunctionalComponent<Props> = () => (
       />
     </head>
     <body>
-      <div class={styles.canvas}>
-        <div class={styles.main}>
-          <div></div>
-          <div class={styles.tableHeading}>Skill</div>
-          <div class={styles.tableHeading}>Luck</div>
-          {Array(3)
-            .fill('')
-            .map(() => (
-              <>
-                <div class={styles.guess}>
-                  <div class={styles.guessLetter} />
-                  <div class={styles.guessLetter} />
-                  <div class={styles.guessLetter} />
-                  <div class={styles.guessLetter} />
-                  <div class={styles.guessLetter} />
-                </div>
-                <div class={styles.tableContent}>⭐⭐⭐⭐⭐</div>
-                <div class={styles.tableContent}>⭐⭐⭐⭐⭐</div>
-              </>
-            ))}
+      <div class={styles.container}>
+        <div class={styles.canvas}>
+          <div class={styles.main}>
+            <div></div>
+            <div class={styles.tableHeading}>Skill</div>
+            <div class={styles.tableHeading}>Luck</div>
+            {Array(4)
+              .fill('')
+              .map(() => (
+                <>
+                  <div class={styles.guess}>
+                    <div class={styles.guessLetter} />
+                    <div class={styles.guessLetter} />
+                    <div class={styles.guessLetter} />
+                    <div class={styles.guessLetter} />
+                    <div class={styles.guessLetter} />
+                  </div>
+                  <div class={styles.tableContent}>⭐⭐⭐⭐⭐</div>
+                  <div class={styles.tableContent}>⭐⭐⭐⭐⭐</div>
+                </>
+              ))}
+          </div>
+          <div class={styles.footer}>wordle-analyzer.com</div>
         </div>
-        <div class={styles.footer}>wordle-analyzer.com</div>
+        <canvas class={[styles.realCanvas, 'canvas'].join(' ')} />
       </div>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: escapeStyleScriptContent(allSrc),
+        }}
+      />
     </body>
   </html>
 );

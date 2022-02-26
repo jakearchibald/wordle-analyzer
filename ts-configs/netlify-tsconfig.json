@@ -4,5 +4,9 @@
     "lib": ["esnext"],
     "types": ["node"]
   },
-  "include": ["../src/netlify-functions"]
+  "include": [
+    "../src/shared",
+    "../src/shared-types",
+    "../src/netlify-functions"
+  ]
 }

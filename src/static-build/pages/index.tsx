@@ -27,6 +27,7 @@ interface Props {}
 const Index: FunctionalComponent<Props> = () => (
   <html lang="en">
     <head>
+      <meta charSet="utf-8" />
       <title>Wordle Analyzer</title>
       <meta name="theme-color" content="#6aaa64" />
       <meta name="viewport" content="width=device-width, minimum-scale=1.0" />

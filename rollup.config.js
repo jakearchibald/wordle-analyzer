@@ -155,7 +155,10 @@ export default async function ({ watch }) {
       ],
     },
     {
-      input: ['src/netlify-functions/page.ts'],
+      input: [
+        'src/netlify-functions/page.ts',
+        'src/netlify-functions/social.ts',
+      ],
       external: ['canvas'],
       output: {
         dir: 'built-netlify-functions',

@@ -1,3 +1,8 @@
+.container {
+  transform-origin: 0 0;
+  transform: scale(0.2);
+}
+
 .canvas {
   --theme-present: #c9b458;
   --theme-correct: #6aaa64;
@@ -6,13 +11,19 @@
   width: 1920px;
   height: 960px;
   border: 1px solid #000;
-  transform-origin: 0 0;
-  transform: scale(0.3);
   position: relative;
   display: grid;
   grid-template-rows: 1fr max-content;
   font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
   --row-height: 97px;
+}
+
+.real-canvas {
+  width: 1920px;
+  height: 960px;
+  border: 1px solid #000;
+  display: block;
+  margin-top: 200px;
 }
 
 .main {
