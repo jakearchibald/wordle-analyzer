@@ -21,12 +21,13 @@ export function renderPage(vnode: VNode) {
 }
 
 interface OutputMap {
-  [path: string]: string;
+  [path: string]: string | false;
 }
 
 export function writeFiles(toOutput: OutputMap) {
   Promise.all(
     Object.entries(toOutput).map(async ([path, content]) => {
+      if (content === false) return;
       const pathParts = ['.tmp', 'build', 'static', ...path.split('/')];
       await fsp.mkdir(joinPath(...pathParts.slice(0, -1)), { recursive: true });
       const fullPath = joinPath(...pathParts);

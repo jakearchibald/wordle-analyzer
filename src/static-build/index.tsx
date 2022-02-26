@@ -17,15 +17,17 @@ import IndexPage from './pages/index';
 import * as socialIconURL from 'img-url:static-build/assets/social-icon.png';
 import * as maskableIconURL from 'img-url:static-build/assets/maskable-icon.png';
 import { lookup as lookupMime } from 'mime-types';
+import SocialDesign from './pages/social-design';
 
 const manifestSize = ({ width, height }: { width: number; height: number }) =>
   `${width}x${height}`;
 
 interface Output {
-  [outputPath: string]: string;
+  [outputPath: string]: string | false;
 }
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
+  'social-design/index.html': !__PRODUCTION__ && renderPage(<SocialDesign />),
   'manifest.json': JSON.stringify({
     name: 'Wordle Analyzer',
     short_name: 'Wordle Analyzer',

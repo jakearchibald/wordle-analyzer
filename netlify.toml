@@ -1,2 +1,5 @@
 [functions]
   directory = "built-netlify-functions"
+
+[dev]
+  publish = ".tmp/build/static"

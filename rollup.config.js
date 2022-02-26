@@ -32,6 +32,7 @@ import emitFiles from './lib/emit-files-plugin';
 import serviceWorkerPlugin from './lib/sw-plugin';
 import entryDataPlugin from './lib/entry-data-plugin';
 import entryURLPlugin from './lib/entry-url-plugin';
+import builtAssetTextPlugin from './lib/built-asset-text-plugin';
 
 const __MAJOR_VERSION__ = Number(
   require('./package.json').version.split('.')[0],
@@ -55,7 +56,7 @@ function jsFileName(chunkInfo) {
 }
 
 export default async function ({ watch }) {
-  await del('.tmp/build');
+  await del(['.tmp/build', 'built-netlify-functions']);
 
   const isProduction = !watch;
 
@@ -154,18 +155,21 @@ export default async function ({ watch }) {
       ],
     },
     {
-      input: ['src/netlify-functions/demo.ts'],
+      input: ['src/netlify-functions/page.ts'],
+      external: ['canvas'],
       output: {
         dir: 'built-netlify-functions',
         format: 'cjs',
         assetFileNames: staticPath,
       },
-      watch: watchOptions,
+      watch: { ...watchOptions, exclude: [] },
       plugins: [
         simpleTS('.', {
           watch,
           noBuild: true,
         }),
+        builtAssetTextPlugin({ devMode: !!watch }),
+        nodeExternalPlugin(),
       ],
     },
   ];
