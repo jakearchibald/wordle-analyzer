@@ -171,7 +171,7 @@ export default async function ({ watch }) {
           watch,
           noBuild: true,
         }),
-        builtAssetTextPlugin({ devMode: !!watch }),
+        builtAssetTextPlugin(),
         nodeExternalPlugin(),
       ],
     },
