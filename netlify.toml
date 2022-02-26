@@ -1,3 +1,6 @@
+[build.environment]
+  LD_LIBRARY_PATH = "/var/task/node_modules/canvas/build/Release:$LD_LIBRARY_PATH"
+
 [functions]
   directory = "built-netlify-functions"
 
