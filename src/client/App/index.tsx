@@ -74,26 +74,44 @@ function getStateUpdateFromURL(): Partial<State> {
   };
 }
 
-interface Props {}
+interface Props { }
 
 interface State {
   showSpoilerWarning: boolean;
   guessInputs: string[];
   hardModeInput: boolean;
-  toAnalyze?: { guesses: string[]; answer: string; hardMode: boolean };
+  wordsToRememberInput: number;
+  toAnalyze?: { guesses: string[]; answer: string; hardMode: boolean; };
 }
 
 export default class App extends Component<Props, State> {
   state: State = {
     showSpoilerWarning: false,
     guessInputs:
-      history.state?.guessInputs || Array.from({ length: 7 }, () => ''),
+      history.state?.guessInputs || this.#getBaseGuesses(),
     hardModeInput: localStorage.hardMode === '1',
+    wordsToRememberInput: +(localStorage.wordsToRemember | 0),
     ...getStateUpdateFromURL(),
   };
 
   componentDidMount() {
     addEventListener('popstate', () => this.#setStateFromUrl());
+  }
+
+  #getRememberedGuesses() {
+    let guesses: string[] = [];
+    try {
+      //get the current remeberedWords from localSotrage and parse it as an array of string
+      guesses = JSON.parse(localStorage.rememberedWords) as string[];
+    } catch (e) { }
+    return guesses;
+  }
+
+  #getBaseGuesses() {
+    const base = Array.from({ length: 7 }, () => '');
+    const remembered = this.#getRememberedGuesses();
+    base.splice(0, remembered.length, ...remembered);
+    return base;
   }
 
   async #setStateFromUrl() {
@@ -108,11 +126,11 @@ export default class App extends Component<Props, State> {
     this.setState(getStateUpdateFromURL());
   }
 
-  #onGuessesInput = (guesses: string[], hardMode: boolean) => {
-    this.setState({ guessInputs: guesses, hardModeInput: hardMode });
+  #onGuessesInput = (guesses: string[], hardMode: boolean, wordsToRemember: number) => {
+    this.setState({ guessInputs: guesses, hardModeInput: hardMode, wordsToRememberInput: wordsToRemember });
   };
 
-  #onGuessesSubmit = (guesses: string[], hardMode: boolean) => {
+  #onGuessesSubmit = (guesses: string[], hardMode: boolean, wordsToRemember: number) => {
     const seed = Math.floor(Math.random() * 100);
     const joinedAnswers = guesses.join('');
     const encoded = encode(seed, joinedAnswers);
@@ -123,7 +141,22 @@ export default class App extends Component<Props, State> {
 
     // Remember hardMode setting
     localStorage.hardMode = hardMode ? '1' : '0';
-
+    //remember how many words to remember
+    localStorage.wordsToRemember = wordsToRemember;
+    let toUpdate: string[] = this.#getRememberedGuesses();
+    //slice the guess array from the start to wordsToRemember removing eventually void guesses
+    //eg. 3 words to remember selected but only 2 words inserted
+    const toRemember: string[] = guesses.slice(0, wordsToRemember).filter(guess => guess !== "");
+    //if the current remembered guesses is longer than the amount of words to remember we need to
+    //completely substitute the array
+    if (toUpdate.length > wordsToRemember) {
+      toUpdate = toRemember;
+    } else {
+      //otherwise we substitute toRemember.lenght elements
+      toUpdate.splice(0, toRemember.length, ...toRemember);
+    }
+    //than we save the remembered words to local storage
+    localStorage.rememberedWords = JSON.stringify(toUpdate);
     // Remember input state
     history.replaceState(
       { ...history.state, guessInputs: this.state.guessInputs },
@@ -157,7 +190,7 @@ export default class App extends Component<Props, State> {
 
   render(
     _: RenderableProps<Props>,
-    { guessInputs, toAnalyze, showSpoilerWarning, hardModeInput }: State,
+    { guessInputs, toAnalyze, showSpoilerWarning, hardModeInput, wordsToRememberInput }: State,
   ) {
     return (
       <>
@@ -167,8 +200,8 @@ export default class App extends Component<Props, State> {
               showSpoilerWarning
                 ? 'spoilerWarning'
                 : toAnalyze
-                ? 'results'
-                : 'enterWords'
+                  ? 'results'
+                  : 'enterWords'
             }
           />
           {toAnalyze ? (
@@ -189,6 +222,7 @@ export default class App extends Component<Props, State> {
               onInput={this.#onGuessesInput}
               onSubmit={this.#onGuessesSubmit}
               hardMode={hardModeInput}
+              wordsToRemember={wordsToRememberInput}
             />
           )}
         </div>
