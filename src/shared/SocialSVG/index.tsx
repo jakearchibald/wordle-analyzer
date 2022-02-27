@@ -32,7 +32,7 @@ export interface Props {
 }
 
 const width = 1920;
-const height = 960;
+const height = 998;
 
 const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
   const {
