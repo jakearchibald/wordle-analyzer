@@ -20,7 +20,8 @@ import Header from './Header';
 import faviconURL from 'url:static-build/assets/favicon.png';
 import socialImageURL from 'url:static-build/assets/social-large.png';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
-import { escapeStyleScriptContent, siteOrigin } from 'static-build/utils';
+import { siteOrigin } from 'static-build/utils';
+import { escapeStyleScriptContent } from 'shared/utils';
 
 interface Props {}
 
@@ -46,13 +47,11 @@ const Index: FunctionalComponent<Props> = () => (
         content="Discover if your Wordle guesses were luck, or genius"
       />
       <link rel="manifest" href="/manifest.json" />
-      {
-        <style
-          dangerouslySetInnerHTML={{
-            __html: escapeStyleScriptContent(initialCss),
-          }}
-        />
-      }
+      <style
+        dangerouslySetInnerHTML={{
+          __html: escapeStyleScriptContent(initialCss),
+        }}
+      />
       {imports.map((preload) => (
         <link rel="preload" href={preload} as="script" />
       ))}

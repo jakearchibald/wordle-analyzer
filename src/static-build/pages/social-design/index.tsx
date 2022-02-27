@@ -12,10 +12,9 @@
  */
 import { h, FunctionalComponent, Fragment } from 'preact';
 
-import { allSrc } from 'client-bundle:client/social-design';
 import cssSource from 'css:./styles.module.css';
 import * as styles from './styles.module.css';
-import { escapeStyleScriptContent } from 'static-build/utils';
+import { escapeStyleScriptContent } from 'shared/utils';
 
 interface Props {}
 
@@ -55,13 +54,7 @@ const SocialDesign: FunctionalComponent<Props> = () => (
           </div>
           <div class={styles.footer}>wordle-analyzer.com</div>
         </div>
-        <canvas class={[styles.realCanvas, 'canvas'].join(' ')} />
       </div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: escapeStyleScriptContent(allSrc),
-        }}
-      />
     </body>
   </html>
 );

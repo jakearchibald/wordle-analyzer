@@ -18,14 +18,6 @@
   --row-height: 97px;
 }
 
-.real-canvas {
-  width: 1920px;
-  height: 960px;
-  border: 1px solid #000;
-  display: block;
-  margin-top: 200px;
-}
-
 .main {
   display: grid;
   grid-template-columns: max-content repeat(2, 538px);

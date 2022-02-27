@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 import { h } from 'preact';
+import render from 'preact-render-to-string';
 
 import { renderPage, writeFiles } from './utils';
 import IndexPage from './pages/index';
@@ -18,6 +19,7 @@ import * as socialIconURL from 'img-url:static-build/assets/social-icon.png';
 import * as maskableIconURL from 'img-url:static-build/assets/maskable-icon.png';
 import { lookup as lookupMime } from 'mime-types';
 import SocialDesign from './pages/social-design';
+import SocialSVG from 'shared/SocialSVG';
 
 const manifestSize = ({ width, height }: { width: number; height: number }) =>
   `${width}x${height}`;
@@ -28,6 +30,7 @@ interface Output {
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
   'social-design/index.html': !__PRODUCTION__ && renderPage(<SocialDesign />),
+  'social-design.svg': !__PRODUCTION__ && render(<SocialSVG entries={[]} />),
   'manifest.json': JSON.stringify({
     name: 'Wordle Analyzer',
     short_name: 'Wordle Analyzer',

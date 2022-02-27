@@ -151,13 +151,13 @@ export default async function ({ watch }) {
           },
           preventAssignment: true,
         }),
-        runScript(dir + '/index.js'),
+        runScript(dir + '/static-build/index.js'),
       ],
     },
     {
       input: [
         'src/netlify-functions/page.ts',
-        'src/netlify-functions/social.ts',
+        'src/netlify-functions/social.tsx',
       ],
       external: ['canvas'],
       output: {
@@ -171,6 +171,7 @@ export default async function ({ watch }) {
           watch,
           noBuild: true,
         }),
+        cssPlugin(),
         builtAssetTextPlugin(),
         nodeExternalPlugin(),
       ],
