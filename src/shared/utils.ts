@@ -15,17 +15,11 @@ export function escapeStyleScriptContent(str: string): string {
 export function packValues(data: number[], sizes: readonly number[]): number {
   let result = 0;
   let mult = 1;
-  let max = 0;
 
   for (const [i, input] of data.entries()) {
     result += input * mult;
     const size = sizes[i];
     mult *= size;
-    max += size;
-  }
-
-  if (max > Number.MAX_SAFE_INTEGER) {
-    throw Error('Result is unreliable (larger than MAX_SAFE_INTEGER)');
   }
 
   return result;
