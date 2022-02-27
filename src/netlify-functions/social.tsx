@@ -42,7 +42,7 @@ export const handler: Handler = async (event, context) => {
     statusCode: 200,
     headers: {
       'Content-Type': 'image/png',
-      'Cache-Control': __PRODUCTION__ ? 'max-age=31536000' : 'no-cache',
+      'Cache-Control': 'no-cache',
     },
     isBase64Encoded: true,
     body: render(renderToString(<SocialSVG entries={entries} />), {
