@@ -5,3 +5,5 @@ node_modules
 .tmp
 build
 built-netlify-functions
+# Local Netlify folder
+.netlify

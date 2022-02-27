@@ -168,9 +168,7 @@ export default async function ({ watch }) {
       plugins: [
         {
           resolveFileUrl({ fileName }) {
-            return JSON.stringify(
-              `${__dirname}/built-netlify-functions/${fileName}`,
-            );
+            return JSON.stringify(`built-netlify-functions/${fileName}`);
           },
         },
         simpleTS('.', {
