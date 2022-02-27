@@ -8,7 +8,10 @@ import SocialSVG from 'shared/SocialSVG';
 export const handler: Handler = async (event, context) => {
   return {
     statusCode: 200,
-    headers: { 'Content-Type': 'image/png' },
+    headers: {
+      'Content-Type': 'image/png',
+      'Cache-Control': __PRODUCTION__ ? 'max-age=31536000' : 'no-cache',
+    },
     isBase64Encoded: true,
     body: render(renderToString(<SocialSVG entries={[]} />), {}).toString(
       'base64',

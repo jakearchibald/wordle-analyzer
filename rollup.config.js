@@ -174,6 +174,12 @@ export default async function ({ watch }) {
         cssPlugin(),
         builtAssetTextPlugin(),
         nodeExternalPlugin(),
+        replace({
+          values: {
+            __PRODUCTION__: isProduction,
+          },
+          preventAssignment: true,
+        }),
       ],
     },
   ];
