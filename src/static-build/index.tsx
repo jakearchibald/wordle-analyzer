@@ -18,7 +18,6 @@ import IndexPage from './pages/index';
 import * as socialIconURL from 'img-url:static-build/assets/social-icon.png';
 import * as maskableIconURL from 'img-url:static-build/assets/maskable-icon.png';
 import { lookup as lookupMime } from 'mime-types';
-import SocialDesign from './pages/social-design';
 import SocialSVG from 'shared/SocialSVG';
 
 const manifestSize = ({ width, height }: { width: number; height: number }) =>
@@ -29,7 +28,6 @@ interface Output {
 }
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
-  'social-design/index.html': !__PRODUCTION__ && renderPage(<SocialDesign />),
   'social-design.svg':
     !__PRODUCTION__ &&
     render(
