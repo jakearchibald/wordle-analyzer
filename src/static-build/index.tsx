@@ -47,12 +47,6 @@ const toOutput: Output = {
           {
             colors: ['c', 'c', 'c', 'c', 'c'],
           },
-          {
-            colors: ['c', 'c', 'c', 'c', 'c'],
-          },
-          {
-            colors: ['c', 'c', 'c', 'c', 'c'],
-          },
         ]}
       />,
     ),

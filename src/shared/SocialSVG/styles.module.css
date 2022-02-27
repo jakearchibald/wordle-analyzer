@@ -7,11 +7,11 @@
 }
 
 .text {
-  fill: #000;
+  fill: #1a1a1b;
 }
 
 .center-text {
-  fill: #000;
+  fill: #1a1a1b;
   text-anchor: middle;
 }
 
@@ -29,4 +29,30 @@
 
 .absent {
   fill: #787c7e;
+}
+
+.star-body {
+  fill: #dadfe1;
+}
+
+.star-highlight {
+  fill: #dadfe1;
+}
+
+.star-lowlight {
+  fill: #dadfe1;
+}
+
+.star-active {
+  & .star-body {
+    fill: #fdd835;
+  }
+
+  & .star-highlight {
+    fill: #ffff8d;
+  }
+
+  & .star-lowlight {
+    fill: #f4b400;
+  }
 }

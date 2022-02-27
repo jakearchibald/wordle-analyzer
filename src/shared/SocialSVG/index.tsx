@@ -3,6 +3,7 @@ import { h, FunctionalComponent, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import cssSrc from 'css:./styles.module.css';
 import { escapeStyleScriptContent } from 'shared/utils';
+import Star from './star';
 
 function getSizeValues(entryCount: number) {
   return {
@@ -15,6 +16,8 @@ function getSizeValues(entryCount: number) {
     columnWidth: 538,
     tableGap: 10,
     guessSize: entryCount < 5 ? 130 : 97,
+    starSize: entryCount < 5 ? 80 : 65,
+    starGap: 3,
   };
 }
 
@@ -40,6 +43,8 @@ const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
     footerFontShift,
     headerHeight,
     tableGap,
+    starSize,
+    starGap,
   } = getSizeValues(entries.length);
 
   const mainHeight = height - footerHeight;
@@ -48,6 +53,8 @@ const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
   const tableWidth = guessWidth + columnWidth * 2 + tableGap;
   const tableXStart = (width - tableWidth) / 2;
   const tableYStart = (mainHeight - tableHeight) / 2;
+  const starsWidth = starSize * 5 + starGap * 4;
+  const starXStart = tableXStart + guessWidth + (columnWidth - starsWidth) / 2;
 
   const colorToClass = {
     a: styles.absent,
@@ -116,15 +123,15 @@ const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
                 height={guessSize}
               />
             ))}
-            <text
-              class={styles.centerText}
-              x={tableXStart + guessWidth + columnWidth / 2}
-              y={rowYStart + guessSize / 2}
-              dy={columnFontShift}
-              font-size={columnFontSize}
-            >
-              Lucky
-            </text>
+            {Array.from({ length: 5 }).map((_, starIndex) => (
+              <Star
+                width={starSize}
+                height={starSize}
+                y={rowYStart + (guessSize - starSize) / 2}
+                x={starXStart + starIndex * (starSize + starGap)}
+                class={starIndex < 4 ? styles.starActive : ' '}
+              />
+            ))}
             <text
               class={styles.centerText}
               x={

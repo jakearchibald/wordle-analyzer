@@ -35,7 +35,8 @@ export const handler: Handler = async (event, context) => {
       ),
       {
         background: '#fff',
-        logLevel: __PRODUCTION__ ? 'off' : 'debug',
+        //logLevel: __PRODUCTION__ ? 'off' : 'debug',
+        logLevel: 'debug',
         font: {
           fontFiles: [robotoUrl],
           loadSystemFonts: false,
