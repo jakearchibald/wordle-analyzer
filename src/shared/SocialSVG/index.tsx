@@ -7,9 +7,6 @@ import Star from './star';
 
 function getSizeValues(entryCount: number) {
   return {
-    footerHeight: 50,
-    footerFontSize: 23,
-    footerFontShift: 8,
     columnFontSize: 30,
     columnFontShift: 12,
     headerHeight: 60,
@@ -36,20 +33,17 @@ const height = 600;
 
 const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
   const {
-    footerHeight,
-    footerFontSize,
     columnWidth,
     guessSize,
     columnFontSize,
     columnFontShift,
-    footerFontShift,
     headerHeight,
     tableGap,
     starSize,
     starGap,
   } = getSizeValues(entries.length);
 
-  const mainHeight = height - footerHeight;
+  const mainHeight = height;
   const tableHeight = headerHeight + (tableGap + guessSize) * entries.length;
   const guessWidth = (guessSize + tableGap) * 5;
   const tableWidth = guessWidth + columnWidth * 2 + tableGap;
@@ -152,23 +146,6 @@ const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
           </>
         );
       })}
-
-      <rect
-        class={styles.footer}
-        x="0"
-        y={height - footerHeight}
-        width={width}
-        height={footerHeight}
-      />
-      <text
-        class={styles.text}
-        x="30"
-        y={height - footerHeight / 2}
-        dy={footerFontShift}
-        font-size={footerFontSize}
-      >
-        wordle-analyzer.com
-      </text>
     </svg>
   );
 };
