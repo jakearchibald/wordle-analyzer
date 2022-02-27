@@ -8,10 +8,8 @@ const socialRe = /\/c\/social-large-[^\.]+.png/g;
 export const handler: Handler = async (event, context) => {
   let body = htmlText;
 
-  if (event.queryStringParameters?.guesses) {
-    const params = new URLSearchParams(
-      event.queryStringParameters as Record<string, string>,
-    );
+  if (event.queryStringParameters?.s) {
+    const params = new URLSearchParams({ s: event.queryStringParameters.s });
     body = body.replace(
       socialRe,
       '/.netlify/functions/social?' + params.toString(),

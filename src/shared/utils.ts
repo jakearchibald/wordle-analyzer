@@ -86,7 +86,7 @@ export const bton = (base64: string): number => {
   const sign = base64.charAt(0) === '-' ? 1 : 0;
 
   for (let i = sign; i < base64.length; i++) {
-    number = number * 64 + s2b[base64.charCodeAt(i)];
+    number = number * 64 + (s2b[base64.charCodeAt(i)] || 0);
   }
 
   return sign ? -number : number;
@@ -97,12 +97,13 @@ export const bton = (base64: string): number => {
 // Luck rating
 export const socialDataSizes = [3, 3, 3, 3, 3, 6, 13] as const;
 
-export const cellToNum = { a: 0, p: 1, c: 2 };
+export const cellToNum = { a: 0, p: 1, c: 2 } as const;
+export const numToCell = { 0: 'a', 1: 'p', 2: 'c' } as const;
 
 export function guessQualityToStars(quality: number): number {
   if (quality > 0.97) return 5;
-  if (quality > 0.9) return 4;
-  if (quality > 0.75) return 3;
+  if (quality > 0.85) return 4;
+  if (quality > 0.7) return 3;
   if (quality > 0.5) return 2;
   if (quality !== 0) return 1;
   return 0;

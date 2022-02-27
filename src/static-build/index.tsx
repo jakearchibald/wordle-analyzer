@@ -28,7 +28,7 @@ interface Output {
 }
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
-  'social-design.svg':
+  /*'social-design.svg':
     !__PRODUCTION__ &&
     render(
       <SocialSVG
@@ -47,7 +47,7 @@ const toOutput: Output = {
           },
         ]}
       />,
-    ),
+    ),*/
   'manifest.json': JSON.stringify({
     name: 'Wordle Analyzer',
     short_name: 'Wordle Analyzer',

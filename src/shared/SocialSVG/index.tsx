@@ -2,7 +2,7 @@ import type { CellColors } from 'shared-types/index';
 import { h, FunctionalComponent, Fragment } from 'preact';
 import * as styles from './styles.module.css';
 import cssSrc from 'css:./styles.module.css';
-import { escapeStyleScriptContent } from 'shared/utils';
+import { escapeStyleScriptContent, luckValues } from 'shared/utils';
 import Star from './star';
 
 function getSizeValues(entryCount: number) {
@@ -23,9 +23,11 @@ function getSizeValues(entryCount: number) {
 
 interface SocialImageEntry {
   colors: CellColors;
+  stars: number;
+  luckIndex: number;
 }
 
-interface Props {
+export interface Props {
   entries: SocialImageEntry[];
 }
 
@@ -129,7 +131,7 @@ const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
                 height={starSize}
                 y={rowYStart + (guessSize - starSize) / 2}
                 x={starXStart + starIndex * (starSize + starGap)}
-                class={starIndex < 4 ? styles.starActive : ' '}
+                class={starIndex + 1 <= entry.stars ? styles.starActive : ' '}
               />
             ))}
             <text
@@ -145,7 +147,7 @@ const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
               dy={columnFontShift}
               font-size={columnFontSize}
             >
-              Oh god I'm so sorry
+              {luckValues[entry.luckIndex]}
             </text>
           </>
         );
