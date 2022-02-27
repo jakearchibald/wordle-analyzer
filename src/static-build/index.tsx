@@ -30,7 +30,32 @@ interface Output {
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
   'social-design/index.html': !__PRODUCTION__ && renderPage(<SocialDesign />),
-  'social-design.svg': !__PRODUCTION__ && render(<SocialSVG entries={[]} />),
+  'social-design.svg':
+    !__PRODUCTION__ &&
+    render(
+      <SocialSVG
+        entries={[
+          {
+            colors: ['a', 'a', 'c', 'p', 'a'],
+          },
+          {
+            colors: ['c', 'p', 'c', 'a', 'a'],
+          },
+          {
+            colors: ['c', 'c', 'c', 'c', 'a'],
+          },
+          {
+            colors: ['c', 'c', 'c', 'c', 'c'],
+          },
+          {
+            colors: ['c', 'c', 'c', 'c', 'c'],
+          },
+          {
+            colors: ['c', 'c', 'c', 'c', 'c'],
+          },
+        ]}
+      />,
+    ),
   'manifest.json': JSON.stringify({
     name: 'Wordle Analyzer',
     short_name: 'Wordle Analyzer',

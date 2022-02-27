@@ -1,3 +1,32 @@
-.tmp {
-  fill: green;
+.root {
+  font-family: Roboto;
+}
+
+.footer {
+  fill: #dadfe1;
+}
+
+.text {
+  fill: #000;
+}
+
+.center-text {
+  fill: #000;
+  text-anchor: middle;
+}
+
+.header {
+  fill: #dadfe1;
+}
+
+.present {
+  fill: #c9b458;
+}
+
+.correct {
+  fill: #6aaa64;
+}
+
+.absent {
+  fill: #787c7e;
 }

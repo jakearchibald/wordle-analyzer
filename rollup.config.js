@@ -163,14 +163,21 @@ export default async function ({ watch }) {
       output: {
         dir: 'built-netlify-functions',
         format: 'cjs',
-        assetFileNames: staticPath,
       },
       watch: { ...watchOptions, exclude: [] },
       plugins: [
+        {
+          resolveFileUrl({ fileName }) {
+            return JSON.stringify(
+              `${__dirname}/built-netlify-functions/${fileName}`,
+            );
+          },
+        },
         simpleTS('.', {
           watch,
           noBuild: true,
         }),
+        urlPlugin(),
         cssPlugin(),
         builtAssetTextPlugin(),
         nodeExternalPlugin(),
