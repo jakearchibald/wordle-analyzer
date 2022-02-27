@@ -40,7 +40,7 @@ const Index: FunctionalComponent<Props> = () => (
       />
       <meta property="og:image" content={`${siteOrigin}${socialImageURL}`} />
       <meta name="twitter:site" content="@jaffathecake" />
-      <meta property="og:url" content={`${siteOrigin}/`} />
+      {/*<meta property="og:url" content={`${siteOrigin}/`} />*/}
       <meta property="og:title" content="Wordle Analyzer" />
       <meta
         property="og:description"
