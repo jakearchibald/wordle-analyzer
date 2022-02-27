@@ -490,7 +490,7 @@ async function getRemainingAveragesMT(
     ),
   );
 
-  // Combine results and sort in acending order
+  // Combine results and sort in ascending order
   return Object.fromEntries(
     (['common', 'all'] as const).map((key) => [
       key,
@@ -679,7 +679,6 @@ function getPlayAnalysis(
     ...clueViolations.missingPositionalMatches,
     ...clueViolations.missingAdditionalRequiredLetters,
   ];
-  const cheat = hardMode && hardModeViolations.length > 0;
 
   const commonRemainingResult =
     remainingAverages.common[commonRemainingResultIndex];
@@ -697,30 +696,23 @@ function getPlayAnalysis(
       ...clueViolations.violatedMustNotContain,
     ],
     remainingAnswers: afterRemainingAnswers,
-    averageRemaining:
-      commonRemainingResult && allRemainingResult
-        ? {
-            common: commonRemainingResult[1],
-            all: allRemainingResult[1],
-          }
-        : undefined,
+    averageRemaining: {
+      common: commonRemainingResult[1],
+      all: allRemainingResult[1],
+    },
     commonWord: commonWords.has(guess),
-    luck: cheat
-      ? undefined
-      : calculateLuck(
-          guess,
-          beforeRemainingAnswers,
-          afterRemainingAnswers,
-          commonWords,
-        ),
-    guessQuality: cheat
-      ? undefined
-      : calculateGuessQuality(
-          afterRemainingAnswers,
-          remainingAverages,
-          commonRemainingResultIndex,
-          allRemainingResultIndex,
-        ),
+    luck: calculateLuck(
+      guess,
+      beforeRemainingAnswers,
+      afterRemainingAnswers,
+      commonWords,
+    ),
+    guessQuality: calculateGuessQuality(
+      afterRemainingAnswers,
+      remainingAverages,
+      commonRemainingResultIndex,
+      allRemainingResultIndex,
+    ),
   };
 }
 
@@ -871,9 +863,34 @@ function getPlayColors(answer: string, guesses: string[]): CellColors[] {
   });
 }
 
-async function getInvalidWords(words: string[]): Promise<string[]> {
+async function getInputErrors(
+  words: string[],
+  answer: string,
+  { hardMode = false } = {},
+): Promise<string[]> {
   const allWordsSet = await getAllWordsSet();
-  return words.filter((word) => !allWordsSet.has(word));
+  const errors = [];
+  const clues = [];
+
+  if (answer !== words[words.length - 1] && !allWordsSet.has(answer)) {
+    errors.push(`"${answer}" is not a valid word.`);
+  }
+
+  for (const [i, word] of words.entries()) {
+    if (!allWordsSet.has(word)) {
+      errors.push(`"${word}" is not a valid word.`);
+    }
+    if (hardMode) {
+      // TODO: flattening each time isn't great.
+      // Ideally flattenClues would take a previously flattened clue.
+      if (i !== 0 && !validHardModeGuess(word, flattenClues(clues))) {
+        errors.push(`"${word}" is not a valid hard mode guess.`);
+      }
+      clues.push(generateClue(answer, word));
+    }
+  }
+
+  return errors;
 }
 
 async function messageListener(event: MessageEvent) {
@@ -1002,12 +1019,14 @@ async function messageListener(event: MessageEvent) {
     }
     return;
   }
-  if (event.data.action === 'invalid-words') {
+  if (event.data.action === 'input-errors') {
     const words = event.data.words as string[];
+    const answer = event.data.answer as string;
+    const hardMode = event.data.hardMode as boolean;
     const returnPort = event.data.returnPort as MessagePort;
 
     try {
-      const result = await getInvalidWords(words);
+      const result = await getInputErrors(words, answer, { hardMode });
       returnPort.postMessage({
         action: 'done',
         result,

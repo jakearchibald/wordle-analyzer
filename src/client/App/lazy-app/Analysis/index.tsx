@@ -6,7 +6,7 @@ import {
   aiPlay,
   analyzeGuess,
   getGuessesColors,
-  getInvalidWords,
+  getInputErrors,
 } from './analyzer';
 import {
   AIPlay,
@@ -41,7 +41,7 @@ interface State {
   /** Number is 0-1 representing progress */
   aiPlays: (AIPlay | number)[];
   guessCellColors: CellColors[] | undefined;
-  analysisError: string | undefined;
+  inputErrors: string[];
   analysisComplete: boolean;
 }
 
@@ -49,7 +49,7 @@ const defaultState: State = {
   analysis: [],
   aiPlays: [],
   guessCellColors: undefined,
-  analysisError: undefined,
+  inputErrors: [],
   analysisComplete: false,
 };
 
@@ -98,18 +98,18 @@ export default class Analysis extends Component<Props, State> {
         ),
       });
 
-      const words = [...new Set([...this.props.guesses, this.props.answer])];
-      const invalidAnswers = await getInvalidWords(signal, words);
+      const inputErrors = await getInputErrors(
+        signal,
+        this.props.guesses,
+        this.props.answer,
+        { hardMode: this.props.hardMode },
+      );
 
-      if (invalidAnswers.length !== 0) {
-        this.setState({
-          analysisError: `Uh oh, one or more of those words isn't in the dictionary: ${invalidAnswers
-            .map((word) => `"${word}"`)
-            .join(', ')}`,
-        });
+      this.setState({
+        inputErrors,
+      });
 
-        return;
-      }
+      if (inputErrors.length !== 0) return;
 
       {
         const previousClues: Clue[] = [];
@@ -207,7 +207,7 @@ export default class Analysis extends Component<Props, State> {
       analysis,
       aiPlays,
       guessCellColors,
-      analysisError,
+      inputErrors,
       analysisComplete,
     }: State,
   ) {
@@ -241,9 +241,17 @@ export default class Analysis extends Component<Props, State> {
             foundAnswer={guesses[guesses.length - 1] === answer}
           />
         )}
-        {analysisError && (
+        {inputErrors.length !== 0 && (
           <div class={utilStyles.container}>
-            <p class={styles.commentary}>{analysisError}</p>
+            <div class={styles.commentary}>
+              <p>Uh oh! Some rules were broken:</p>
+
+              <ul class={styles.list}>
+                {inputErrors.map((error) => (
+                  <li>{error}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
         {analysis.map((guessAnalysis, i, allGuessAnalysis) => (
