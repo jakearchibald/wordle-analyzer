@@ -28,6 +28,16 @@ import {
   RemainingItemsType,
 } from '../utils';
 import RemainingList from './RemainingList';
+import {
+  bton,
+  cellToNum,
+  getLuckIndex,
+  guessQualityToStars,
+  ntob,
+  packValues,
+  socialDataSizes,
+  unpackValues,
+} from 'shared/utils';
 
 interface Props {
   guesses: string[];
@@ -113,6 +123,7 @@ export default class Analysis extends Component<Props, State> {
 
       {
         const previousClues: Clue[] = [];
+        const results: GuessAnalysis[] = [];
         let remainingAnswers: RemainingAnswers | undefined = undefined;
 
         for (const [i, guess] of this.props.guesses.entries()) {
@@ -140,6 +151,8 @@ export default class Analysis extends Component<Props, State> {
             },
           );
 
+          results.push(result);
+
           this.setState((state) => {
             const analysis = state.analysis.slice();
             analysis[i] = { ...result };
@@ -149,6 +162,26 @@ export default class Analysis extends Component<Props, State> {
           previousClues.push(result.plays.user.clue);
           remainingAnswers = result.plays.user.remainingAnswers;
         }
+
+        // Add data to URL
+        let dataStr = '';
+
+        for (const result of results) {
+          const values: number[] = [];
+
+          for (const cell of result.plays.user.colors) {
+            values.push(cellToNum[cell]);
+          }
+
+          values.push(guessQualityToStars(result.plays.user.guessQuality));
+          values.push(getLuckIndex(result.plays.user.luck));
+
+          dataStr += ntob(packValues(values, socialDataSizes)).padStart(3, 'A');
+        }
+
+        const url = new URL(location.href);
+        url.searchParams.set('s', dataStr);
+        history.replaceState({ ...history.state }, '', url.href);
       }
 
       {
