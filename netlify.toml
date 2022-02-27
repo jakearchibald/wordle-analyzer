@@ -1,7 +1,7 @@
 [functions]
   directory = "built-netlify-functions"
 
-[functions.social]
+[functions."social"]
   included_files = ["assets/**.ttf"]
 
 [dev]
