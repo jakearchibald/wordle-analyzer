@@ -8,3 +8,19 @@
 .buttons {
   gap: 1em;
 }
+
+.rememberWords{
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+  gap: 1rem;
+  & > input{
+    padding: 1ch;
+    width: 4ch;
+    color: currentColor;
+    background: rgba(255 255 255 / .4);
+    border-radius: .3rem;
+    border: 1px solid;
+  }
+}
