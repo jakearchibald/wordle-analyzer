@@ -22,8 +22,9 @@ export const handler: Handler = async (event, context) => {
 
   if (dataStr.length % 3) return errorResponse();
 
-  const dataChunks = Array.from({ length: dataStr.length / 3 }, (_, i) =>
-    dataStr.slice(i * 3, i * 3 + 3),
+  const dataChunks = Array.from(
+    { length: Math.max(dataStr.length / 3, 6) },
+    (_, i) => dataStr.slice(i * 3, i * 3 + 3),
   );
 
   for (const chunk of dataChunks) {

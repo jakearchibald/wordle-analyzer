@@ -7,16 +7,16 @@ import Star from './star';
 
 function getSizeValues(entryCount: number) {
   return {
-    footerHeight: 97,
-    footerFontSize: 38,
-    footerFontShift: 12,
-    columnFontSize: 48,
-    columnFontShift: 18,
-    headerHeight: 97,
-    columnWidth: 538,
-    tableGap: 10,
-    guessSize: entryCount < 5 ? 130 : 97,
-    starSize: entryCount < 5 ? 80 : 65,
+    footerHeight: 50,
+    footerFontSize: 23,
+    footerFontShift: 8,
+    columnFontSize: 30,
+    columnFontShift: 12,
+    headerHeight: 60,
+    columnWidth: 325,
+    tableGap: 6,
+    guessSize: entryCount < 5 ? 80 : 65,
+    starSize: entryCount < 5 ? 55 : 50,
     starGap: 3,
   };
 }
@@ -31,8 +31,8 @@ export interface Props {
   entries: SocialImageEntry[];
 }
 
-const width = 1920;
-const height = 998;
+const width = 1200;
+const height = 600;
 
 const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
   const {
