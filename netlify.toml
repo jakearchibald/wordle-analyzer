@@ -1,6 +1,6 @@
 [functions]
   directory = "built-netlify-functions"
-  included_files = ["./assets/**"]
+  included_files = ["./assets/**.ttf"]
 
 [dev]
   publish = ".tmp/build/static"
