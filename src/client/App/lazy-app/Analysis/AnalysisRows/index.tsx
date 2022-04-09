@@ -11,6 +11,7 @@ import {
 } from 'shared-types/index';
 import Guess from 'client/App/Guess';
 import { formatNumber } from '../../utils';
+import { getLuckIndex, luckValues } from 'shared/utils';
 
 interface Props {
   first: boolean;
@@ -26,25 +27,6 @@ interface State {}
 
 const wordStr = ['word', 'words'];
 const boolToYesNo = (bool: boolean) => (bool ? '✅' : '❌');
-
-function getLuck({ good, chance }: Luck): string {
-  if (chance > 1 / 2) return 'Neutral';
-
-  if (good) {
-    if (chance > 1 / 5) return `Lucky`;
-    if (chance > 1 / 10) return `Very lucky`;
-    if (chance > 1 / 50) return `Super lucky`;
-    if (chance > 1 / 100) return `Extremely lucky`;
-    if (chance > 1 / 1000) return `Unbelievably lucky`;
-    return `WTF HOW??`;
-  }
-  if (chance > 1 / 5) return `Unlucky`;
-  if (chance > 1 / 10) return `Very unlucky`;
-  if (chance > 1 / 50) return `Super unlucky`;
-  if (chance > 1 / 100) return `Extremely unlucky`;
-  if (chance > 1 / 1000) return `Unbelievably unlucky`;
-  return `Oh god I'm so sorry`;
-}
 
 function getStrategyDescription(strategy: AIStrategy): string {
   switch (strategy) {
@@ -110,17 +92,11 @@ export default class AnalysisRows extends Component<Props, State> {
             <th scope="row">Average remaining words</th>
             {plays.map((play) => (
               <td>
-                {play.averageRemaining ? (
-                  <>
-                    {formatNumber(play.averageRemaining.all)}{' '}
-                    {play.averageRemaining.all === 1 ? wordStr[0] : wordStr[1]},{' '}
-                    <span class={styles.noBreak}>
-                      {formatNumber(play.averageRemaining.common)} common
-                    </span>
-                  </>
-                ) : (
-                  '???'
-                )}
+                {formatNumber(play.averageRemaining.all)}{' '}
+                {play.averageRemaining.all === 1 ? wordStr[0] : wordStr[1]},{' '}
+                <span class={styles.noBreak}>
+                  {formatNumber(play.averageRemaining.common)} common
+                </span>
               </td>
             ))}
           </tr>
@@ -128,11 +104,7 @@ export default class AnalysisRows extends Component<Props, State> {
         <tr>
           <th scope="row">Guess quality</th>
           {plays.map((play) => (
-            <td>
-              {play.guessQuality === undefined
-                ? '???'
-                : formatNumber(play.guessQuality * 100) + '%'}
-            </td>
+            <td>{formatNumber(play.guessQuality * 100) + '%'}</td>
           ))}
         </tr>
         {initalRemaining > 1 && !allGuessesRight && (
@@ -174,7 +146,7 @@ export default class AnalysisRows extends Component<Props, State> {
             <th scope="row">Luck rating</th>
 
             {plays.map((play) => (
-              <td>{play.luck ? getLuck(play.luck) : '???'}</td>
+              <td>{luckValues[getLuckIndex(play.luck)]}</td>
             ))}
           </tr>
         )}

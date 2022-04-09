@@ -32,6 +32,7 @@ import emitFiles from './lib/emit-files-plugin';
 import serviceWorkerPlugin from './lib/sw-plugin';
 import entryDataPlugin from './lib/entry-data-plugin';
 import entryURLPlugin from './lib/entry-url-plugin';
+import builtAssetTextPlugin from './lib/built-asset-text-plugin';
 
 const __MAJOR_VERSION__ = Number(
   require('./package.json').version.split('.')[0],
@@ -55,7 +56,7 @@ function jsFileName(chunkInfo) {
 }
 
 export default async function ({ watch }) {
-  await del('.tmp/build');
+  await del(['.tmp/build', 'built-netlify-functions']);
 
   const isProduction = !watch;
 
@@ -80,71 +81,111 @@ export default async function ({ watch }) {
     cssPlugin(),
   ];
 
-  return {
-    input: 'src/static-build/index.tsx',
-    output: {
-      dir,
-      format: 'cjs',
-      assetFileNames: staticPath,
-      exports: 'named',
-    },
-    watch: {
-      clearScreen: false,
-      // Don't watch the ts files. Instead we watch the output from the ts compiler.
-      exclude: ['**/*.ts', '**/*.tsx'],
-      // Sometimes TypeScript does its thing a little slowly, which causes
-      // Rollup to build twice on each change. This delay seems to fix it,
-      // although we may need to change this number over time.
-      buildDelay: 250,
-    },
-    preserveModules: true,
-    plugins: [
-      { resolveFileUrl },
-      clientBundlePlugin(
-        {
-          plugins: [
-            { resolveFileUrl },
-            OMT({ loader: await omtLoaderPromise }),
-            serviceWorkerPlugin({
-              output: 'static/sw.js',
-            }),
-            entryURLPlugin(),
-            ...commonPlugins(),
-            commonjs(),
-            resolve(),
-            replace({
-              values: {
-                __PRERENDER__: false,
-                __PRODUCTION__: isProduction,
-                __MAJOR_VERSION__,
-              },
-              preventAssignment: true,
-            }),
-            entryDataPlugin(),
-            isProduction ? terser({ module: true }) : {},
-          ],
-          preserveEntrySignatures: false,
-        },
-        {
-          dir,
-          format: 'amd',
-          chunkFileNames: jsFileName,
-          entryFileNames: jsFileName,
-        },
-        resolveFileUrl,
-      ),
-      ...commonPlugins(),
-      emitFiles({ include: '**/*', root: path.join(__dirname, 'src', 'copy') }),
-      nodeExternalPlugin(),
-      replace({
-        values: {
-          __PRERENDER__: true,
-          __PRODUCTION__: isProduction,
-          __MAJOR_VERSION__,
-        },
-        preventAssignment: true,
-      }),
-      runScript(dir + '/index.js'),
-    ],
+  const watchOptions = {
+    clearScreen: false,
+    // Don't watch the ts files. Instead we watch the output from the ts compiler.
+    exclude: ['**/*.ts', '**/*.tsx'],
+    // Sometimes TypeScript does its thing a little slowly, which causes
+    // Rollup to build twice on each change. This delay seems to fix it,
+    // although we may need to change this number over time.
+    buildDelay: 250,
   };
+
+  return [
+    {
+      input: 'src/static-build/index.tsx',
+      output: {
+        dir,
+        format: 'cjs',
+        assetFileNames: staticPath,
+        exports: 'named',
+      },
+      watch: watchOptions,
+      preserveModules: true,
+      plugins: [
+        { resolveFileUrl },
+        clientBundlePlugin(
+          {
+            plugins: [
+              { resolveFileUrl },
+              OMT({ loader: await omtLoaderPromise }),
+              serviceWorkerPlugin({
+                output: 'static/sw.js',
+              }),
+              entryURLPlugin(),
+              ...commonPlugins(),
+              commonjs(),
+              resolve(),
+              replace({
+                values: {
+                  __PRERENDER__: false,
+                  __PRODUCTION__: isProduction,
+                  __MAJOR_VERSION__,
+                },
+                preventAssignment: true,
+              }),
+              entryDataPlugin(),
+              isProduction ? terser({ module: true }) : {},
+            ],
+            preserveEntrySignatures: false,
+          },
+          {
+            dir,
+            format: 'amd',
+            chunkFileNames: jsFileName,
+            entryFileNames: jsFileName,
+          },
+          resolveFileUrl,
+        ),
+        ...commonPlugins(),
+        emitFiles({
+          include: '**/*',
+          root: path.join(__dirname, 'src', 'copy'),
+        }),
+        nodeExternalPlugin(),
+        replace({
+          values: {
+            __PRERENDER__: true,
+            __PRODUCTION__: isProduction,
+            __MAJOR_VERSION__,
+          },
+          preventAssignment: true,
+        }),
+        runScript(dir + '/static-build/index.js'),
+      ],
+    },
+    {
+      input: [
+        'src/netlify-functions/page.ts',
+        'src/netlify-functions/social.tsx',
+      ],
+      external: ['canvas'],
+      output: {
+        dir: 'built-netlify-functions',
+        format: 'cjs',
+      },
+      watch: { ...watchOptions, exclude: [] },
+      plugins: [
+        {
+          resolveFileUrl({ fileName }) {
+            return JSON.stringify(`built-netlify-functions/${fileName}`);
+          },
+        },
+        simpleTS('.', {
+          watch,
+          noBuild: true,
+        }),
+        urlPlugin(),
+        cssPlugin(),
+        builtAssetTextPlugin(),
+        nodeExternalPlugin(),
+        replace({
+          values: {
+            __PRODUCTION__: isProduction,
+          },
+          preventAssignment: true,
+        }),
+      ],
+    },
+  ];
 }

@@ -1,0 +1,153 @@
+import type { CellColors } from 'shared-types/index';
+import { h, FunctionalComponent, Fragment } from 'preact';
+import * as styles from './styles.module.css';
+import cssSrc from 'css:./styles.module.css';
+import { escapeStyleScriptContent, luckValues } from 'shared/utils';
+import Star from './star';
+
+function getSizeValues(entryCount: number) {
+  return {
+    columnFontSize: 30,
+    columnFontShift: 12,
+    headerHeight: 60,
+    columnWidth: 325,
+    tableGap: 6,
+    guessSize: entryCount < 5 ? 80 : 65,
+    starSize: entryCount < 5 ? 55 : 50,
+    starGap: 3,
+  };
+}
+
+interface SocialImageEntry {
+  colors: CellColors;
+  stars: number;
+  luckIndex: number;
+}
+
+export interface Props {
+  entries: SocialImageEntry[];
+}
+
+const width = 1200;
+const height = 600;
+
+const SocialSVG: FunctionalComponent<Props> = ({ entries }) => {
+  const {
+    columnWidth,
+    guessSize,
+    columnFontSize,
+    columnFontShift,
+    headerHeight,
+    tableGap,
+    starSize,
+    starGap,
+  } = getSizeValues(entries.length);
+
+  const mainHeight = height;
+  const tableHeight = headerHeight + (tableGap + guessSize) * entries.length;
+  const guessWidth = (guessSize + tableGap) * 5;
+  const tableWidth = guessWidth + columnWidth * 2 + tableGap;
+  const tableXStart = (width - tableWidth) / 2;
+  const tableYStart = (mainHeight - tableHeight) / 2;
+  const starsWidth = starSize * 5 + starGap * 4;
+  const starXStart = tableXStart + guessWidth + (columnWidth - starsWidth) / 2;
+
+  const colorToClass = {
+    a: styles.absent,
+    p: styles.present,
+    c: styles.correct,
+  };
+
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox={`0 0 ${width} ${height}`}
+      fill="none"
+      class={styles.root}
+    >
+      <style
+        dangerouslySetInnerHTML={{
+          __html: escapeStyleScriptContent(cssSrc),
+        }}
+      />
+
+      <rect
+        class={styles.header}
+        x={tableXStart + guessWidth}
+        y={tableYStart}
+        width={columnWidth}
+        height={headerHeight}
+      />
+      <text
+        class={styles.centerText}
+        x={tableXStart + guessWidth + columnWidth / 2}
+        y={tableYStart + headerHeight / 2}
+        dy={columnFontShift}
+        font-size={columnFontSize}
+      >
+        Skill
+      </text>
+      <rect
+        class={styles.header}
+        x={tableXStart + guessWidth + columnWidth + tableGap}
+        y={tableYStart}
+        width={columnWidth}
+        height={headerHeight}
+      />
+      <text
+        class={styles.centerText}
+        x={tableXStart + guessWidth + columnWidth + tableGap + columnWidth / 2}
+        y={tableYStart + headerHeight / 2}
+        dy={columnFontShift}
+        font-size={columnFontSize}
+      >
+        Luck
+      </text>
+
+      {entries.map((entry, i) => {
+        const rowYStart =
+          tableYStart + headerHeight + tableGap + i * (guessSize + tableGap);
+
+        return (
+          <>
+            {entry.colors.map((color, j) => (
+              <rect
+                x={tableXStart + j * (guessSize + tableGap)}
+                y={rowYStart}
+                class={colorToClass[color]}
+                width={guessSize}
+                height={guessSize}
+              />
+            ))}
+            {Array.from({ length: 5 }).map((_, starIndex) => (
+              <Star
+                width={starSize}
+                height={starSize}
+                y={rowYStart + (guessSize - starSize) / 2}
+                x={starXStart + starIndex * (starSize + starGap)}
+                class={starIndex + 1 <= entry.stars ? styles.starActive : ' '}
+              />
+            ))}
+            <text
+              class={styles.centerText}
+              x={
+                tableXStart +
+                guessWidth +
+                columnWidth +
+                tableGap +
+                columnWidth / 2
+              }
+              y={rowYStart + guessSize / 2}
+              dy={columnFontShift}
+              font-size={columnFontSize}
+            >
+              {luckValues[entry.luckIndex]}
+            </text>
+          </>
+        );
+      })}
+    </svg>
+  );
+};
+
+export default SocialSVG;
