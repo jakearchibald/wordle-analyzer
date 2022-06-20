@@ -105,18 +105,22 @@ function generateBlockColors({
   additionalRequiredLetters,
 }: Clue): string {
   let result = '';
-  const additionalRequiredLettersCopy = new Set(additionalRequiredLetters);
+  const additionalRequiredLettersCopy = additionalRequiredLetters.slice();
 
   for (let i = 0; i < positionalMatches.length; i++) {
+    let additionRequireLetterIndex: number;
+
     if (positionalMatches[i]) {
       // Green
       result += 'c';
     } else if (
       positionalNotMatches[i] &&
-      additionalRequiredLettersCopy.has(positionalNotMatches[i])
+      (additionRequireLetterIndex = additionalRequiredLettersCopy.indexOf(
+        positionalNotMatches[i],
+      )) !== -1
     ) {
       // You only get one yellow square per additional required letter
-      additionalRequiredLettersCopy.delete(positionalNotMatches[i]);
+      additionalRequiredLettersCopy.splice(additionRequireLetterIndex, 1);
       // Yellow
       result += 'p';
     } else {
