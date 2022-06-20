@@ -55,14 +55,25 @@ export function possibleAnswer(
 export function generateBlockColors(
   positionalMatches: FiveLetters,
   positionalNotMatches: FiveLetters,
+  additionalRequiredLetters: string[],
 ): string {
   let result = '';
+  const additionalRequiredLettersCopy = additionalRequiredLetters.slice();
 
   for (let i = 0; i < positionalMatches.length; i++) {
+    let additionRequireLetterIndex: number;
+
     if (positionalMatches[i]) {
       // Green
       result += 'g';
-    } else if (positionalNotMatches[i]) {
+    } else if (
+      positionalNotMatches[i] &&
+      (additionRequireLetterIndex = additionalRequiredLettersCopy.indexOf(
+        positionalNotMatches[i],
+      )) !== -1
+    ) {
+      // You only get one yellow square per additional required letter
+      additionalRequiredLettersCopy.splice(additionRequireLetterIndex, 1);
       // Yellow
       result += 'y';
     } else {
@@ -103,6 +114,9 @@ export function generateRules(
       remainingAnswerLetters.splice(remainingAnswerLetters.indexOf(letter), 1);
       // Valid answers must also have this positional match
       positionalMatches[i] = letter;
+    } else {
+      // Valid answers must not have this positional match, otherwise it'd be a green square
+      positionalNotMatches[i] = letter;
     }
   }
 
@@ -115,8 +129,6 @@ export function generateRules(
     // This is a yellow square in Wordle.
     if (remainingAnswerLetters.includes(letter)) {
       remainingAnswerLetters.splice(remainingAnswerLetters.indexOf(letter), 1);
-      // Valid answers must not have this positional match, otherwise it'd be a green square
-      positionalNotMatches[i] = letter;
       // Valid answers must contain this letter
       additionalKnownLetters.push(letter);
     }
@@ -171,7 +183,11 @@ export function getRemainingAverages(
         remainingMustNotContain,
       ] = generateRules(answer, guess);
 
-      const key = generateBlockColors(positionalMatches, positionalNotMatches);
+      const key = generateBlockColors(
+        positionalMatches,
+        positionalNotMatches,
+        additionalKnownLetters,
+      );
 
       if (remainingCache[key]) {
         commonRemainingCounts[i][1].push(remainingCache[key]![0]);
