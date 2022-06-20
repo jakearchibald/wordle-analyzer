@@ -61,8 +61,11 @@ function generateClue(answer: string, guess: string): Clue {
     // This is a green square in Wordle.
     if (answer[i] === letter) {
       remainingAnswerLetters.splice(remainingAnswerLetters.indexOf(letter), 1);
-      // Valid answers must also have this positional match
+      // Valid answers must have this positional match
       positionalMatches[i] = letter;
+    } else {
+      // Valid answers must not have this positional match, otherwise it'd be a green square
+      positionalNotMatches[i] = letter;
     }
   }
 
@@ -75,8 +78,6 @@ function generateClue(answer: string, guess: string): Clue {
     // This is a yellow square in Wordle.
     if (remainingAnswerLetters.includes(letter)) {
       remainingAnswerLetters.splice(remainingAnswerLetters.indexOf(letter), 1);
-      // Valid answers must not have this positional match, otherwise it'd be a green square
-      positionalNotMatches[i] = letter;
       // Valid answers must contain this letter
       additionalRequiredLetters.push(letter);
     }
@@ -101,14 +102,21 @@ function generateClue(answer: string, guess: string): Clue {
 function generateBlockColors({
   positionalMatches,
   positionalNotMatches,
+  additionalRequiredLetters,
 }: Clue): string {
   let result = '';
+  const additionalRequiredLettersCopy = new Set(additionalRequiredLetters);
 
   for (let i = 0; i < positionalMatches.length; i++) {
     if (positionalMatches[i]) {
       // Green
       result += 'c';
-    } else if (positionalNotMatches[i]) {
+    } else if (
+      positionalNotMatches[i] &&
+      additionalRequiredLettersCopy.has(positionalNotMatches[i])
+    ) {
+      // You only get one yellow square per additional required letter
+      additionalRequiredLettersCopy.delete(positionalNotMatches[i]);
       // Yellow
       result += 'p';
     } else {
