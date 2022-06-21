@@ -1,5 +1,9 @@
 import swURL from 'service-worker:workers/sw';
 
+const isSafari =
+  /Safari\//.test(navigator.userAgent) &&
+  !/Chrom(e|ium)\//.test(navigator.userAgent);
+
 function onControllerChange() {
   return new Promise<void>((resolve) => {
     navigator.serviceWorker.addEventListener(
@@ -14,6 +18,13 @@ export async function addServiceWorker() {
   if (!__PRODUCTION__) return;
   // Firefox in private browsing doesn't support service workers
   if (!navigator.serviceWorker) return;
+
+  // I keep getting reports of stuck pages from iOS Safari users.
+  // It happens when there's a service worker update.
+  // There's some kind of browser bug there that's intermittent, and difficult to reproduce.
+  // So, for now, I'm going to ditch service workers in Safari.
+  if (isSafari) return;
+
   navigator.serviceWorker.register(swURL);
   let hadPreviousController = !!navigator.serviceWorker.controller;
 
@@ -34,7 +45,7 @@ export async function addServiceWorker() {
 
 export async function swUpdatePending(): Promise<boolean> {
   // Firefox in private browsing doesn't support service workers
-  if (!navigator.serviceWorker) return false;
+  if (!navigator.serviceWorker || isSafari) return false;
   const reg = await navigator.serviceWorker.getRegistration();
   if (!reg) return false;
   return !!reg.waiting;
@@ -42,7 +53,7 @@ export async function swUpdatePending(): Promise<boolean> {
 
 export async function activatePendingSw(): Promise<void> {
   // Firefox in private browsing doesn't support service workers
-  if (!navigator.serviceWorker) return;
+  if (!navigator.serviceWorker || isSafari) return;
   const reg = await navigator.serviceWorker.getRegistration();
   if (!reg || !reg.waiting) throw Error('No pending service worker');
   reg.waiting.postMessage('skipWaiting');
