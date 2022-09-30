@@ -9,8 +9,9 @@ import Checkbox from '../Checkbox';
 interface Props {
   values: string[];
   hardMode: boolean;
-  onInput: (guesses: string[], hardMode: boolean) => void;
-  onSubmit: (guesses: string[], hardMode: boolean) => void;
+  wordsToRemember: number;
+  onInput: (guesses: string[], hardMode: boolean, wordsToRemember: number) => void;
+  onSubmit: (guesses: string[], hardMode: boolean, wordsToRemember: number) => void;
 }
 
 function getCompleteValues(values: string[]): number {
@@ -30,7 +31,7 @@ export default class EditableGuesses extends Component<Props> {
     this.#onGuessInputs = props.values.map((_, index) => (guess: string) => {
       const guesses = [...this.props.values];
       guesses[index] = guess;
-      this.props.onInput(guesses, this.props.hardMode);
+      this.props.onInput(guesses, this.props.hardMode, this.props.wordsToRemember);
     });
 
     this.#onGuessInputOverflows = props.values.map(
@@ -48,7 +49,7 @@ export default class EditableGuesses extends Component<Props> {
 
         textInputs[index + 1].focus();
         guesses[index + 1] = overflow.trim();
-        this.props.onInput(guesses, this.props.hardMode);
+        this.props.onInput(guesses, this.props.hardMode, this.props.wordsToRemember);
       },
     );
 
@@ -64,7 +65,7 @@ export default class EditableGuesses extends Component<Props> {
 
       textInputs[index - 1].focus();
       guesses[index - 1] = guesses[index - 1].slice(0, -1);
-      this.props.onInput(guesses, this.props.hardMode);
+      this.props.onInput(guesses, this.props.hardMode, this.props.wordsToRemember);
     });
   }
 
@@ -75,6 +76,7 @@ export default class EditableGuesses extends Component<Props> {
     this.props.onSubmit(
       this.props.values.slice(0, complete).map((value) => value.toLowerCase()),
       this.props.hardMode,
+      this.props.wordsToRemember,
     );
   }
 
@@ -110,10 +112,19 @@ export default class EditableGuesses extends Component<Props> {
     this.props.onInput(
       this.props.values,
       (event.target as HTMLInputElement).checked,
+      this.props.wordsToRemember,
     );
   };
 
-  render({ values, hardMode }: RenderableProps<Props>) {
+  #onWordsToRememberChange = (event: Event) => {
+    this.props.onInput(
+      this.props.values,
+      this.props.hardMode,
+      +(event.target as HTMLInputElement).value,
+    );
+  };
+
+  render({ values, hardMode, wordsToRemember }: RenderableProps<Props>) {
     const complete = getCompleteValues(values);
 
     return (
@@ -139,6 +150,9 @@ export default class EditableGuesses extends Component<Props> {
           <Checkbox onChange={this.#onHardModeChange} checked={hardMode}>
             Hard mode
           </Checkbox>
+        </div>
+        <div class={styles.rememberWords}>
+          Remember the first <input onChange={this.#onWordsToRememberChange} max={6} min={0} type="number" value={wordsToRemember} /> words
         </div>
       </form>
     );
