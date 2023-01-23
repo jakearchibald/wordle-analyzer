@@ -42,6 +42,34 @@ const getAllWordsSet = () =>
 
 const threadPorts: MessagePort[] = [];
 
+class WorkerPool {
+  #availablePorts: Set<MessagePort>;
+  #queue: ((port: MessagePort) => void)[] = [];
+
+  constructor(ports: MessagePort[]) {
+    this.#availablePorts = new Set(ports);
+  }
+
+  async withPort<T>(fn: (port: MessagePort) => Promise<T>): Promise<T> {
+    let port = this.#availablePorts.values().next().value;
+
+    if (!port) {
+      port = await new Promise<MessagePort>((resolve) => {
+        this.#queue.push(resolve);
+      });
+    }
+
+    this.#availablePorts.delete(port);
+
+    try {
+      return await fn(port);
+    } finally {
+      this.#availablePorts.add(port);
+      this.#queue.shift()?.(port);
+    }
+  }
+}
+
 /**
  * Generate the clues given by a particular guess.
  */
@@ -448,50 +476,56 @@ async function getRemainingAveragesMT(
   let done = 0;
   const expecting = validGuesses.length;
 
-  const groupSize = Math.ceil(validGuesses.length / threadPorts.length);
-  const guessesGroups = Array.from({ length: threadPorts.length }, (_, i) =>
+  const pool = new WorkerPool(threadPorts);
+  const groupSize = 500;
+  const groupCount = Math.ceil(validGuesses.length / groupSize);
+  const guessesGroups = Array.from({ length: groupCount }, (_, i) =>
     validGuesses.slice(i * groupSize, (i + 1) * groupSize),
   );
 
   const resultSets = await Promise.all(
-    guessesGroups.map(
-      (guessesGroup, i) =>
-        new Promise<RemainingAveragesResult>((resolve, reject) => {
-          const mainPort = threadPorts[i];
-          const { port1, port2 } = new MessageChannel();
-          mainPort.postMessage(
-            {
-              action: 'get-remaining-averages',
-              remainingAnswers,
-              guesses: guessesGroup,
-              returnPort: port2,
-            },
-            [port2],
-          );
+    guessesGroups.map((guessesGroup, i) =>
+      pool.withPort(
+        (port) =>
+          new Promise<RemainingAveragesResult>((resolve, reject) => {
+            console.time('worker' + i);
+            const mainPort = port;
+            const { port1, port2 } = new MessageChannel();
+            mainPort.postMessage(
+              {
+                action: 'get-remaining-averages',
+                remainingAnswers,
+                guesses: guessesGroup,
+                returnPort: port2,
+              },
+              [port2],
+            );
 
-          port1.addEventListener(
-            'message',
-            ({ data: message }: MessageEvent) => {
-              if (message === 'progress') {
-                done++;
-                onProgress?.(done, expecting);
-                return;
-              }
-              if (message.action === 'error') {
-                reject(message.error);
-                port1.close();
-                return;
-              }
-              if (message.action === 'done') {
-                resolve(message.result);
-                port1.close();
-                return;
-              }
-            },
-          );
+            port1.addEventListener(
+              'message',
+              ({ data: message }: MessageEvent) => {
+                if (message === 'progress') {
+                  done++;
+                  onProgress?.(done, expecting);
+                  return;
+                }
+                if (message.action === 'error') {
+                  reject(message.error);
+                  port1.close();
+                  return;
+                }
+                if (message.action === 'done') {
+                  resolve(message.result);
+                  port1.close();
+                  console.timeEnd('worker' + i);
+                  return;
+                }
+              },
+            );
 
-          port1.start();
-        }),
+            port1.start();
+          }),
+      ),
     ),
   );
 
@@ -779,10 +813,12 @@ async function analyzeGuess(
   }
 
   if (!remainingAverages) {
+    console.time('overall');
     remainingAverages = await getRemainingAveragesMT(remainingAnswers, {
       hardModeRequirements: hardMode ? flattenedClues : undefined,
       onProgress,
     });
+    console.timeEnd('overall');
   }
 
   const commonWords = await getCommonWordSet();
