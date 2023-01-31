@@ -6,6 +6,7 @@ import fs from 'fs';
 import { createGunzip } from 'zlib';
 import { URL } from 'url';
 import { decodeAsync } from '@msgpack/msgpack';
+import pluralize from 'pluralize';
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
@@ -18,7 +19,9 @@ const sourceData = (await decodeAsync(
 )) as any[];
 
 const words = (sourceData.slice(1).flat() as string[]).filter((word) => {
-  return /^[a-z]{5}$/.test(word) && wordSet.has(word);
+  return (
+    /^[a-z]{5}$/.test(word) && wordSet.has(word) && pluralize.isSingular(word)
+  );
 });
 
 await writeFile(new URL('./en_5letter.txt', import.meta.url), words.join('\n'));

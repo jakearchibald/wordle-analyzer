@@ -16,9 +16,11 @@
   "license": "ISC",
   "dependencies": {
     "@msgpack/msgpack": "^2.8.0",
+    "pluralize": "^8.0.0",
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
+    "@types/pluralize": "^0.0.29",
     "prettier": "^2.7.1"
   }
 }

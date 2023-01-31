@@ -1,7 +1,6 @@
 import { createRequire } from 'module';
 import { writeFile, readFile } from 'fs/promises';
 import { URL } from 'url';
-import { lines } from './stream-utils.js';
 
 const require = createRequire(import.meta.url);
 const allWords = require('./all-words.json') as string[];
@@ -12,7 +11,7 @@ const commonWords = (
 ).split('\n');
 
 const orderedAllWords = [...new Set<string>([...commonWords, ...allWords])];
-const commonWordCutoff = 4000;
+const commonWordCutoff = 3000;
 
 await writeFile(
   new URL('./word-data.json', import.meta.url),
