@@ -9,7 +9,7 @@ import {
 import { doAbortable } from '../utils';
 
 // Default to 4, since this value isn't given in Safari.
-const workerCount = navigator.hardwareConcurrency || 4;
+const workerCount = navigator.hardwareConcurrency - 1 || 4;
 let mainWorker: Worker;
 let subWorkers: Worker[];
 

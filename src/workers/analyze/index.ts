@@ -42,30 +42,35 @@ const getAllWordsSet = () =>
 
 const threadPorts: MessagePort[] = [];
 
-class WorkerPool {
-  #availablePorts: Set<MessagePort>;
-  #queue: ((port: MessagePort) => void)[] = [];
+class Pool<Item> {
+  #availableItems: Set<Item>;
+  #queue: ((port: Item) => void)[] = [];
 
-  constructor(ports: MessagePort[]) {
-    this.#availablePorts = new Set(ports);
+  constructor(items: Item[]) {
+    this.#availableItems = new Set(items);
   }
 
-  async withPort<T>(fn: (port: MessagePort) => Promise<T>): Promise<T> {
-    let port = this.#availablePorts.values().next().value;
+  async withItem<T>(fn: (item: Item) => Promise<T>): Promise<T> {
+    let item = this.#availableItems.values().next().value;
 
-    if (!port) {
-      port = await new Promise<MessagePort>((resolve) => {
+    if (item) {
+      this.#availableItems.delete(item);
+    } else {
+      item = await new Promise<Item>((resolve) => {
         this.#queue.push(resolve);
       });
     }
 
-    this.#availablePorts.delete(port);
-
     try {
-      return await fn(port);
+      return await fn(item);
     } finally {
-      this.#availablePorts.add(port);
-      this.#queue.shift()?.(port);
+      let nextInQueue = this.#queue.shift();
+
+      if (nextInQueue) {
+        nextInQueue(item);
+      } else {
+        this.#availableItems.add(item);
+      }
     }
   }
 }
@@ -476,16 +481,18 @@ async function getRemainingAveragesMT(
   let done = 0;
   const expecting = validGuesses.length;
 
-  const pool = new WorkerPool(threadPorts);
-  const groupSize = 500;
+  const pool = new Pool(threadPorts);
+  const groupSize = Math.ceil(validGuesses.length / threadPorts.length / 2);
+  console.log({ groupSize });
   const groupCount = Math.ceil(validGuesses.length / groupSize);
+  console.log({ groupCount });
   const guessesGroups = Array.from({ length: groupCount }, (_, i) =>
     validGuesses.slice(i * groupSize, (i + 1) * groupSize),
   );
 
   const resultSets = await Promise.all(
     guessesGroups.map((guessesGroup, i) =>
-      pool.withPort(
+      pool.withItem(
         (port) =>
           new Promise<RemainingAveragesResult>((resolve, reject) => {
             console.time('worker' + i);
