@@ -80,8 +80,16 @@ function getCommentaryOnFirstGuess(guess: string) {
       </p>
     );
   }
-  if (guess === 'lares') {
+  if (guess === 'soare') {
     return <p>Aha, someone's learned a thing or two from the AI I see!</p>;
+  }
+  if (guess === 'lares') {
+    return (
+      <p>
+        The AI used to start with 'lares' too, but it changed its mind once it
+        learned that Wordle answers are never plural.
+      </p>
+    );
   }
   if (claimedBest.has(guess)) {
     return (
@@ -175,7 +183,7 @@ export default class PostCommentary extends Component<Props, State> {
         <>
           {getCommentaryOnFirstGuess(guessAnalysis.plays.user.guess)}
           <p>
-            The AI always starts with "lares" which eliminates the most
+            The AI always starts with "soare" which eliminates the most
             possibilities on average.{' '}
             {guessAnalysis.plays.bestPlay === guessAnalysis.plays.user && (
               <>
@@ -220,7 +228,7 @@ export default class PostCommentary extends Component<Props, State> {
 
     if (commonAnswersJustEliminated) {
       commentary.push(
-        <p>Oh no! That's all the common answers gone. This is a tricky one…</p>,
+        <p>Oh no! That's all the likely answers gone. This is a tricky one…</p>,
       );
     }
 

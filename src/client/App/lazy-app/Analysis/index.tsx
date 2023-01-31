@@ -344,15 +344,15 @@ export default class Analysis extends Component<Props, State> {
                     <strong>
                       {formatNumber(remainingCount)}{' '}
                       {remainingCount === 1 ? 'word' : 'words'} remaining,{' '}
-                      {formatNumber(aiPlay.beforeRemainingCounts.common)} common
+                      {formatNumber(aiPlay.beforeRemainingCounts.common)} likely
                     </strong>
                     .{' '}
                     {remainingDisplay &&
                       (remainingDisplay.remainingType ===
                       RemainingItemsType.CommonOnly
                         ? aiPlay.beforeRemainingCounts.common === 1
-                          ? 'The common one is:'
-                          : 'The common ones are:'
+                          ? 'The likely one is:'
+                          : 'The likely ones are:'
                         : remainingCount > 1 && 'They are:')}
                   </p>
                   {remainingDisplay && (

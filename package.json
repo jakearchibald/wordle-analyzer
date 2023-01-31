@@ -14,6 +14,7 @@
     "@rollup/plugin-terser": "^0.3.0",
     "@surma/rollup-plugin-off-main-thread": "^2.2.3",
     "@types/mime-types": "^2.1.1",
+    "@types/node": "^18.11.18",
     "cssnano": "^5.0.17",
     "del": "^7.0.0",
     "glob": "^8.1.0",
