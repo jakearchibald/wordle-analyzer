@@ -44,7 +44,7 @@ export default class PreCommentary extends Component<Props, State> {
             </strong>{' '}
             of them to be 'likely', or at least more likely than the others. Not
             all Wordle answers are 'likely' words. Plurals are considered
-            unlikely, as Worldle doesn't use those as answers.
+            unlikely, as Wordle doesn't use those as answers.
           </p>
           <p>
             The first play should aim to eliminate as many words as possible,
