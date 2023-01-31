@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import renderToString from 'preact-render-to-string';
 import { Handler, HandlerResponse } from '@netlify/functions';
-import { render } from '@resvg/resvg-js';
+import { Resvg } from '@resvg/resvg-js';
 import robotoUrl from 'url:./assets/roboto-v29-latin.ttf';
 
 import SocialSVG, { Props as SocialSVGProps } from 'shared/SocialSVG';
@@ -39,6 +39,19 @@ export const handler: Handler = async (event, context) => {
     });
   }
 
+  const resvg = new Resvg(renderToString(<SocialSVG entries={entries} />), {
+    background: '#fff',
+    //logLevel: __PRODUCTION__ ? 'off' : 'debug',
+    logLevel: 'debug',
+    font: {
+      fontFiles: [robotoUrl],
+      loadSystemFonts: false,
+    },
+  });
+
+  const pngData = resvg.render();
+  const pngBuffer = pngData.asPng();
+
   return {
     statusCode: 200,
     headers: {
@@ -46,14 +59,6 @@ export const handler: Handler = async (event, context) => {
       'Cache-Control': 'no-cache',
     },
     isBase64Encoded: true,
-    body: render(renderToString(<SocialSVG entries={entries} />), {
-      background: '#fff',
-      //logLevel: __PRODUCTION__ ? 'off' : 'debug',
-      logLevel: 'debug',
-      font: {
-        fontFiles: [robotoUrl],
-        loadSystemFonts: false,
-      },
-    }).toString('base64'),
+    body: pngBuffer.toString('base64'),
   };
 };
