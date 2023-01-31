@@ -134,13 +134,6 @@ function generateBlockColors({
 
 /**
  * Does an answer comply with a set of conditions?
- *
- * @param guess The answer to check
- * @param positionalMatches Array like ['', 'b', 'b', '', ''] representing known letters + position. Empty string means unknown.
- * @param positionalNotMatches Array like ['c', 'a', '', '', 's'] representing letters + position that are known to be incorrect. Empty string means unknown.
- * @param additionalRequiredLetters Array of letters that are known to be in one of the spaces that isn't covered by positionalMatches.
- * @param remainingMustNotContain Set of letters that must not appear in the answer once other rules have been processed.
- * @returns
  */
 function possibleAnswer(
   guess: string,

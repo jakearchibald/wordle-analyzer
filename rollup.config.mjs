@@ -11,37 +11,39 @@
  * limitations under the License.
  */
 import * as path from 'path';
-import del from 'del';
+import { fileURLToPath } from 'url';
 import fsp from 'fs/promises';
 
+import { deleteAsync } from 'del';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import replace from '@rollup/plugin-replace';
 import OMT from '@surma/rollup-plugin-off-main-thread';
 
-import simpleTS from './lib/simple-ts';
-import { fileNameToURL } from './lib/utils';
-import clientBundlePlugin from './lib/client-bundle-plugin';
-import nodeExternalPlugin from './lib/node-external-plugin';
-import urlPlugin from './lib/url-plugin';
-import cssPlugin from './lib/css-plugin';
-import resolveDirsPlugin from './lib/resolve-dirs-plugin';
-import runScript from './lib/run-script';
-import emitFiles from './lib/emit-files-plugin';
-import serviceWorkerPlugin from './lib/sw-plugin';
-import entryDataPlugin from './lib/entry-data-plugin';
-import entryURLPlugin from './lib/entry-url-plugin';
-import builtAssetTextPlugin from './lib/built-asset-text-plugin';
+import simpleTS from './lib/simple-ts.mjs';
+import { fileNameToURL } from './lib/utils.mjs';
+import clientBundlePlugin from './lib/client-bundle-plugin.mjs';
+import nodeExternalPlugin from './lib/node-external-plugin.mjs';
+import urlPlugin from './lib/url-plugin.mjs';
+import cssPlugin from './lib/css-plugin.mjs';
+import resolveDirsPlugin from './lib/resolve-dirs-plugin.mjs';
+import runScript from './lib/run-script.mjs';
+import emitFiles from './lib/emit-files-plugin.mjs';
+import serviceWorkerPlugin from './lib/sw-plugin.mjs';
+import entryDataPlugin from './lib/entry-data-plugin.mjs';
+import entryURLPlugin from './lib/entry-url-plugin.mjs';
+import builtAssetTextPlugin from './lib/built-asset-text-plugin.mjs';
 
-const __MAJOR_VERSION__ = Number(
-  require('./package.json').version.split('.')[0],
-);
+import packageJSON from './package.json' assert { type: 'json' };
+
+const __MAJOR_VERSION__ = Number(packageJSON.version.split('.')[0]);
 
 function resolveFileUrl({ fileName }) {
   return JSON.stringify(fileNameToURL(fileName));
 }
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dir = '.tmp/build';
 const staticPath = 'static/c/[name]-[hash][extname]';
 const jsPath = staticPath.replace('[extname]', '.js');
@@ -56,7 +58,7 @@ function jsFileName(chunkInfo) {
 }
 
 export default async function ({ watch }) {
-  await del(['.tmp/build', 'built-netlify-functions']);
+  await deleteAsync(['.tmp/build', 'built-netlify-functions']);
 
   const isProduction = !watch;
 
@@ -93,15 +95,15 @@ export default async function ({ watch }) {
 
   return [
     {
-      input: 'src/static-build/index.tsx',
+      input: './src/static-build/index.tsx',
       output: {
         dir,
         format: 'cjs',
         assetFileNames: staticPath,
         exports: 'named',
+        preserveModules: true,
       },
       watch: watchOptions,
-      preserveModules: true,
       plugins: [
         { resolveFileUrl },
         clientBundlePlugin(

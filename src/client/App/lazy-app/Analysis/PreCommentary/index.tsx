@@ -42,12 +42,13 @@ export default class PreCommentary extends Component<Props, State> {
             <strong>
               {formatNumber(guessAnalysis.beforeRemainingCounts.common)}
             </strong>{' '}
-            of them to be 'common', or at least more common than the others.
-            However, not all Wordle answers are common words.
+            of them to be 'likely', or at least more likely than the others. Not
+            all Wordle answers are 'likely' words. Plurals are considered
+            unlikely, as Worldle doesn't use those as answers.
           </p>
           <p>
             The first play should aim to eliminate as many words as possible,
-            preferably common words.
+            preferably likely words.
           </p>
         </>
       );
@@ -96,9 +97,9 @@ export default class PreCommentary extends Component<Props, State> {
         if (remainingCount === 2) {
           return [
             <>
-              With no common words remaining, the biggest challenge is thinking
+              With no likely words remaining, the biggest challenge is thinking
               of any word that fits. The best strategy is to pick the
-              least-uncommon of those, but I'd probably just play the first one
+              least-unlikely of those, but I'd probably just play the first one
               that came to mind.
             </>,
           ];
@@ -107,26 +108,26 @@ export default class PreCommentary extends Component<Props, State> {
         if (aiStrategy === AIStrategy.EliminateUncommonWithAnswer || hardMode) {
           return [
             <>
-              With no common words remaining, the biggest challenge is thinking
+              With no likely words remaining, the biggest challenge is thinking
               of any word that fits. There are answers that eliminate more of
               the other answers, which could be a good play, but playing the
-              least-uncommon of the possibilities is also a good bet.
+              least-unlikely of the possibilities is also a good bet.
             </>,
             <>
-              That said, with uncommon words like this, I'd probably just play
+              That said, with unlikely words like this, I'd probably just play
               the first one that came to mind.
             </>,
           ];
         }
         return [
           <>
-            With no common words remaining, the biggest challenge is thinking of
+            With no likely words remaining, the biggest challenge is thinking of
             any word that fits. The remaining possibilities have too much in
-            common, so rather than going for a win, it's probably better to play
+            likely, so rather than going for a win, it's probably better to play
             a non-answer that eliminates many of the possible answers.
           </>,
           <>
-            That said, with uncommon words like this, I'd probably just play the
+            That said, with unlikely words like this, I'd probably just play the
             first one that came to mind.
           </>,
         ];
@@ -135,8 +136,8 @@ export default class PreCommentary extends Component<Props, State> {
       if (guessAnalysis.beforeRemainingCounts.common === 1) {
         return [
           <>
-            Not all Wordle answers are common words, but most of them are. If "
-            {remainingAnswers!.common[0]}" was the only 'common' word I could
+            Not all Wordle answers are 'likely' words, but most of them are. If
+            "{remainingAnswers!.common[0]}" was the only 'likely' word I could
             think of, I'd totally play it and hope for the best!
           </>,
         ];
@@ -147,7 +148,7 @@ export default class PreCommentary extends Component<Props, State> {
           <>
             {guessAnalysis.beforeRemainingCounts.other !== 0 && (
               <>
-                Not all Wordle answers are common words, but most of them are.{' '}
+                Not all Wordle answers are 'likely' words, but most of them are.{' '}
               </>
             )}
             If I managed to think of both of those,{' '}
@@ -184,7 +185,7 @@ export default class PreCommentary extends Component<Props, State> {
             <>
               Hard mode restricts what you can do. If there's a possible win
               that eliminates most of the others, go for that, otherwise play
-              the most-common of the remaining answers.
+              the most-likely of the remaining answers.
             </>,
           ];
         }
@@ -236,8 +237,8 @@ export default class PreCommentary extends Component<Props, State> {
             {remainingSpan}{' '}
             {remainingDisplay.remainingType === RemainingItemsType.CommonOnly
               ? guessAnalysis.beforeRemainingCounts.common === 1
-                ? 'The common one is:'
-                : 'The common ones are:'
+                ? 'The likely one is:'
+                : 'The likely ones are:'
               : remainingCount > 1 && 'They are:'}
           </p>
           <RemainingList remainingToDisplay={remainingDisplay.remaining} />

@@ -1,6 +1,18 @@
 // Give TypeScript the correct global.
 declare var self: ServiceWorkerGlobalScope;
 
+const isSafari =
+  /Safari\//.test(navigator.userAgent) &&
+  !/Chrom(e|ium)\//.test(navigator.userAgent);
+
+// I keep getting reports of stuck pages from iOS Safari users.
+// It happens when there's a service worker update.
+// There's some kind of browser bug there that's intermittent, and difficult to reproduce.
+// So, for now, I'm going to ditch service workers in Safari.
+if (isSafari) {
+  self.registration.unregister();
+}
+
 const versionedCache = 'static-' + VERSION;
 const expectedCaches = [versionedCache];
 

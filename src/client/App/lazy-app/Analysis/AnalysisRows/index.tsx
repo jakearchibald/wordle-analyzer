@@ -31,17 +31,17 @@ const boolToYesNo = (bool: boolean) => (bool ? '✅' : '❌');
 function getStrategyDescription(strategy: AIStrategy): string {
   switch (strategy) {
     case AIStrategy.EliminateCommon:
-      return 'Eliminate common words';
+      return 'Eliminate likely words';
     case AIStrategy.EliminateCommonWithAnswer:
-      return 'Eliminate common words with possible answer';
+      return 'Eliminate likely words with possible answer';
     case AIStrategy.Play5050Common:
-      return 'Take a punt on a common word';
+      return 'Take a punt on a likely word';
     case AIStrategy.PlaySingleCommon:
-      return 'Play remaining common word';
+      return 'Play remaining likely word';
     case AIStrategy.EliminateUncommon:
-      return 'Eliminate uncommon words';
+      return 'Eliminate unlikely words';
     case AIStrategy.EliminateUncommonWithAnswer:
-      return 'Eliminate uncommon words with possible answer';
+      return 'Eliminate unlikely words with possible answer';
     case AIStrategy.Play5050Uncommon:
       return 'Take a punt on a remaining word';
     case AIStrategy.PlaySingleUncommon:
@@ -92,11 +92,17 @@ export default class AnalysisRows extends Component<Props, State> {
             <th scope="row">Average remaining words</th>
             {plays.map((play) => (
               <td>
-                {formatNumber(play.averageRemaining.all)}{' '}
-                {play.averageRemaining.all === 1 ? wordStr[0] : wordStr[1]},{' '}
-                <span class={styles.noBreak}>
-                  {formatNumber(play.averageRemaining.common)} common
-                </span>
+                {play.averageRemaining ? (
+                  <>
+                    {formatNumber(play.averageRemaining.all)}{' '}
+                    {play.averageRemaining.all === 1 ? wordStr[0] : wordStr[1]},{' '}
+                    <span class={styles.noBreak}>
+                      {formatNumber(play.averageRemaining.common)} likely
+                    </span>
+                  </>
+                ) : (
+                  '???'
+                )}
               </td>
             ))}
           </tr>
@@ -133,7 +139,7 @@ export default class AnalysisRows extends Component<Props, State> {
                       : wordStr[1]}
                     ,{' '}
                     <span class={styles.noBreak}>
-                      {formatNumber(play.remainingAnswers.common.length)} common
+                      {formatNumber(play.remainingAnswers.common.length)} likely
                     </span>
                   </>
                 )}
@@ -189,7 +195,7 @@ export default class AnalysisRows extends Component<Props, State> {
             </tr>
           )}
         <tr>
-          <th scope="row">Common word?</th>
+          <th scope="row">Likely word?</th>
           {plays.map((play) => (
             <td>{boolToYesNo(play.commonWord)}</td>
           ))}
