@@ -12,7 +12,12 @@ import 'add-css:./styles.module.css';
 import 'add-css:../utils.module.css';
 import { encode, decode } from './stupid-simple-cypher';
 import SpoilerWarning from './SpoilerWarning';
-import { swUpdatePending, activatePendingSw } from 'client/utils';
+import {
+  swUpdatePending,
+  activatePendingSw,
+  transitionHelper,
+  TransitionHelperArg,
+} from 'client/utils';
 import Footer from './Footer';
 import deferred from './deferred';
 
@@ -20,6 +25,66 @@ const lazyModule = import('./lazy-app');
 const Analysis = deferred(lazyModule.then((m) => m.Analysis));
 const Alerts = deferred(lazyModule.then((m) => m.Alerts));
 const nullComponent = () => undefined;
+
+async function performMainToAnalysisTransition(
+  updateDOM: TransitionHelperArg['updateDOM'],
+) {
+  const style = document.createElement('style');
+  style.textContent = Array.from({ length: 5 * 7 }, (_, i) => {
+    return (
+      `::view-transition-group(guess-cell-${Math.floor(i / 7)}-${i % 5}) {` +
+      `transform-style: preserve-3d;` +
+      `animation: none;` +
+      `}` +
+      `::view-transition-image-pair(guess-cell-${Math.floor(i / 7)}-${
+        i % 5
+      }) {` +
+      `transform-style: preserve-3d;` +
+      `isolation: auto;` +
+      `will-change: transform;` +
+      `}` +
+      `::view-transition-new(guess-cell-${Math.floor(i / 7)}-${
+        i % 5
+      }), ::view-transition-old(guess-cell-${Math.floor(i / 7)}-${i % 5}) {` +
+      `mix-blend-mode: normal;` +
+      `backface-visibility: hidden;` +
+      `animation: none;` +
+      `}` +
+      `::view-transition-new(guess-cell-${Math.floor(i / 7)}-${i % 5}) {` +
+      `transform: rotateX(180deg);` +
+      `}`
+    );
+  }).join('');
+
+  const transition = transitionHelper({
+    skipTransition: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    classNames: ['from-home', 'to-analysis'],
+    updateDOM,
+  });
+
+  document.head.append(style);
+  transition.finished.finally(() => style.remove());
+
+  await transition.ready;
+
+  for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
+    const row = Math.floor(i / 7);
+    const col = i % 5;
+
+    document.documentElement.animate(
+      {
+        transform: ['rotateX(0deg)', 'rotateX(-180deg)'],
+      },
+      {
+        duration: 500,
+        delay: (row + col) * 1000,
+        easing: 'ease',
+        pseudoElement: `::view-transition-image-pair(guess-cell-${row}-${col})`,
+        fill: 'both',
+      },
+    );
+  }
+}
 
 function getStateUpdateFromURL(): Partial<State> {
   const urlParams = new URLSearchParams(location.search);
@@ -92,8 +157,15 @@ export default class App extends Component<Props, State> {
     ...getStateUpdateFromURL(),
   };
 
+  #nextRenderResolves: (() => void)[] = [];
+
   componentDidMount() {
     addEventListener('popstate', () => this.#setStateFromUrl());
+  }
+
+  componentDidUpdate() {
+    for (const resolve of this.#nextRenderResolves) resolve();
+    this.#nextRenderResolves = [];
   }
 
   async #setStateFromUrl() {
@@ -105,7 +177,22 @@ export default class App extends Component<Props, State> {
       return;
     }
 
-    this.setState(getStateUpdateFromURL());
+    const newState = getStateUpdateFromURL();
+
+    if (
+      !this.state.toAnalyze &&
+      newState.toAnalyze &&
+      !newState.showSpoilerWarning
+    ) {
+      performMainToAnalysisTransition(async () => {
+        this.setState(newState);
+        await new Promise<void>((resolve) =>
+          this.#nextRenderResolves.push(resolve),
+        );
+      });
+    } else {
+      this.setState(newState);
+    }
   }
 
   #onGuessesInput = (guesses: string[], hardMode: boolean) => {
@@ -138,7 +225,6 @@ export default class App extends Component<Props, State> {
     history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
     this.#setStateFromUrl();
   };
-
   #renderAlerts = (AlertsComponent: Awaited<typeof lazyModule>['Alerts']) => {
     return <AlertsComponent />;
   };
