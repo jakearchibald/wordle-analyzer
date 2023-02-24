@@ -129,6 +129,7 @@ export default class EditableGuesses extends Component<Props> {
               onInputInitialBackspace={this.#onGuessInitialBackspaces[index]}
               value={value}
               label={`Guess ${index + 1}`}
+              index={index}
             />
           ))}
         </div>

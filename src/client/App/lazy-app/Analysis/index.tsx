@@ -214,21 +214,21 @@ export default class Analysis extends Component<Props, State> {
     return (
       <div>
         <div class={utilStyles.container}>
-          {guessCellColors && (
-            <>
-              <div class={styles.guesses}>
-                {guesses.map((guess, i) => (
-                  <a
-                    class={utilStyles.hiddenLink}
-                    target="_blank"
-                    href={`https://en.wiktionary.org/wiki/${guess}`}
-                  >
-                    <Guess value={guess} cellClues={guessCellColors[i]} />
-                  </a>
-                ))}
-              </div>
-            </>
-          )}
+          <div class={styles.guesses}>
+            {guesses.map((guess, i) => (
+              <a
+                class={utilStyles.hiddenLink}
+                target="_blank"
+                href={`https://en.wiktionary.org/wiki/${guess}`}
+              >
+                <Guess
+                  value={guess}
+                  cellClues={guessCellColors ? guessCellColors[i] : undefined}
+                  viewTransitionIndex={i}
+                />
+              </a>
+            ))}
+          </div>
         </div>
         {guessCellColors && guesses[guesses.length - 1] !== answer && (
           <div class={utilStyles.container}>

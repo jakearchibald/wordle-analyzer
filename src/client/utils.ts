@@ -58,3 +58,36 @@ export async function activatePendingSw(): Promise<void> {
   if (!reg || !reg.waiting) throw Error('No pending service worker');
   reg.waiting.postMessage('skipWaiting');
 }
+
+export interface TransitionHelperArg {
+  skipTransition?: boolean;
+  classNames?: string[];
+  updateDOM: () => void;
+}
+
+export function transitionHelper({
+  skipTransition = false,
+  classNames = [],
+  updateDOM,
+}: TransitionHelperArg) {
+  if (skipTransition || !document.startViewTransition) {
+    const updateCallbackDone = Promise.resolve(updateDOM()).then(() => {});
+
+    return {
+      ready: Promise.reject(Error('View transitions unsupported')),
+      updateCallbackDone,
+      finished: updateCallbackDone,
+      skipTransition: () => {},
+    };
+  }
+
+  document.documentElement.classList.add(...classNames);
+
+  const transition = document.startViewTransition(updateDOM);
+
+  transition.finished.finally(() =>
+    document.documentElement.classList.remove(...classNames),
+  );
+
+  return transition;
+}

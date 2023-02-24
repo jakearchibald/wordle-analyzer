@@ -12,6 +12,7 @@ interface Props {
   onEnter: (source: HTMLInputElement) => void;
   autoFocus?: boolean;
   disabled?: boolean;
+  index: number;
 }
 
 interface State {
@@ -97,7 +98,7 @@ export default class EditableGuess extends Component<Props, State> {
   };
 
   render(
-    { label, value, autoFocus, disabled }: RenderableProps<Props>,
+    { label, value, autoFocus, disabled, index }: RenderableProps<Props>,
     { selection, inputHasFocus }: State,
   ) {
     return (
@@ -111,6 +112,7 @@ export default class EditableGuess extends Component<Props, State> {
             value={value}
             selection={inputHasFocus ? selection : undefined}
             onCellMouseDown={this.#onCellMouseDown}
+            viewTransitionIndex={index}
           />
         </div>
         <input

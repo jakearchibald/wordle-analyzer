@@ -10,6 +10,7 @@ interface Props {
   value: string;
   selection?: [number, number];
   onCellMouseDown?: (index: number) => void;
+  viewTransitionIndex?: number;
 }
 
 const fiveCells = [0, 1, 2, 3, 4] as const;
@@ -36,7 +37,12 @@ export default class Guess extends Component<Props> {
     this.props.onCellMouseDown?.(index);
   };
 
-  render({ cellClues, value, selection }: RenderableProps<Props>) {
+  render({
+    cellClues,
+    value,
+    selection,
+    viewTransitionIndex,
+  }: RenderableProps<Props>) {
     return (
       <div class={styles.guess} onMouseDown={this.#onMouseDown}>
         {selection && (
@@ -67,7 +73,13 @@ export default class Guess extends Component<Props> {
             ]
               .filter(Boolean)
               .join(' ')}
-            style={{ gridColumn: index + 1 }}
+            style={{
+              gridColumn: index + 1,
+              viewTransitionName:
+                viewTransitionIndex !== undefined
+                  ? `guess-cell-${viewTransitionIndex}-${index}`
+                  : '',
+            }}
           >
             {value[index]}
             {cellClues && (
