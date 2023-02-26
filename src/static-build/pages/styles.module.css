@@ -40,6 +40,7 @@ html {
   color: var(--theme-black);
   line-height: 1.5;
   height: -webkit-fill-available;
+  overflow: scroll;
 }
 
 body {
