@@ -12,7 +12,13 @@ import 'add-css:./styles.module.css';
 import 'add-css:../utils.module.css';
 import { encode, decode } from './stupid-simple-cypher';
 import SpoilerWarning from './SpoilerWarning';
-import { swUpdatePending, activatePendingSw } from 'client/utils';
+import {
+  swUpdatePending,
+  activatePendingSw,
+  transitionHelper,
+  TransitionHelperArg,
+  getStyleDeclaration,
+} from 'client/utils';
 import Footer from './Footer';
 import deferred from './deferred';
 
@@ -20,6 +26,72 @@ const lazyModule = import('./lazy-app');
 const Analysis = deferred(lazyModule.then((m) => m.Analysis));
 const Alerts = deferred(lazyModule.then((m) => m.Alerts));
 const nullComponent = () => undefined;
+
+async function performMainToAnalysisTransition(
+  updateDOM: TransitionHelperArg['updateDOM'],
+) {
+  for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
+    const row = Math.floor(i / 5);
+    const col = i % 5;
+    const ident = `guess-cell-${row}-${col}`;
+
+    Object.assign(getStyleDeclaration(`::view-transition-group(${ident})`), {
+      transformStyle: 'preserve-3d',
+    });
+
+    Object.assign(
+      getStyleDeclaration(`::view-transition-image-pair(${ident})`),
+      {
+        transformStyle: 'preserve-3d',
+        isolation: 'auto',
+        willChange: 'transform',
+      },
+    );
+
+    Object.assign(
+      getStyleDeclaration(
+        `::view-transition-new(${ident}), ::view-transition-old(${ident})`,
+      ),
+      {
+        mixBlendMode: 'normal',
+        backfaceVisibility: 'hidden',
+        animation: 'none',
+      },
+    );
+
+    Object.assign(getStyleDeclaration(`::view-transition-new(${ident})`), {
+      transform: 'rotateX(180deg)',
+    });
+  }
+
+  const transition = transitionHelper({
+    skipTransition: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    classNames: ['from-home', 'to-analysis'],
+    updateDOM,
+  });
+
+  await transition.ready;
+
+  for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
+    const row = Math.floor(i / 5);
+    const col = i % 5;
+
+    document.documentElement
+      .animate(
+        {
+          transform: ['rotateX(0deg)', 'rotateX(-180deg)'],
+        },
+        {
+          duration: 300,
+          delay: (row + col) * 30,
+          easing: 'ease',
+          pseudoElement: `::view-transition-image-pair(guess-cell-${row}-${col})`,
+          fill: 'both',
+        },
+      )
+      .persist();
+  }
+}
 
 function getStateUpdateFromURL(): Partial<State> {
   const urlParams = new URLSearchParams(location.search);
@@ -92,8 +164,15 @@ export default class App extends Component<Props, State> {
     ...getStateUpdateFromURL(),
   };
 
+  #nextRenderResolves: (() => void)[] = [];
+
   componentDidMount() {
     addEventListener('popstate', () => this.#setStateFromUrl());
+  }
+
+  componentDidUpdate() {
+    for (const resolve of this.#nextRenderResolves) resolve();
+    this.#nextRenderResolves = [];
   }
 
   async #setStateFromUrl() {
@@ -105,7 +184,22 @@ export default class App extends Component<Props, State> {
       return;
     }
 
-    this.setState(getStateUpdateFromURL());
+    const newState = getStateUpdateFromURL();
+
+    if (
+      !this.state.toAnalyze &&
+      newState.toAnalyze &&
+      !newState.showSpoilerWarning
+    ) {
+      performMainToAnalysisTransition(async () => {
+        this.setState(newState);
+        await new Promise<void>((resolve) =>
+          this.#nextRenderResolves.push(resolve),
+        );
+      });
+    } else {
+      this.setState(newState);
+    }
   }
 
   #onGuessesInput = (guesses: string[], hardMode: boolean) => {
