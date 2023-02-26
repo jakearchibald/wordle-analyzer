@@ -37,7 +37,6 @@ async function performMainToAnalysisTransition(
 
     Object.assign(getStyleDeclaration(`::view-transition-group(${ident})`), {
       transformStyle: 'preserve-3d',
-      animation: 'none',
     });
 
     Object.assign(
