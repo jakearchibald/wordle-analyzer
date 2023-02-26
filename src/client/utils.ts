@@ -91,3 +91,18 @@ export function transitionHelper({
 
   return transition;
 }
+
+const style = document.createElement('style');
+const styleMap = new Map<string, CSSStyleDeclaration>();
+
+export function getStyleDeclaration(selector: string): CSSStyleDeclaration {
+  if (!styleMap.has(selector)) {
+    if (!style.isConnected) document.head.append(style);
+    const newIndex = style.sheet!.cssRules.length;
+    style.sheet!.insertRule(`${selector} {}`, newIndex);
+    const styleRule = style.sheet!.cssRules[newIndex] as CSSStyleRule;
+    styleMap.set(selector, styleRule.style);
+  }
+
+  return styleMap.get(selector)!;
+}

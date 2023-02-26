@@ -17,6 +17,7 @@ import {
   activatePendingSw,
   transitionHelper,
   TransitionHelperArg,
+  getStyleDeclaration,
 } from 'client/utils';
 import Footer from './Footer';
 import deferred from './deferred';
@@ -29,32 +30,40 @@ const nullComponent = () => undefined;
 async function performMainToAnalysisTransition(
   updateDOM: TransitionHelperArg['updateDOM'],
 ) {
-  const style = document.createElement('style');
-  style.textContent = Array.from({ length: 5 * 7 }, (_, i) => {
-    return (
-      `::view-transition-group(guess-cell-${Math.floor(i / 7)}-${i % 5}) {` +
-      `transform-style: preserve-3d;` +
-      `animation: none;` +
-      `}` +
-      `::view-transition-image-pair(guess-cell-${Math.floor(i / 7)}-${
-        i % 5
-      }) {` +
-      `transform-style: preserve-3d;` +
-      `isolation: auto;` +
-      `will-change: transform;` +
-      `}` +
-      `::view-transition-new(guess-cell-${Math.floor(i / 7)}-${
-        i % 5
-      }), ::view-transition-old(guess-cell-${Math.floor(i / 7)}-${i % 5}) {` +
-      `mix-blend-mode: normal;` +
-      `backface-visibility: hidden;` +
-      `animation: none;` +
-      `}` +
-      `::view-transition-new(guess-cell-${Math.floor(i / 7)}-${i % 5}) {` +
-      `transform: rotateX(180deg);` +
-      `}`
+  for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
+    const row = Math.floor(i / 5);
+    const col = i % 5;
+    const ident = `guess-cell-${row}-${col}`;
+
+    Object.assign(getStyleDeclaration(`::view-transition-group(${ident})`), {
+      transformStyle: 'preserve-3d',
+      animation: 'none',
+    });
+
+    Object.assign(
+      getStyleDeclaration(`::view-transition-image-pair(${ident})`),
+      {
+        transformStyle: 'preserve-3d',
+        isolation: 'auto',
+        willChange: 'transform',
+      },
     );
-  }).join('');
+
+    Object.assign(
+      getStyleDeclaration(
+        `::view-transition-new(${ident}), ::view-transition-old(${ident})`,
+      ),
+      {
+        mixBlendMode: 'normal',
+        backfaceVisibility: 'hidden',
+        animation: 'none',
+      },
+    );
+
+    Object.assign(getStyleDeclaration(`::view-transition-new(${ident})`), {
+      transform: 'rotateX(180deg)',
+    });
+  }
 
   const transition = transitionHelper({
     skipTransition: matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -62,27 +71,26 @@ async function performMainToAnalysisTransition(
     updateDOM,
   });
 
-  document.head.append(style);
-  transition.finished.finally(() => style.remove());
-
   await transition.ready;
 
   for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
-    const row = Math.floor(i / 7);
+    const row = Math.floor(i / 5);
     const col = i % 5;
 
-    document.documentElement.animate(
-      {
-        transform: ['rotateX(0deg)', 'rotateX(-180deg)'],
-      },
-      {
-        duration: 500,
-        delay: (row + col) * 1000,
-        easing: 'ease',
-        pseudoElement: `::view-transition-image-pair(guess-cell-${row}-${col})`,
-        fill: 'both',
-      },
-    );
+    document.documentElement
+      .animate(
+        {
+          transform: ['rotateX(0deg)', 'rotateX(-180deg)'],
+        },
+        {
+          duration: 300,
+          delay: (row + col) * 30,
+          easing: 'ease',
+          pseudoElement: `::view-transition-image-pair(guess-cell-${row}-${col})`,
+          fill: 'both',
+        },
+      )
+      .persist();
   }
 }
 
@@ -225,6 +233,7 @@ export default class App extends Component<Props, State> {
     history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
     this.#setStateFromUrl();
   };
+
   #renderAlerts = (AlertsComponent: Awaited<typeof lazyModule>['Alerts']) => {
     return <AlertsComponent />;
   };

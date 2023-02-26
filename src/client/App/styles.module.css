@@ -2,5 +2,27 @@
   perspective: 1000px;
 }
 
+:global(.from-home.to-analysis)::view-transition-old(root) {
+  animation-duration: 250ms;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-down-slightly {
+  from {
+    transform: translateY(-10px);
+  }
+}
+
+:global(.from-home.to-analysis)::view-transition-new(root) {
+  animation-name: fade-in, slide-down-slightly;
+  animation-duration: 300ms;
+  animation-delay: 400ms;
+}
+
 .tmp {
 }

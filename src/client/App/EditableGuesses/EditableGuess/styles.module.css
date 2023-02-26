@@ -24,6 +24,10 @@
 }
 
 .disabled {
-  opacity: 0.5;
   pointer-events: none;
+
+  /* A real hack to place the opacity on the inner element, for view-transitions */
+  & [data-index] {
+    opacity: 0.5;
+  }
 }

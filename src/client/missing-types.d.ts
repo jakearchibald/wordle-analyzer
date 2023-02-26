@@ -11,3 +11,8 @@ interface Document {
 interface CSSStyleDeclaration {
   viewTransitionName: string;
 }
+
+declare module 'eval:*' {
+  const val: unknown;
+  export default val;
+}
