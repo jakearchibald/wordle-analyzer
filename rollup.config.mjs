@@ -34,6 +34,7 @@ import serviceWorkerPlugin from './lib/sw-plugin.mjs';
 import entryDataPlugin from './lib/entry-data-plugin.mjs';
 import entryURLPlugin from './lib/entry-url-plugin.mjs';
 import builtAssetTextPlugin from './lib/built-asset-text-plugin.mjs';
+import evalPlugin from './lib/eval-plugin.mjs';
 
 import packageJSON from './package.json' assert { type: 'json' };
 
@@ -116,6 +117,7 @@ export default async function ({ watch }) {
               }),
               entryURLPlugin(),
               ...commonPlugins(),
+              evalPlugin(),
               commonjs(),
               resolve(),
               replace({

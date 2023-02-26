@@ -2,6 +2,7 @@
   display: grid;
   border-bottom: 1px solid var(--theme-grey-1);
   padding: 0 var(--content-padding);
+  view-transition-name: header;
 
   text-transform: uppercase;
 

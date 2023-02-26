@@ -1,4 +1,5 @@
 .instructions {
+  view-transition-name: instructions;
   display: grid;
   overflow: hidden;
   background: var(--theme-grey-1);
