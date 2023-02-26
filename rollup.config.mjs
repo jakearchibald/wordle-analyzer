@@ -125,7 +125,7 @@ export default async function ({ watch }) {
               preventAssignment: true,
             }),
             entryDataPlugin(),
-            //isProduction ? terser({ module: true }) : {},
+            isProduction ? terser({ module: true }) : {},
           ],
           preserveEntrySignatures: false,
         },
