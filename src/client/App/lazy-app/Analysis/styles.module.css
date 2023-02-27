@@ -30,3 +30,13 @@
   margin: 0 auto;
   margin-bottom: 5rem;
 }
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: 250ms ease fade-in;
+}

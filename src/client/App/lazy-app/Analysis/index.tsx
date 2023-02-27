@@ -35,9 +35,13 @@ interface Props {
   hardMode: boolean;
 }
 
+interface CompleteGuessAnalysis extends GuessAnalysis {
+  completeTime: number;
+}
+
 interface State {
   /** Number is 0-1 representing progress */
-  analysis: (GuessAnalysis | number)[];
+  analysis: (CompleteGuessAnalysis | number)[];
   /** Number is 0-1 representing progress */
   aiPlays: (AIPlay | number)[];
   guessCellColors: CellColors[] | undefined;
@@ -78,6 +82,7 @@ export default class Analysis extends Component<Props, State> {
   }
 
   #abortController: AbortController | undefined = undefined;
+  #initTime = performance.now();
 
   async #analyze() {
     if (this.#abortController) this.#abortController.abort();
@@ -142,7 +147,7 @@ export default class Analysis extends Component<Props, State> {
 
           this.setState((state) => {
             const analysis = state.analysis.slice();
-            analysis[i] = { ...result };
+            analysis[i] = { ...result, completeTime: performance.now() };
             return { analysis };
           });
 
@@ -254,7 +259,14 @@ export default class Analysis extends Component<Props, State> {
                 <Progress value={guessAnalysis} />
               </div>
             ) : (
-              <>
+              <div
+                class={[
+                  guessAnalysis.completeTime - this.#initTime > 100 &&
+                    styles.fadeIn,
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
                 <div class={utilStyles.container}>
                   <div class={styles.commentary}>
                     <PreCommentary
@@ -292,7 +304,7 @@ export default class Analysis extends Component<Props, State> {
                     />
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </>
         ))}
