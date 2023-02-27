@@ -146,11 +146,12 @@ export function assignStyles(
 }
 
 export function documentSmoothScroll(x: number, y: number): Promise<void> {
-  document.documentElement.scroll({
-    top: y,
-    left: x,
-    behavior: 'smooth',
-  });
+  if (
+    document.documentElement.scrollTop === y &&
+    document.documentElement.scrollLeft === x
+  ) {
+    return Promise.resolve();
+  }
 
   return new Promise((resolve, reject) => {
     const listener = () => {
@@ -159,15 +160,27 @@ export function documentSmoothScroll(x: number, y: number): Promise<void> {
         document.documentElement.scrollLeft === x
       ) {
         document.removeEventListener('scroll', listener);
+        removeEventListener('resize', doScroll);
         resolve();
       }
     };
 
+    const doScroll = () => {
+      document.documentElement.scroll({
+        top: y,
+        left: x,
+        behavior: 'smooth',
+      });
+    };
+
     setTimeout(() => {
       document.removeEventListener('scroll', listener);
+      removeEventListener('resize', doScroll);
       reject(new DOMException('', 'AbortError'));
     }, 1000);
 
     document.addEventListener('scroll', listener);
+    addEventListener('resize', doScroll);
+    doScroll();
   });
 }
