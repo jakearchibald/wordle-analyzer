@@ -1,8 +1,17 @@
-import { assignStyles, transitionHelper, TransitionHelperArg } from './utils';
+import {
+  assignStyles,
+  documentSmoothScroll,
+  transitionHelper,
+  TransitionHelperArg,
+} from './utils';
 
 export async function performToAnalysisTransition(
   updateDOM: TransitionHelperArg['updateDOM'],
 ) {
+  if (document.documentElement.scrollTop !== 0) {
+    await documentSmoothScroll(0, 0).catch(() => {});
+  }
+
   for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
     const row = Math.floor(i / 5);
     const col = i % 5;

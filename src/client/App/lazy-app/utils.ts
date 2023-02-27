@@ -144,3 +144,30 @@ export function assignStyles(
 ): void {
   Object.assign(getStyleDeclaration(selector), styles);
 }
+
+export function documentSmoothScroll(x: number, y: number): Promise<void> {
+  document.documentElement.scroll({
+    top: y,
+    left: x,
+    behavior: 'smooth',
+  });
+
+  return new Promise((resolve, reject) => {
+    const listener = () => {
+      if (
+        document.documentElement.scrollTop === y &&
+        document.documentElement.scrollLeft === x
+      ) {
+        document.removeEventListener('scroll', listener);
+        resolve();
+      }
+    };
+
+    setTimeout(() => {
+      document.removeEventListener('scroll', listener);
+      reject(new DOMException('', 'AbortError'));
+    }, 1000);
+
+    document.addEventListener('scroll', listener);
+  });
+}
