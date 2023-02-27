@@ -2,7 +2,7 @@
   perspective: 1000px;
 }
 
-:global(.from-home.to-analysis)::view-transition-old(root) {
+:global(.to-analysis)::view-transition-old(root) {
   animation-duration: 250ms;
 }
 
@@ -18,7 +18,7 @@
   }
 }
 
-:global(.from-home.to-analysis)::view-transition-new(root) {
+:global(.to-analysis)::view-transition-new(root) {
   animation-name: fade-in, slide-down-slightly;
   animation-duration: 300ms;
   animation-delay: 400ms;

@@ -1,10 +1,4 @@
-import {
-  h,
-  Fragment,
-  Component,
-  RenderableProps,
-  ComponentConstructor,
-} from 'preact';
+import { h, Fragment, Component, RenderableProps } from 'preact';
 import EditableGuesses from './EditableGuesses';
 import MainInstruction from './MainInstruction';
 import * as styles from './styles.module.css';
@@ -12,13 +6,7 @@ import 'add-css:./styles.module.css';
 import 'add-css:../utils.module.css';
 import { encode, decode } from './stupid-simple-cypher';
 import SpoilerWarning from './SpoilerWarning';
-import {
-  swUpdatePending,
-  activatePendingSw,
-  transitionHelper,
-  TransitionHelperArg,
-  getStyleDeclaration,
-} from 'client/utils';
+import { swUpdatePending, activatePendingSw } from 'client/utils';
 import Footer from './Footer';
 import deferred from './deferred';
 
@@ -27,73 +15,7 @@ const Analysis = deferred(lazyModule.then((m) => m.Analysis));
 const Alerts = deferred(lazyModule.then((m) => m.Alerts));
 const nullComponent = () => undefined;
 
-async function performMainToAnalysisTransition(
-  updateDOM: TransitionHelperArg['updateDOM'],
-) {
-  for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
-    const row = Math.floor(i / 5);
-    const col = i % 5;
-    const ident = `guess-cell-${row}-${col}`;
-
-    Object.assign(getStyleDeclaration(`::view-transition-group(${ident})`), {
-      transformStyle: 'preserve-3d',
-    });
-
-    Object.assign(
-      getStyleDeclaration(`::view-transition-image-pair(${ident})`),
-      {
-        transformStyle: 'preserve-3d',
-        isolation: 'auto',
-        willChange: 'transform',
-      },
-    );
-
-    Object.assign(
-      getStyleDeclaration(
-        `::view-transition-new(${ident}), ::view-transition-old(${ident})`,
-      ),
-      {
-        mixBlendMode: 'normal',
-        backfaceVisibility: 'hidden',
-        animation: 'none',
-      },
-    );
-
-    Object.assign(getStyleDeclaration(`::view-transition-new(${ident})`), {
-      transform: 'rotateX(180deg)',
-    });
-  }
-
-  const transition = transitionHelper({
-    skipTransition: matchMedia('(prefers-reduced-motion: reduce)').matches,
-    classNames: ['from-home', 'to-analysis'],
-    updateDOM,
-  });
-
-  await transition.ready;
-
-  for (const [i] of Array.from({ length: 5 * 7 }).entries()) {
-    const row = Math.floor(i / 5);
-    const col = i % 5;
-
-    document.documentElement
-      .animate(
-        {
-          transform: ['rotateX(0deg)', 'rotateX(-180deg)'],
-        },
-        {
-          duration: 300,
-          delay: (row + col) * 30,
-          easing: 'ease',
-          pseudoElement: `::view-transition-image-pair(guess-cell-${row}-${col})`,
-          fill: 'both',
-        },
-      )
-      .persist();
-  }
-}
-
-function getStateUpdateFromURL(): Partial<State> {
+function getStateUpdateFromHistoryEntry(): Partial<State> {
   const urlParams = new URLSearchParams(location.search);
 
   if (!urlParams.has('guesses')) {
@@ -161,13 +83,13 @@ export default class App extends Component<Props, State> {
     guessInputs:
       history.state?.guessInputs || Array.from({ length: 7 }, () => ''),
     hardModeInput: localStorage.hardMode === '1',
-    ...getStateUpdateFromURL(),
+    ...getStateUpdateFromHistoryEntry(),
   };
 
   #nextRenderResolves: (() => void)[] = [];
 
   componentDidMount() {
-    addEventListener('popstate', () => this.#setStateFromUrl());
+    addEventListener('popstate', () => this.#setStateFromHistoryEntry());
   }
 
   componentDidUpdate() {
@@ -175,7 +97,7 @@ export default class App extends Component<Props, State> {
     this.#nextRenderResolves = [];
   }
 
-  async #setStateFromUrl() {
+  async #setStateFromHistoryEntry() {
     // If there's a pending update, this is an ideal time to let it happen.
     if (await swUpdatePending()) {
       // This will also trigger a reload of the page.
@@ -184,14 +106,24 @@ export default class App extends Component<Props, State> {
       return;
     }
 
-    const newState = getStateUpdateFromURL();
+    const newState = getStateUpdateFromHistoryEntry();
 
-    if (
+    // Either going from index to analysis, or from spoiler warning to analysis
+    /*
+    // Currently crashing
+    const transitionToAnalysis =
+      (!this.state.toAnalyze &&
+        newState.toAnalyze &&
+        !newState.showSpoilerWarning) ||
+      (this.state.showSpoilerWarning && !newState.showSpoilerWarning);*/
+
+    const transitionToAnalysis =
       !this.state.toAnalyze &&
       newState.toAnalyze &&
-      !newState.showSpoilerWarning
-    ) {
-      performMainToAnalysisTransition(async () => {
+      !newState.showSpoilerWarning;
+
+    if (transitionToAnalysis) {
+      (await lazyModule).performToAnalysisTransition(async () => {
         this.setState(newState);
         await new Promise<void>((resolve) =>
           this.#nextRenderResolves.push(resolve),
@@ -225,12 +157,12 @@ export default class App extends Component<Props, State> {
     );
 
     history.pushState({ skipSpoilerWarning: true }, '', url);
-    this.#setStateFromUrl();
+    this.#setStateFromHistoryEntry();
   };
 
   #onSpoilerClear = () => {
     history.replaceState({ ...history.state, skipSpoilerWarning: true }, '');
-    this.#setStateFromUrl();
+    this.#setStateFromHistoryEntry();
   };
 
   #renderAlerts = (AlertsComponent: Awaited<typeof lazyModule>['Alerts']) => {

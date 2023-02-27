@@ -28,6 +28,25 @@ interface State {}
 const wordStr = ['word', 'words'];
 const boolToYesNo = (bool: boolean) => (bool ? '✅' : '❌');
 
+function getLuck({ good, chance }: Luck): string {
+  if (chance > 1 / 2) return 'Neutral';
+
+  if (good) {
+    if (chance > 1 / 5) return `Lucky`;
+    if (chance > 1 / 10) return `Very lucky`;
+    if (chance > 1 / 50) return `Super lucky`;
+    if (chance > 1 / 100) return `Extremely lucky`;
+    if (chance > 1 / 1000) return `Unbelievably lucky`;
+    return `Literally incredible`;
+  }
+  if (chance > 1 / 5) return `Unlucky`;
+  if (chance > 1 / 10) return `Very unlucky`;
+  if (chance > 1 / 50) return `Super unlucky`;
+  if (chance > 1 / 100) return `Extremely unlucky`;
+  if (chance > 1 / 1000) return `Unbelievably unlucky`;
+  return `Oh god I'm so sorry`;
+}
+
 function getStrategyDescription(strategy: AIStrategy): string {
   switch (strategy) {
     case AIStrategy.EliminateCommon:

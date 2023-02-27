@@ -30,7 +30,27 @@ function numUniqueVowelsUsed(guess: string) {
   return 5 - vowels.size;
 }
 
-function getCommentaryOnFirstGuess(guess: string) {
+function getCommentaryOnFirstGuess(guess: string, answer: string) {
+  if (guess === answer) {
+    return (
+      <>
+        <p>
+          Before I congratulate you, you do realize this is a{' '}
+          <em>Wordle analyzer</em>, right?
+        </p>
+        <p>
+          I get a lot of people sending me screenshots of a page like this
+          thinking they've 'won' something. But this isn't a Wordle game, it's a
+          tool for analyzing Wordle plays.
+        </p>
+        <p>
+          If you did indeed guess a Wordle answer in one, then wow, that's
+          incredibly lucky!
+        </p>
+      </>
+    );
+  }
+
   if (guess === 'salet') {
     return (
       <p>
@@ -181,7 +201,7 @@ export default class PostCommentary extends Component<Props, State> {
     if (turn === 0) {
       return (
         <>
-          {getCommentaryOnFirstGuess(guessAnalysis.plays.user.guess)}
+          {getCommentaryOnFirstGuess(guessAnalysis.plays.user.guess, answer)}
           <p>
             The AI always starts with "soare" which eliminates the most
             possibilities on average.{' '}

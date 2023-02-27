@@ -89,3 +89,98 @@ export function filterRemainingItemsForMaxDisplay(
 
   return remaining ? { remaining, remainingType } : undefined;
 }
+
+export interface TransitionHelperArg {
+  skipTransition?: boolean;
+  classNames?: string[];
+  updateDOM: () => void;
+}
+
+export function transitionHelper({
+  skipTransition = false,
+  classNames = [],
+  updateDOM,
+}: TransitionHelperArg) {
+  if (skipTransition || !document.startViewTransition) {
+    const updateCallbackDone = Promise.resolve(updateDOM()).then(() => {});
+
+    return {
+      ready: Promise.reject(Error('View transitions unsupported')),
+      updateCallbackDone,
+      finished: updateCallbackDone,
+      skipTransition: () => {},
+    };
+  }
+
+  document.documentElement.classList.add(...classNames);
+
+  const transition = document.startViewTransition(updateDOM);
+
+  transition.finished.finally(() =>
+    document.documentElement.classList.remove(...classNames),
+  );
+
+  return transition;
+}
+
+const style = document.createElement('style');
+const styleMap = new Map<string, CSSStyleDeclaration>();
+
+export function getStyleDeclaration(selector: string): CSSStyleDeclaration {
+  if (!styleMap.has(selector)) {
+    if (!style.isConnected) document.head.append(style);
+    const newIndex = style.sheet!.cssRules.length;
+    style.sheet!.insertRule(`${selector} {}`, newIndex);
+    const styleRule = style.sheet!.cssRules[newIndex] as CSSStyleRule;
+    styleMap.set(selector, styleRule.style);
+  }
+
+  return styleMap.get(selector)!;
+}
+
+export function assignStyles(
+  selector: string,
+  styles: Partial<CSSStyleDeclaration>,
+): void {
+  Object.assign(getStyleDeclaration(selector), styles);
+}
+
+export function documentSmoothScroll(x: number, y: number): Promise<void> {
+  if (
+    document.documentElement.scrollTop === y &&
+    document.documentElement.scrollLeft === x
+  ) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const listener = () => {
+      if (
+        document.documentElement.scrollTop === y &&
+        document.documentElement.scrollLeft === x
+      ) {
+        document.removeEventListener('scroll', listener);
+        removeEventListener('resize', doScroll);
+        resolve();
+      }
+    };
+
+    const doScroll = () => {
+      document.documentElement.scroll({
+        top: y,
+        left: x,
+        behavior: 'smooth',
+      });
+    };
+
+    setTimeout(() => {
+      document.removeEventListener('scroll', listener);
+      removeEventListener('resize', doScroll);
+      reject(new DOMException('', 'AbortError'));
+    }, 1000);
+
+    document.addEventListener('scroll', listener);
+    addEventListener('resize', doScroll);
+    doScroll();
+  });
+}
