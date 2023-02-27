@@ -178,7 +178,7 @@ export default class PreCommentary extends Component<Props, State> {
         if (hardMode) {
           return [
             <>
-              The trick here is realising that there are still multiple likely
+              The trick here is realizing that there are still multiple likely
               answers, and doing something smarter than just playing the first
               thing that comes to mind. {turnInfo}
             </>,
@@ -192,7 +192,7 @@ export default class PreCommentary extends Component<Props, State> {
         if (aiStrategy === AIStrategy.EliminateCommonWithAnswer) {
           return [
             <>
-              The trick here is realising that there are still multiple likely
+              The trick here is realizing that there are still multiple likely
               answers, and doing something smarter than just playing the first
               thing that comes to mind. {turnInfo}
             </>,
@@ -206,7 +206,7 @@ export default class PreCommentary extends Component<Props, State> {
         }
         return [
           <>
-            The trick here is realising that there are still multiple likely
+            The trick here is realizing that there are still multiple likely
             answers, and doing something smarter than just playing the first
             thing that comes to mind. {turnInfo}
           </>,

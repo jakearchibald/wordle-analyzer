@@ -36,7 +36,7 @@ function getLuck({ good, chance }: Luck): string {
     if (chance > 1 / 50) return `Super lucky`;
     if (chance > 1 / 100) return `Extremely lucky`;
     if (chance > 1 / 1000) return `Unbelievably lucky`;
-    return `WTF HOW??`;
+    return `Literally incredible`;
   }
   if (chance > 1 / 5) return `Unlucky`;
   if (chance > 1 / 10) return `Very unlucky`;
