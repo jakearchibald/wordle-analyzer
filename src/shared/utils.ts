@@ -129,7 +129,7 @@ export const luckValues = [
   'Super lucky',
   'Extremely lucky',
   'Unbelievably lucky',
-  'WTF HOW??',
+  'Literally incredible',
   'Unlucky',
   'Very unlucky',
   'Super unlucky',
