@@ -68,7 +68,7 @@ export default class PreCommentary extends Component<Props, State> {
           There are{' '}
           <strong>
             {formatNumber(remainingCount)} words remaining,{' '}
-            {formatNumber(guessAnalysis.beforeRemainingCounts.common)} common
+            {formatNumber(guessAnalysis.beforeRemainingCounts.common)} likely
           </strong>
           .
         </span>
