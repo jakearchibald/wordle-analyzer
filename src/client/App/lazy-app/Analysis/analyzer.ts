@@ -198,17 +198,21 @@ export function getGuessesColors(
   });
 }
 
-export function getInvalidWords(
+export function getInputErrors(
   signal: AbortSignal,
   words: string[],
+  answer: string,
+  { hardMode = false }: { hardMode?: boolean } = {},
 ): Promise<string[]> {
   return abortableWorkerFunction(signal, () => {
     const { port1, port2 } = new MessageChannel();
 
     mainWorker.postMessage(
       {
-        action: 'invalid-words',
+        action: 'input-errors',
         words,
+        answer,
+        hardMode,
         returnPort: port2,
       },
       [port2],

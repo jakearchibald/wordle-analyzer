@@ -11,21 +11,51 @@
  * limitations under the License.
  */
 import { h } from 'preact';
+import render from 'preact-render-to-string';
 
 import { renderPage, writeFiles } from './utils';
 import IndexPage from './pages/index';
 import * as socialIconURL from 'img-url:static-build/assets/social-icon.png';
 import * as maskableIconURL from 'img-url:static-build/assets/maskable-icon.png';
 import { lookup as lookupMime } from 'mime-types';
+import SocialSVG from 'shared/SocialSVG';
 
 const manifestSize = ({ width, height }: { width: number; height: number }) =>
   `${width}x${height}`;
 
 interface Output {
-  [outputPath: string]: string;
+  [outputPath: string]: string | false;
 }
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
+  'social-design.svg':
+    !__PRODUCTION__ &&
+    render(
+      <SocialSVG
+        entries={[
+          {
+            colors: ['a', 'a', 'c', 'p', 'a'],
+            stars: 0,
+            luckIndex: 12,
+          },
+          {
+            colors: ['c', 'p', 'c', 'a', 'a'],
+            stars: 1,
+            luckIndex: 1,
+          },
+          {
+            colors: ['c', 'c', 'c', 'c', 'a'],
+            stars: 2,
+            luckIndex: 2,
+          },
+          {
+            colors: ['c', 'c', 'c', 'c', 'c'],
+            stars: 3,
+            luckIndex: 3,
+          },
+        ]}
+      />,
+    ),
   'manifest.json': JSON.stringify({
     name: 'Wordle Analyzer',
     short_name: 'Wordle Analyzer',

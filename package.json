@@ -8,6 +8,7 @@
     "serve": "serve .tmp/build/static"
   },
   "devDependencies": {
+    "@netlify/functions": "^1.0.0",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-replace": "^5.0.2",
@@ -29,6 +30,10 @@
     "preact-render-to-string": "^5.1.19",
     "rollup": "^3.10.1",
     "serve": "^14.1.2",
-    "typescript": "^4.5.5"
+    "typescript": "^4.5.5",
+    "netlify-cli": "^12.10.0"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.2.0"
   }
 }

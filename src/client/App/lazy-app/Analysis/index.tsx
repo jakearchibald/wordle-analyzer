@@ -6,7 +6,7 @@ import {
   aiPlay,
   analyzeGuess,
   getGuessesColors,
-  getInvalidWords,
+  getInputErrors,
 } from './analyzer';
 import {
   AIPlay,
@@ -28,6 +28,16 @@ import {
   RemainingItemsType,
 } from '../utils';
 import RemainingList from './RemainingList';
+import {
+  bton,
+  cellToNum,
+  getLuckIndex,
+  guessQualityToStars,
+  ntob,
+  packValues,
+  socialDataSizes,
+  unpackValues,
+} from 'shared/utils';
 
 interface Props {
   guesses: string[];
@@ -45,7 +55,7 @@ interface State {
   /** Number is 0-1 representing progress */
   aiPlays: (AIPlay | number)[];
   guessCellColors: CellColors[] | undefined;
-  analysisError: string | undefined;
+  inputErrors: string[];
   analysisComplete: boolean;
 }
 
@@ -53,7 +63,7 @@ const defaultState: State = {
   analysis: [],
   aiPlays: [],
   guessCellColors: undefined,
-  analysisError: undefined,
+  inputErrors: [],
   analysisComplete: false,
 };
 
@@ -103,21 +113,22 @@ export default class Analysis extends Component<Props, State> {
         ),
       });
 
-      const words = [...new Set([...this.props.guesses, this.props.answer])];
-      const invalidAnswers = await getInvalidWords(signal, words);
+      const inputErrors = await getInputErrors(
+        signal,
+        this.props.guesses,
+        this.props.answer,
+        { hardMode: this.props.hardMode },
+      );
 
-      if (invalidAnswers.length !== 0) {
-        this.setState({
-          analysisError: `Uh oh, one or more of those words isn't in the dictionary: ${invalidAnswers
-            .map((word) => `"${word}"`)
-            .join(', ')}`,
-        });
+      this.setState({
+        inputErrors,
+      });
 
-        return;
-      }
+      if (inputErrors.length !== 0) return;
 
       {
         const previousClues: Clue[] = [];
+        const results: GuessAnalysis[] = [];
         let remainingAnswers: RemainingAnswers | undefined = undefined;
 
         for (const [i, guess] of this.props.guesses.entries()) {
@@ -145,6 +156,8 @@ export default class Analysis extends Component<Props, State> {
             },
           );
 
+          results.push(result);
+
           this.setState((state) => {
             const analysis = state.analysis.slice();
             analysis[i] = { ...result, completeTime: performance.now() };
@@ -154,6 +167,26 @@ export default class Analysis extends Component<Props, State> {
           previousClues.push(result.plays.user.clue);
           remainingAnswers = result.plays.user.remainingAnswers;
         }
+
+        // Add data to URL
+        let dataStr = '';
+
+        for (const result of results) {
+          const values: number[] = [];
+
+          for (const cell of result.plays.user.colors) {
+            values.push(cellToNum[cell]);
+          }
+
+          values.push(guessQualityToStars(result.plays.user.guessQuality));
+          values.push(getLuckIndex(result.plays.user.luck));
+
+          dataStr += ntob(packValues(values, socialDataSizes)).padStart(3, 'A');
+        }
+
+        const url = new URL(location.href);
+        url.searchParams.set('s', dataStr);
+        history.replaceState({ ...history.state }, '', url.href);
       }
 
       {
@@ -212,7 +245,7 @@ export default class Analysis extends Component<Props, State> {
       analysis,
       aiPlays,
       guessCellColors,
-      analysisError,
+      inputErrors,
       analysisComplete,
     }: State,
   ) {
@@ -246,9 +279,17 @@ export default class Analysis extends Component<Props, State> {
             foundAnswer={guesses[guesses.length - 1] === answer}
           />
         )}
-        {analysisError && (
+        {inputErrors.length !== 0 && (
           <div class={utilStyles.container}>
-            <p class={styles.commentary}>{analysisError}</p>
+            <div class={styles.commentary}>
+              <p>Uh oh! Some rules were broken:</p>
+
+              <ul class={styles.list}>
+                {inputErrors.map((error) => (
+                  <li>{error}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
         {analysis.map((guessAnalysis, i, allGuessAnalysis) => (

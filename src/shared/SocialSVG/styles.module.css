@@ -1,0 +1,58 @@
+.root {
+  font-family: Roboto;
+}
+
+.footer {
+  fill: #dadfe1;
+}
+
+.text {
+  fill: #1a1a1b;
+}
+
+.center-text {
+  fill: #1a1a1b;
+  text-anchor: middle;
+}
+
+.header {
+  fill: #dadfe1;
+}
+
+.present {
+  fill: #c9b458;
+}
+
+.correct {
+  fill: #6aaa64;
+}
+
+.absent {
+  fill: #787c7e;
+}
+
+.star-body {
+  fill: #dadfe1;
+}
+
+.star-highlight {
+  fill: #dadfe1;
+}
+
+.star-lowlight {
+  fill: #dadfe1;
+}
+
+.star-active {
+  & .star-body {
+    fill: #fdd835;
+  }
+
+  & .star-highlight {
+    fill: #ffff8d;
+  }
+
+  & .star-lowlight {
+    fill: #f4b400;
+  }
+}
