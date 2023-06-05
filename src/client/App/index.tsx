@@ -109,18 +109,11 @@ export default class App extends Component<Props, State> {
     const newState = getStateUpdateFromHistoryEntry();
 
     // Either going from index to analysis, or from spoiler warning to analysis
-    /*
-    // Currently crashing
     const transitionToAnalysis =
       (!this.state.toAnalyze &&
         newState.toAnalyze &&
         !newState.showSpoilerWarning) ||
-      (this.state.showSpoilerWarning && !newState.showSpoilerWarning);*/
-
-    const transitionToAnalysis =
-      !this.state.toAnalyze &&
-      newState.toAnalyze &&
-      !newState.showSpoilerWarning;
+      (this.state.showSpoilerWarning && !newState.showSpoilerWarning);
 
     if (transitionToAnalysis) {
       (await lazyModule).performToAnalysisTransition(async () => {
