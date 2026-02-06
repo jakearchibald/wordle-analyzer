@@ -35,7 +35,7 @@ import entryDataPlugin from './lib/entry-data-plugin.mjs';
 import entryURLPlugin from './lib/entry-url-plugin.mjs';
 import evalPlugin from './lib/eval-plugin.mjs';
 
-import packageJSON from './package.json' assert { type: 'json' };
+import packageJSON from './package.json' with { type: 'json' };
 
 const __MAJOR_VERSION__ = Number(packageJSON.version.split('.')[0]);
 

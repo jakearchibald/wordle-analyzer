@@ -3,7 +3,7 @@
 }
 
 :global(.to-analysis)::view-transition-old(root) {
-  animation-duration: 250ms;
+  animation-duration: 25000ms;
 }
 
 @keyframes fade-in {
@@ -20,8 +20,8 @@
 
 :global(.to-analysis)::view-transition-new(root) {
   animation-name: fade-in, slide-down-slightly;
-  animation-duration: 300ms;
-  animation-delay: 400ms;
+  animation-duration: 30000ms;
+  animation-delay: 40000ms;
 }
 
 .tmp {
