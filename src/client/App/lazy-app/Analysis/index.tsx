@@ -159,6 +159,8 @@ export default class Analysis extends Component<Props, State> {
       {
         const previousClues: Clue[] = [];
         let remainingAnswers: RemainingAnswers | undefined = undefined;
+        const urlSearch = new URLSearchParams(location.search);
+        const forceWord = urlSearch.get('forceAIStart') || undefined;
 
         for (let guess = 0; ; guess++) {
           this.setState((state) => {
@@ -174,6 +176,7 @@ export default class Analysis extends Component<Props, State> {
             {
               hardMode: this.props.hardMode,
               remainingAnswers,
+              forceWord: guess === 0 ? forceWord : undefined,
               onProgress: (done, expecting) => {
                 this.setState((state) => {
                   const aiPlays = state.aiPlays.slice();

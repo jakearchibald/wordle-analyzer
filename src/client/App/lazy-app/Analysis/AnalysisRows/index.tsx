@@ -64,6 +64,8 @@ function getStrategyDescription(strategy: AIStrategy): string {
       return 'Take a punt on a remaining word';
     case AIStrategy.PlaySingleUncommon:
       return 'Play remaining word';
+    case AIStrategy.ForcedWord:
+      return 'Forced word';
   }
 }
 

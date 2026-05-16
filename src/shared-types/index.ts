@@ -74,4 +74,5 @@ export const enum AIStrategy {
   EliminateUncommonWithAnswer,
   Play5050Uncommon,
   PlaySingleUncommon,
+  ForcedWord,
 }

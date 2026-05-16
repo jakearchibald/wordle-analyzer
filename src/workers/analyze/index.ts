@@ -555,9 +555,9 @@ export function getBestPlay(
               ? AIStrategy.Play5050Common
               : AIStrategy.EliminateCommonWithAnswer
             : // Otherwise, is uncommon:
-            remaining.length === 2
-            ? AIStrategy.Play5050Uncommon
-            : AIStrategy.EliminateUncommonWithAnswer,
+              remaining.length === 2
+              ? AIStrategy.Play5050Uncommon
+              : AIStrategy.EliminateUncommonWithAnswer,
         };
       }
     }
@@ -824,10 +824,19 @@ async function analyzeGuess(
   };
 }
 
+interface AIPlayOptions extends AnalyzeGuessOptions {
+  forceWord?: string;
+}
+
 async function getAiPlay(
   answer: string,
   previousClues: Clue[],
-  { hardMode = false, remainingAnswers, onProgress }: AnalyzeGuessOptions = {},
+  {
+    hardMode = false,
+    remainingAnswers,
+    onProgress,
+    forceWord,
+  }: AIPlayOptions = {},
 ): Promise<AIPlay> {
   const flattenedClues = flattenClues(previousClues);
 
@@ -848,7 +857,9 @@ async function getAiPlay(
   }
 
   const commonWords = await getCommonWordSet();
-  const bestPlay = getBestPlay(remainingAnswers, remainingAverages);
+  const bestPlay = forceWord
+    ? { guess: forceWord, strategy: AIStrategy.ForcedWord }
+    : getBestPlay(remainingAnswers, remainingAverages);
   const play = await getPlayAnalysis(
     bestPlay.guess,
     answer,
@@ -959,11 +970,13 @@ async function messageListener(event: MessageEvent) {
     const remainingAnswers = event.data.remainingAnswers as RemainingAnswers;
     const hardMode = event.data.hardMode as boolean;
     const returnPort = event.data.returnPort as MessagePort;
+    const forceWord = event.data.forceWord as string | undefined;
 
     try {
       const result = await getAiPlay(answer, previousClues, {
         hardMode,
         remainingAnswers,
+        forceWord,
         onProgress: (done, expecting) => {
           returnPort.postMessage({
             action: 'progress',
