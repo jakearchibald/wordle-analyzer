@@ -67,7 +67,7 @@ export async function performToAnalysisTransition(
           transform: ['rotateX(0deg)', 'rotateX(-180deg)'],
         },
         {
-          duration: 300,
+          duration: 30_000,
           delay: (row + col) * 30,
           easing: 'ease',
           pseudoElement: `::view-transition-image-pair(guess-cell-${row}-${col})`,

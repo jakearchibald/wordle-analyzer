@@ -17,7 +17,6 @@ import fsp from 'fs/promises';
 import { deleteAsync } from 'del';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import terser from '@rollup/plugin-terser';
 import replace from '@rollup/plugin-replace';
 import OMT from '@surma/rollup-plugin-off-main-thread';
 
@@ -125,7 +124,6 @@ export default async function ({ watch }) {
               preventAssignment: true,
             }),
             entryDataPlugin(),
-            isProduction ? terser({ module: true }) : {},
           ],
           preserveEntrySignatures: false,
         },
