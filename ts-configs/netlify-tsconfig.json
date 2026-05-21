@@ -1,0 +1,12 @@
+{
+  "extends": "./generic-tsconfig.json",
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "types": ["node"]
+  },
+  "include": [
+    "../src/shared",
+    "../src/shared-types",
+    "../src/netlify-functions"
+  ]
+}

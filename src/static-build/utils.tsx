@@ -21,12 +21,13 @@ export function renderPage(vnode: VNode) {
 }
 
 interface OutputMap {
-  [path: string]: string;
+  [path: string]: string | false;
 }
 
 export function writeFiles(toOutput: OutputMap) {
   Promise.all(
     Object.entries(toOutput).map(async ([path, content]) => {
+      if (content === false) return;
       const pathParts = ['.tmp', 'build', 'static', ...path.split('/')];
       await fsp.mkdir(joinPath(...pathParts.slice(0, -1)), { recursive: true });
       const fullPath = joinPath(...pathParts);
@@ -43,18 +44,6 @@ export function writeFiles(toOutput: OutputMap) {
     console.error(err);
     process.exit(1);
   });
-}
-
-/**
- * Escape a string for insertion in a style or script tag
- */
-export function escapeStyleScriptContent(str: string): string {
-  return str
-    .replace(/<!--/g, '<\\!--')
-    .replace(/<script/g, '<\\script')
-    .replace(/<\/script/g, '<\\/script')
-    .replace(/<style/g, '<\\style')
-    .replace(/<\/style/g, '<\\/style');
 }
 
 const productionURL = 'https://wordle-analyzer.com';

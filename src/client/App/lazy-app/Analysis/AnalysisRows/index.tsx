@@ -11,6 +11,7 @@ import {
 } from 'shared-types/index';
 import Guess from 'client/App/Guess';
 import { formatNumber } from '../../utils';
+import { getLuckIndex, luckValues } from 'shared/utils';
 
 interface Props {
   first: boolean;
@@ -130,11 +131,7 @@ export default class AnalysisRows extends Component<Props, State> {
         <tr>
           <th scope="row">Guess quality</th>
           {plays.map((play) => (
-            <td>
-              {play.guessQuality === undefined
-                ? '???'
-                : formatNumber(play.guessQuality * 100) + '%'}
-            </td>
+            <td>{formatNumber(play.guessQuality * 100) + '%'}</td>
           ))}
         </tr>
         {initalRemaining > 1 && !allGuessesRight && (
@@ -176,7 +173,7 @@ export default class AnalysisRows extends Component<Props, State> {
             <th scope="row">Luck rating</th>
 
             {plays.map((play) => (
-              <td>{play.luck ? getLuck(play.luck) : '???'}</td>
+              <td>{luckValues[getLuckIndex(play.luck)]}</td>
             ))}
           </tr>
         )}

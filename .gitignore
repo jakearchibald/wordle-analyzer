@@ -4,3 +4,6 @@ node_modules
 *.css.d.ts
 .tmp
 build
+built-netlify-functions
+# Local Netlify folder
+.netlify

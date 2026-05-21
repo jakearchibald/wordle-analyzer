@@ -4,6 +4,7 @@
   "references": [
     { "path": "./ts-configs/client-tsconfig.json" },
     { "path": "./ts-configs/static-build-tsconfig.json" },
-    { "path": "./ts-configs/workers-tsconfig.json" }
+    { "path": "./ts-configs/workers-tsconfig.json" },
+    { "path": "./ts-configs/netlify-tsconfig.json" },
   ]
 }

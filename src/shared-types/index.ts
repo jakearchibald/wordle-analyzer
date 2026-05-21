@@ -17,11 +17,11 @@ export interface PlayAnalysis {
   colors: CellColors;
   hardModeViolations: string[];
   unusedClues: string[];
-  averageRemaining: { common: number; all: number } | undefined;
+  averageRemaining: { common: number; all: number };
   remainingAnswers: RemainingAnswers;
-  luck: Luck | undefined;
+  luck: Luck;
   commonWord: boolean;
-  guessQuality: number | undefined;
+  guessQuality: number;
 }
 
 export interface GuessAnalysis {

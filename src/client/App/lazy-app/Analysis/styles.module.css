@@ -31,6 +31,25 @@
   margin-bottom: 5rem;
 }
 
+.list {
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+
+  & li {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: start;
+
+    &::before {
+      content: '-';
+      margin-right: 0.5rem;
+    }
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -20,13 +20,15 @@ import Header from './Header';
 import faviconURL from 'url:static-build/assets/favicon.png';
 import socialImageURL from 'url:static-build/assets/social-large.png';
 // import ogImage from 'url:static-build/assets/icon-large-maskable.png';
-import { escapeStyleScriptContent, siteOrigin } from 'static-build/utils';
+import { siteOrigin } from 'static-build/utils';
+import { escapeStyleScriptContent } from 'shared/utils';
 
 interface Props {}
 
 const Index: FunctionalComponent<Props> = () => (
   <html lang="en">
     <head>
+      <meta charSet="utf-8" />
       <title>Wordle Analyzer</title>
       <meta name="theme-color" content="#6aaa64" />
       <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
@@ -38,20 +40,18 @@ const Index: FunctionalComponent<Props> = () => (
       />
       <meta property="og:image" content={`${siteOrigin}${socialImageURL}`} />
       <meta name="twitter:site" content="@jaffathecake" />
-      <meta property="og:url" content={`${siteOrigin}/`} />
+      {/*<meta property="og:url" content={`${siteOrigin}/`} />*/}
       <meta property="og:title" content="Wordle Analyzer" />
       <meta
         property="og:description"
         content="Discover if your Wordle guesses were luck, or genius"
       />
       <link rel="manifest" href="/manifest.json" />
-      {
-        <style
-          dangerouslySetInnerHTML={{
-            __html: escapeStyleScriptContent(initialCss),
-          }}
-        />
-      }
+      <style
+        dangerouslySetInnerHTML={{
+          __html: escapeStyleScriptContent(initialCss),
+        }}
+      />
       {imports.map((preload) => (
         <link rel="preload" href={preload} as="script" />
       ))}
